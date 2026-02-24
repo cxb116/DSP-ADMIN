@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.SspSlotInfoMapper">
+    
+    <resultMap type="SspSlotInfo" id="SspSlotInfoResult">
+        <result property="id"    column="id"    />
+        <result property="mediaId"    column="media_id"    />
+        <result property="appId"    column="app_id"    />
+        <result property="name"    column="name"    />
+        <result property="nameAlise"    column="name_alise"    />
+        <result property="sceneId"    column="scene_id"    />
+        <result property="sspPayType"    column="ssp_pay_type"    />
+        <result property="sspDealRatio"    column="ssp_deal_ratio"    />
+        <result property="width"    column="width"    />
+        <result property="height"    column="height"    />
+        <result property="adImage"    column="ad_image"    />
+        <result property="interactionType"    column="interaction_type"    />
+        <result property="enable"    column="enable"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectSspSlotInfoVo">
+        select id, media_id, app_id, name, name_alise, scene_id, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable, create_by, create_time, update_by, update_time, remark from ssp_slot_info
+    </sql>
+
+    <select id="selectSspSlotInfoList" parameterType="SspSlotInfo" resultMap="SspSlotInfoResult">
+        <include refid="selectSspSlotInfoVo"/>
+        <where>  
+            <if test="mediaId != null "> and media_id = #{mediaId}</if>
+            <if test="appId != null "> and app_id = #{appId}</if>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
+            <if test="nameAlise != null  and nameAlise != ''"> and name_alise = #{nameAlise}</if>
+            <if test="sceneId != null "> and scene_id = #{sceneId}</if>
+            <if test="sspPayType != null "> and ssp_pay_type = #{sspPayType}</if>
+            <if test="sspDealRatio != null "> and ssp_deal_ratio = #{sspDealRatio}</if>
+            <if test="width != null "> and width = #{width}</if>
+            <if test="height != null "> and height = #{height}</if>
+            <if test="adImage != null  and adImage != ''"> and ad_image = #{adImage}</if>
+            <if test="interactionType != null "> and interaction_type = #{interactionType}</if>
+            <if test="enable != null "> and enable = #{enable}</if>
+        </where>
+    </select>
+    
+    <select id="selectSspSlotInfoById" parameterType="Long" resultMap="SspSlotInfoResult">
+        <include refid="selectSspSlotInfoVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertSspSlotInfo" parameterType="SspSlotInfo" useGeneratedKeys="true" keyProperty="id">
+        insert into ssp_slot_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="mediaId != null">media_id,</if>
+            <if test="appId != null">app_id,</if>
+            <if test="name != null and name != ''">name,</if>
+            <if test="nameAlise != null">name_alise,</if>
+            <if test="sceneId != null">scene_id,</if>
+            <if test="sspPayType != null">ssp_pay_type,</if>
+            <if test="sspDealRatio != null">ssp_deal_ratio,</if>
+            <if test="width != null">width,</if>
+            <if test="height != null">height,</if>
+            <if test="adImage != null">ad_image,</if>
+            <if test="interactionType != null">interaction_type,</if>
+            <if test="enable != null">enable,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="mediaId != null">#{mediaId},</if>
+            <if test="appId != null">#{appId},</if>
+            <if test="name != null and name != ''">#{name},</if>
+            <if test="nameAlise != null">#{nameAlise},</if>
+            <if test="sceneId != null">#{sceneId},</if>
+            <if test="sspPayType != null">#{sspPayType},</if>
+            <if test="sspDealRatio != null">#{sspDealRatio},</if>
+            <if test="width != null">#{width},</if>
+            <if test="height != null">#{height},</if>
+            <if test="adImage != null">#{adImage},</if>
+            <if test="interactionType != null">#{interactionType},</if>
+            <if test="enable != null">#{enable},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateSspSlotInfo" parameterType="SspSlotInfo">
+        update ssp_slot_info
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="mediaId != null">media_id = #{mediaId},</if>
+            <if test="appId != null">app_id = #{appId},</if>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="nameAlise != null">name_alise = #{nameAlise},</if>
+            <if test="sceneId != null">scene_id = #{sceneId},</if>
+            <if test="sspPayType != null">ssp_pay_type = #{sspPayType},</if>
+            <if test="sspDealRatio != null">ssp_deal_ratio = #{sspDealRatio},</if>
+            <if test="width != null">width = #{width},</if>
+            <if test="height != null">height = #{height},</if>
+            <if test="adImage != null">ad_image = #{adImage},</if>
+            <if test="interactionType != null">interaction_type = #{interactionType},</if>
+            <if test="enable != null">enable = #{enable},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteSspSlotInfoById" parameterType="Long">
+        delete from ssp_slot_info where id = #{id}
+    </delete>
+
+    <delete id="deleteSspSlotInfoByIds" parameterType="String">
+        delete from ssp_slot_info where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
