@@ -59,3 +59,11 @@ export function saveLaunchConfig(data) {
     data: data
   })
 }
+
+// 根据媒体广告位ID查询投放配置列表
+export function getLaunchConfig(sspSlotId) {
+  return request({
+    url: '/flow/mediaAd/launchConfig/' + sspSlotId,
+    method: 'get'
+  })
+}

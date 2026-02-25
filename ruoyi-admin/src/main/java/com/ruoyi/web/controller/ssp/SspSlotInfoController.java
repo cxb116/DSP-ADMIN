@@ -1,6 +1,8 @@
 package com.ruoyi.web.controller.ssp;
 
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
@@ -119,32 +122,57 @@ public class SspSlotInfoController extends BaseController
     }
 
     /**
+     * 根据媒体广告位ID查询投放配置列表
+     */
+    @GetMapping("/launchConfig/{sspSlotId}")
+    public AjaxResult getLaunchConfig(@PathVariable("sspSlotId") Long sspSlotId)
+    {
+        List<com.ruoyi.system.domain.DspLaunchDTO> list = dspLaunchService.selectDspLaunchDTOBySspSlotId(sspSlotId);
+        return success(list);
+    }
+
+    /**
      * 保存媒体广告位的投放配置
      */
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:config')")
     @Log(title = "媒体广告位", businessType = BusinessType.UPDATE)
     @PostMapping("/saveLaunchConfig")
-    public AjaxResult saveLaunchConfig(@RequestBody java.util.Map<String, Object> params)
+    public AjaxResult saveLaunchConfig(@RequestBody Map<String, Object> params)
     {
-        Long mediaAdId = Long.valueOf(params.get("mediaAdId").toString());
-        @SuppressWarnings("unchecked")
-        java.util.List<com.ruoyi.system.domain.DspLaunch> slotList =
-            (java.util.List<com.ruoyi.system.domain.DspLaunch>) params.get("slotList");
+        Long sspSlotId = Long.valueOf(params.get("mediaAdId").toString());
 
-        if (mediaAdId == null) {
+        if (sspSlotId == null) {
             return error("媒体广告位ID不能为空");
         }
 
-        if (slotList == null || slotList.isEmpty()) {
+        Object slotListObj = params.get("slotList");
+        if (slotListObj == null) {
             return error("投放配置列表不能为空");
         }
 
-        // 设置媒体广告位ID
-        for (DspLaunch launch : slotList) {
-            launch.setMediaAdId(mediaAdId);
-        }
+        try {
+            // 使用 ObjectMapper 将 LinkedHashMap 转换为 DspLaunch 对象
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<DspLaunch> slotList = new ArrayList<>();
 
-        int result = dspLaunchService.batchSaveDspLaunch(mediaAdId, slotList);
-        return toAjax(result);
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> rawSlotList = (List<Map<String, Object>>) slotListObj;
+
+            for (Map<String, Object> slotMap : rawSlotList) {
+                DspLaunch launch = objectMapper.convertValue(slotMap, DspLaunch.class);
+                launch.setSspSlotId(sspSlotId);
+                slotList.add(launch);
+            }
+
+            if (slotList.isEmpty()) {
+                return error("投放配置列表不能为空");
+            }
+
+            int result = dspLaunchService.batchSaveDspLaunch(sspSlotId, slotList);
+            return toAjax(result);
+        } catch (Exception e) {
+            logger.error("保存投放配置失败", e);
+            return error("保存投放配置失败: " + e.getMessage());
+        }
     }
 }

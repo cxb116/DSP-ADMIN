@@ -2,6 +2,7 @@ package com.ruoyi.system.service;
 
 import java.util.List;
 import com.ruoyi.system.domain.DspLaunch;
+import com.ruoyi.system.domain.DspLaunchDTO;
 
 /**
  * 投放配置Service接口
@@ -30,10 +31,18 @@ public interface IDspLaunchService
     /**
      * 根据媒体广告位ID查询投放配置列表
      *
-     * @param mediaAdId 媒体广告位ID
+     * @param sspSlotId 媒体广告位ID
      * @return 投放配置集合
      */
-    public List<DspLaunch> selectDspLaunchByMediaAdId(Long mediaAdId);
+    public List<DspLaunch> selectDspLaunchBySspSlotId(Long sspSlotId);
+
+    /**
+     * 根据媒体广告位ID查询投放配置DTO列表（包含预算方广告位信息）
+     *
+     * @param sspSlotId 媒体广告位ID
+     * @return 投放配置DTO集合
+     */
+    public List<DspLaunchDTO> selectDspLaunchDTOBySspSlotId(Long sspSlotId);
 
     /**
      * 新增投放配置
@@ -46,11 +55,11 @@ public interface IDspLaunchService
     /**
      * 批量保存投放配置（先删除旧的，再插入新的）
      *
-     * @param mediaAdId 媒体广告位ID
+     * @param sspSlotId 媒体广告位ID
      * @param dspLaunchList 投放配置集合
      * @return 结果
      */
-    public int batchSaveDspLaunch(Long mediaAdId, List<DspLaunch> dspLaunchList);
+    public int batchSaveDspLaunch(Long sspSlotId, List<DspLaunch> dspLaunchList);
 
     /**
      * 修改投放配置
@@ -79,8 +88,8 @@ public interface IDspLaunchService
     /**
      * 根据媒体广告位ID删除投放配置
      *
-     * @param mediaAdId 媒体广告位ID
+     * @param sspSlotId 媒体广告位ID
      * @return 结果
      */
-    public int deleteDspLaunchByMediaAdId(Long mediaAdId);
+    public int deleteDspLaunchBySspSlotId(Long sspSlotId);
 }

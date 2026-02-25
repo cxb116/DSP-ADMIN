@@ -103,7 +103,14 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="nameAlise != null">name_alise = #{nameAlise},</if>
             <if test="adScene != null">ad_scene = #{adScene},</if>
             <if test="sspPayType != null">ssp_pay_type = #{sspPayType},</if>
-            <if test="sspDealRatio != null">ssp_deal_ratio = #{sspDealRatio},</if>
+            <choose>
+                <when test="sspPayType != null and sspPayType == 2">
+                    ssp_deal_ratio = null,
+                </when>
+                <when test="sspDealRatio != null">
+                    ssp_deal_ratio = #{sspDealRatio},
+                </when>
+            </choose>
             <if test="width != null">width = #{width},</if>
             <if test="height != null">height = #{height},</if>
             <if test="adImage != null">ad_image = #{adImage},</if>

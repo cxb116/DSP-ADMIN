@@ -277,6 +277,12 @@
               <el-descriptions-item label="广告类型">
                 <dict-tag :options="ad_scene" :value="String(configMediaAd.adScene)" />
               </el-descriptions-item>
+              <el-descriptions-item label="结算方式">
+                <dict-tag :options="ssp_pay_type" :value="String(configMediaAd.sspPayType)" />
+              </el-descriptions-item>
+              <el-descriptions-item label="分成系数">
+                {{ configMediaAd.sspPayType === '2' ? '-' : configMediaAd.sspDealRatio }}
+              </el-descriptions-item>
             </el-descriptions>
           </el-card>
 
@@ -386,11 +392,10 @@
                       <span>{{ slot.priceEncryptKey }}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="结算方式">
-                      <el-tag v-if="slot.dspPayType === 1" type="success">分成</el-tag>
-                      <el-tag v-else-if="slot.dspPayType === 2" type="primary">RTB</el-tag>
+                      <el-tag v-if="slot.dspPayType == 1 || slot.dspPayType == '1'" type="success">分成</el-tag>
+                      <el-tag v-else-if="slot.dspPayType == 2 || slot.dspPayType == '2'" type="primary">RTB</el-tag>
                       <el-tag v-else type="info">未知</el-tag>
                     </el-descriptions-item>
-                    <!-- 隐藏成交系数字段 -->
                     <el-descriptions-item label="应用商店地址" :span="2">
                       <span>{{ slot.dspAppStoreLink }}</span>
                     </el-descriptions-item>
@@ -414,44 +419,18 @@
                         </el-col>
                       </el-row>
 
-                      <!-- RTB 分成配置 -->
-                      <el-divider content-position="left">结算配置</el-divider>
-                      <el-row :gutter="20">
-                        <el-col :span="12">
-                          <el-form-item label="结算方式">
-                            <el-tag v-if="slot.dspPayType === 1" type="success">分成</el-tag>
-                            <el-tag v-else-if="slot.dspPayType === 2" type="primary">RTB</el-tag>
-                            <el-tag v-else type="info">未知</el-tag>
-                            <div class="form-tip">从预算方继承，不可修改</div>
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="12" v-if="slot.dspPayType === 1">
-                          <el-form-item
-                            label="分成比例(%)"
-                            required
-                          >
-                            <el-input-number
-                              v-model="slot.dspDealRatio"
-                              :min="0"
-                              :max="100"
-                              :precision="2"
-                              placeholder="请输入分成比例"
-                              style="width: 100%"
-                            />
-                            <div class="form-tip">分成方式时必填</div>
-                          </el-form-item>
-                        </el-col>
-                      </el-row>
-                      <el-row :gutter="20" v-if="slot.dspPayType === 2">
+                      <!-- 底价配置 -->
+                      <el-divider content-position="left" v-if="slot.dspPayType == 2 || slot.dspPayType == '2'">底价配置</el-divider>
+                      <el-row :gutter="20" v-if="slot.dspPayType == 2 || slot.dspPayType == '2'">
                         <el-col :span="24">
-                          <el-form-item label="底价" required>
+                          <el-form-item label="底价(分)" required>
                             <el-input-number
                               v-model="slot.floorPrice"
                               :min="0"
-                              placeholder="RTB时必填，单位：分"
+                              placeholder="请输入底价，单位：分"
                               style="width: 100%"
                             />
-                            <div class="form-tip">RTB方式时必填，给上游媒体底价，单位：分</div>
+                            <div class="form-tip">给上游媒体底价，单位：分</div>
                           </el-form-item>
                         </el-col>
                       </el-row>
@@ -577,8 +556,8 @@
         <el-table-column label="APPKEY" align="center" prop="dspAppKey" />
         <el-table-column label="结算方式" align="center" prop="dspPayType">
           <template #default="scope">
-            <el-tag v-if="scope.row.dspPayType === 1" type="success">分成</el-tag>
-            <el-tag v-else-if="scope.row.dspPayType === 2" type="primary">RTB</el-tag>
+            <el-tag v-if="scope.row.dspPayType == 1 || scope.row.dspPayType == '1'" type="success">分成</el-tag>
+            <el-tag v-else-if="scope.row.dspPayType == 2 || scope.row.dspPayType == '2'" type="primary">RTB</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </template>
         </el-table-column>
@@ -594,7 +573,7 @@
 </template>
 
 <script setup name="MediaAd">
-import { listMediaAd, getMediaAd, delMediaAd, addMediaAd, updateMediaAd, getMatchedDspSlots, saveLaunchConfig } from "@/api/flow/mediaAd"
+import { listMediaAd, getMediaAd, delMediaAd, addMediaAd, updateMediaAd, getMatchedDspSlots, saveLaunchConfig, getLaunchConfig } from "@/api/flow/mediaAd"
 import { getMediaAppCascader } from "@/api/flow/media"
 import { getApp } from "@/api/flow/app"
 import { useDict } from "@/utils/dict"
@@ -787,6 +766,10 @@ function handleSelectionChange(selection) {
 
 /** 结算方式改变时触发分成系数验证 */
 function handleSspPayTypeChange() {
+  // 如果结算方式切换为RTB，清空分成系数
+  if (form.value.sspPayType === '2') {
+    form.value.sspDealRatio = null
+  }
   // 触发分成系数字段的验证
   proxy.$refs["mediaAdRef"].validateField('sspDealRatio')
 }
@@ -834,6 +817,11 @@ function submitForm() {
       if (form.value.mediaAppCascade && form.value.mediaAppCascade.length > 0) {
         form.value.mediaId = form.value.mediaAppCascade[0]
         form.value.appId = form.value.mediaAppCascade[1] || null
+      }
+
+      // 如果结算方式是RTB，将分成系数设置为null
+      if (form.value.sspPayType === '2') {
+        form.value.sspDealRatio = null
       }
 
       if (form.value.id != null) {
@@ -908,9 +896,48 @@ function loadAppInfo(appId) {
 
 /** 加载预算方列表 */
 function loadSlotList(mediaAdId) {
-  // TODO: 调用 API 获取该广告位的预算方配置列表
-  // 这里先使用模拟数据
-  slotList.value = []
+  getLaunchConfig(mediaAdId).then(response => {
+    const launchConfigList = response.data || []
+    // 将后端返回的数据转换为前端需要的格式
+    slotList.value = launchConfigList.map(launch => {
+      const slotInfo = launch.dspSlotInfo || {}
+      return {
+        id: launch.id,
+        dspSlotInfoId: launch.dspSlotId,
+        trafficWeight: launch.trafficWeight,
+        launchStrategy: launch.launchStrategy,
+        floorPrice: launch.floorPrice,
+        ipLimit: launch.ipLimit,
+        logCaptureAt: launch.logCaptureAt,
+        trackSchwarz: launch.trackSchwarz,
+        req: launch.req,
+        ims: launch.ims,
+        clk: launch.clk,
+        launchTime: launch.launchTime,
+        regionDirection: launch.regionDirection,
+        brandDirection: launch.brandDirection,
+        // DspSlotInfo 的字段
+        name: slotInfo.name || '',
+        osType: slotInfo.osType,
+        adScene: slotInfo.adScene,
+        dspSlotCode: slotInfo.dspSlotCode || '',
+        dspAppKey: slotInfo.dspAppKey || '',
+        dspAppSecret: slotInfo.dspAppSecret || '',
+        dspAppId: slotInfo.dspAppId || '',
+        dspAppPkg: slotInfo.dspAppPkg || '',
+        dspAppVer: slotInfo.dspAppVer || '',
+        dspAppStoreVer: slotInfo.dspAppStoreVer || '',
+        priceEncryptKey: slotInfo.priceEncryptKey || '',
+        dspAppStoreLink: slotInfo.dspAppStoreLink || '',
+        dspPayType: slotInfo.dspPayType || null,
+        dspDealRatio: slotInfo.dspDealRatio || null,
+        activeCollapse: ['launch'] // 默认展开投放配置
+      }
+    })
+  }).catch(() => {
+    proxy.$modal.msgError('获取投放配置失败')
+    slotList.value = []
+  })
 }
 
 /** 添加预算方 */
@@ -993,12 +1020,12 @@ function handleConfirmSelectSlot() {
         dspAppStoreVer: matchedSlot.dspAppStoreVer || '',
         priceEncryptKey: matchedSlot.priceEncryptKey || '',
         dspAppStoreLink: matchedSlot.dspAppStoreLink || '',
-        dspPayType: matchedSlot.dspPayType || 1,
+        dspPayType: matchedSlot.dspPayType || null,
         dspDealRatio: matchedSlot.dspDealRatio || null,
         // 投放配置字段
         trafficWeight: null, // 流量权重
         launchStrategy: 1, // 投放策略：1对接第三方，2：自主投放
-        floorPrice: null, // 底价（RTB时需要）
+        floorPrice: null, // 底价
         ipLimit: null, // IP限流次数
         logCaptureAt: 300, // 捕获日志时长（默认300秒）
         trackSchwarz: '', // 上报黑名单
@@ -1138,15 +1165,8 @@ function handleSaveConfig() {
       return
     }
 
-    // 验证结算方式相关字段
-    if (slot.dspPayType === 1) {
-      // 分成方式：分成比例必填
-      if (!slot.dspDealRatio || slot.dspDealRatio <= 0) {
-        proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的分成比例不能为空且必须大于0`)
-        return
-      }
-    } else if (slot.dspPayType === 2) {
-      // RTB方式：底价必填
+    // 验证底价必填（仅 RTB 模式）
+    if (slot.dspPayType == 2 || slot.dspPayType == '2') {
       if (!slot.floorPrice || slot.floorPrice <= 0) {
         proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的底价不能为空且必须大于0`)
         return
@@ -1180,11 +1200,9 @@ function handleSaveConfig() {
   const saveData = {
     mediaAdId: configMediaAd.value.id,
     slotList: slotList.value.map(slot => ({
-      dspSlotInfoId: slot.dspSlotInfoId,
+      dspSlotId: slot.dspSlotInfoId,
       trafficWeight: slot.trafficWeight,
       launchStrategy: slot.launchStrategy,
-      dspPayType: slot.dspPayType,
-      dspDealRatio: slot.dspDealRatio,
       floorPrice: slot.floorPrice,
       ipLimit: slot.ipLimit,
       logCaptureAt: slot.logCaptureAt,

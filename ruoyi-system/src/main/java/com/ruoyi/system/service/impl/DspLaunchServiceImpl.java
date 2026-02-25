@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.ruoyi.system.mapper.DspLaunchMapper;
 import com.ruoyi.system.domain.DspLaunch;
+import com.ruoyi.system.domain.DspLaunchDTO;
 import com.ruoyi.system.service.IDspLaunchService;
 
 /**
@@ -48,13 +49,25 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     /**
      * 根据媒体广告位ID查询投放配置列表
      *
-     * @param mediaAdId 媒体广告位ID
+     * @param sspSlotId 媒体广告位ID
      * @return 投放配置集合
      */
     @Override
-    public List<DspLaunch> selectDspLaunchByMediaAdId(Long mediaAdId)
+    public List<DspLaunch> selectDspLaunchBySspSlotId(Long sspSlotId)
     {
-        return dspLaunchMapper.selectDspLaunchByMediaAdId(mediaAdId);
+        return dspLaunchMapper.selectDspLaunchBySspSlotId(sspSlotId);
+    }
+
+    /**
+     * 根据媒体广告位ID查询投放配置DTO列表（包含预算方广告位信息）
+     *
+     * @param sspSlotId 媒体广告位ID
+     * @return 投放配置DTO集合
+     */
+    @Override
+    public List<DspLaunchDTO> selectDspLaunchDTOBySspSlotId(Long sspSlotId)
+    {
+        return dspLaunchMapper.selectDspLaunchDTOBySspSlotId(sspSlotId);
     }
 
     /**
@@ -73,16 +86,16 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     /**
      * 批量保存投放配置（先删除旧的，再插入新的）
      *
-     * @param mediaAdId 媒体广告位ID
+     * @param sspSlotId 媒体广告位ID
      * @param dspLaunchList 投放配置集合
      * @return 结果
      */
     @Override
     @Transactional
-    public int batchSaveDspLaunch(Long mediaAdId, List<DspLaunch> dspLaunchList)
+    public int batchSaveDspLaunch(Long sspSlotId, List<DspLaunch> dspLaunchList)
     {
         // 先删除该媒体广告位的所有旧配置
-        dspLaunchMapper.deleteDspLaunchByMediaAdId(mediaAdId);
+        dspLaunchMapper.deleteDspLaunchBySspSlotId(sspSlotId);
 
         // 批量插入新配置
         if (dspLaunchList != null && !dspLaunchList.isEmpty())
@@ -139,12 +152,12 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     /**
      * 根据媒体广告位ID删除投放配置
      *
-     * @param mediaAdId 媒体广告位ID
+     * @param sspSlotId 媒体广告位ID
      * @return 结果
      */
     @Override
-    public int deleteDspLaunchByMediaAdId(Long mediaAdId)
+    public int deleteDspLaunchBySspSlotId(Long sspSlotId)
     {
-        return dspLaunchMapper.deleteDspLaunchByMediaAdId(mediaAdId);
+        return dspLaunchMapper.deleteDspLaunchBySspSlotId(sspSlotId);
     }
 }

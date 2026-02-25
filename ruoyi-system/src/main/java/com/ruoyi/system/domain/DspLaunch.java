@@ -20,11 +20,11 @@ public class DspLaunch extends BaseEntity
 
     /** 媒体广告位ID */
     @Excel(name = "媒体广告位ID")
-    private Long mediaAdId;
+    private Long sspSlotId;
 
     /** 预算方广告位ID */
     @Excel(name = "预算方广告位ID")
-    private Long dspSlotInfoId;
+    private Long dspSlotId;
 
     /** 流量权重 */
     @Excel(name = "流量权重")
@@ -33,14 +33,6 @@ public class DspLaunch extends BaseEntity
     /** 投放策略：1对接第三方，2自主投放 */
     @Excel(name = "投放策略", readConverterExp = "1=对接第三方,2=自主投放")
     private Integer launchStrategy;
-
-    /** 结算方式：1分成，2RTB */
-    @Excel(name = "结算方式", readConverterExp = "1=分成,2=RTB")
-    private Integer dspPayType;
-
-    /** 分成比例(%) */
-    @Excel(name = "分成比例")
-    private Long dspDealRatio;
 
     /** 底价(分) */
     @Excel(name = "底价")
@@ -92,24 +84,24 @@ public class DspLaunch extends BaseEntity
         return id;
     }
 
-    public void setMediaAdId(Long mediaAdId)
+    public void setSspSlotId(Long sspSlotId)
     {
-        this.mediaAdId = mediaAdId;
+        this.sspSlotId = sspSlotId;
     }
 
-    public Long getMediaAdId()
+    public Long getSspSlotId()
     {
-        return mediaAdId;
+        return sspSlotId;
     }
 
-    public void setDspSlotInfoId(Long dspSlotInfoId)
+    public void setDspSlotId(Long dspSlotId)
     {
-        this.dspSlotInfoId = dspSlotInfoId;
+        this.dspSlotId = dspSlotId;
     }
 
-    public Long getDspSlotInfoId()
+    public Long getDspSlotId()
     {
-        return dspSlotInfoId;
+        return dspSlotId;
     }
 
     public void setTrafficWeight(Integer trafficWeight)
@@ -130,26 +122,6 @@ public class DspLaunch extends BaseEntity
     public Integer getLaunchStrategy()
     {
         return launchStrategy;
-    }
-
-    public void setDspPayType(Integer dspPayType)
-    {
-        this.dspPayType = dspPayType;
-    }
-
-    public Integer getDspPayType()
-    {
-        return dspPayType;
-    }
-
-    public void setDspDealRatio(Long dspDealRatio)
-    {
-        this.dspDealRatio = dspDealRatio;
-    }
-
-    public Long getDspDealRatio()
-    {
-        return dspDealRatio;
     }
 
     public void setFloorPrice(Long floorPrice)
@@ -256,12 +228,10 @@ public class DspLaunch extends BaseEntity
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("id", getId())
-            .append("mediaAdId", getMediaAdId())
-            .append("dspSlotInfoId", getDspSlotInfoId())
+            .append("sspSlotId", getSspSlotId())
+            .append("dspSlotId", getDspSlotId())
             .append("trafficWeight", getTrafficWeight())
             .append("launchStrategy", getLaunchStrategy())
-            .append("dspPayType", getDspPayType())
-            .append("dspDealRatio", getDspDealRatio())
             .append("floorPrice", getFloorPrice())
             .append("ipLimit", getIpLimit())
             .append("logCaptureAt", getLogCaptureAt())
