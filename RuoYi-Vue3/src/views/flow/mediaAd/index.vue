@@ -105,10 +105,21 @@
 
     <el-table v-loading="loading" :data="mediaAdList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="媒体id" align="center" prop="mediaId" />
-      <el-table-column label="应用id" align="center" prop="appId" />
-      <el-table-column label="广告位名称" align="center" prop="name" />
+      <el-table-column label="媒体" align="center" prop="mediaId">
+        <template #default="scope">
+          {{ getMediaName(scope.row.mediaId) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="应用" align="center" prop="appId">
+        <template #default="scope">
+          {{ getAppName(scope.row.appId) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="广告位名称" align="center" prop="name">
+        <template #default="scope">
+          {{ scope.row.name }}({{ scope.row.id }})
+        </template>
+      </el-table-column>
       <el-table-column label="内部广告位名称" align="center" prop="nameAlise" />
       <el-table-column label="场景" align="center" prop="sceneId">
         <template #default="scope">
@@ -134,7 +145,6 @@
           <dict-tag :options="audit_status" :value="String(scope.row.enable)" />
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['flow:mediaAd:edit']">修改</el-button>
@@ -153,12 +163,16 @@
 
     <!-- 添加或修改媒体广告位对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="mediaAdRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="媒体id" prop="mediaId">
-          <el-input v-model="form.mediaId" placeholder="请输入媒体id" />
-        </el-form-item>
-        <el-form-item label="应用id" prop="appId">
-          <el-input v-model="form.appId" placeholder="请输入应用id" />
+      <el-form ref="mediaAdRef" :model="form" :rules="rules" label-width="120px">
+        <el-form-item label="媒体/应用" prop="mediaAppCascade">
+          <el-cascader
+            v-model="form.mediaAppCascade"
+            :options="cascaderData"
+            :props="{ expandTrigger: 'hover' }"
+            placeholder="请选择媒体/应用"
+            clearable
+            style="width: 100%"
+          />
         </el-form-item>
         <el-form-item label="广告位名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入广告位名称" />
@@ -177,7 +191,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="结算方式" prop="sspPayType">
-          <el-select v-model="form.sspPayType" placeholder="请选择结算方式">
+          <el-select v-model="form.sspPayType" placeholder="请选择结算方式" @change="handleSspPayTypeChange">
             <el-option
               v-for="dict in ssp_pay_type"
               :key="dict.value"
@@ -244,6 +258,10 @@ const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
 
+// 创建媒体和应用ID到名称的映射
+const mediaNameMap = ref(new Map())
+const appNameMap = ref(new Map())
+
 const data = reactive({
   form: {},
   queryParams: {
@@ -258,17 +276,27 @@ const data = reactive({
     enable: null,
   },
   rules: {
-    mediaId: [
-      { required: true, message: "媒体id不能为空", trigger: "blur" }
-    ],
-    appId: [
-      { required: true, message: "应用id不能为空", trigger: "blur" }
+    mediaAppCascade: [
+      { required: true, message: "媒体/应用不能为空", trigger: "change", type: 'array' }
     ],
     name: [
       { required: true, message: "广告位名称不能为空", trigger: "blur" }
     ],
     sspPayType: [
       { required: true, message: "结算方式不能为空", trigger: "change" }
+    ],
+    sspDealRatio: [
+      {
+        validator: (_rule, value, callback) => {
+          // 如果结算方式选择分成，则分成系数必填
+          if (form.value.sspPayType === '1' && !value) {
+            callback(new Error('分成系数不能为空'))
+          } else {
+            callback()
+          }
+        },
+        trigger: 'blur'
+      }
     ],
     enable: [
       { required: true, message: "状态不能为空", trigger: "change" }
@@ -300,7 +328,28 @@ function getList() {
 function loadCascaderData() {
   getMediaAppCascader().then(response => {
     cascaderData.value = response.data
+    // 构建媒体和应用ID到名称的映射
+    mediaNameMap.value.clear()
+    appNameMap.value.clear()
+    response.data.forEach(media => {
+      mediaNameMap.value.set(media.value, media.label)
+      if (media.children && media.children.length > 0) {
+        media.children.forEach(app => {
+          appNameMap.value.set(app.value, app.label)
+        })
+      }
+    })
   })
+}
+
+/** 根据媒体ID获取媒体名称 */
+function getMediaName(mediaId) {
+  return mediaNameMap.value.get(mediaId) || mediaId
+}
+
+/** 根据应用ID获取应用名称 */
+function getAppName(appId) {
+  return appNameMap.value.get(appId) || appId
 }
 
 // 取消按钮
@@ -315,6 +364,7 @@ function reset() {
     id: null,
     mediaId: null,
     appId: null,
+    mediaAppCascade: [],
     name: null,
     nameAlise: null,
     sceneId: null,
@@ -353,6 +403,12 @@ function handleSelectionChange(selection) {
   multiple.value = !selection.length
 }
 
+/** 结算方式改变时触发分成系数验证 */
+function handleSspPayTypeChange() {
+  // 触发分成系数字段的验证
+  proxy.$refs["mediaAdRef"].validateField('sspDealRatio')
+}
+
 /** 新增按钮操作 */
 function handleAdd() {
   reset()
@@ -376,6 +432,12 @@ function handleUpdate(row) {
     if (data.enable !== null && data.enable !== undefined) {
       data.enable = String(data.enable)
     }
+    // 将 mediaId 和 appId 转换为级联选择器格式
+    if (data.mediaId && data.appId) {
+      data.mediaAppCascade = [data.mediaId, data.appId]
+    } else {
+      data.mediaAppCascade = []
+    }
     form.value = data
     open.value = true
     title.value = "修改媒体广告位"
@@ -386,14 +448,20 @@ function handleUpdate(row) {
 function submitForm() {
   proxy.$refs["mediaAdRef"].validate(valid => {
     if (valid) {
+      // 从级联选择器中提取 mediaId 和 appId
+      if (form.value.mediaAppCascade && form.value.mediaAppCascade.length > 0) {
+        form.value.mediaId = form.value.mediaAppCascade[0]
+        form.value.appId = form.value.mediaAppCascade[1] || null
+      }
+
       if (form.value.id != null) {
-        updateMediaAd(form.value).then(response => {
+        updateMediaAd(form.value).then(() => {
           proxy.$modal.msgSuccess("修改成功")
           open.value = false
           getList()
         })
       } else {
-        addMediaAd(form.value).then(response => {
+        addMediaAd(form.value).then(() => {
           proxy.$modal.msgSuccess("新增成功")
           open.value = false
           getList()
