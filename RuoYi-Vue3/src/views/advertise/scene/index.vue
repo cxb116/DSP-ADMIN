@@ -1,18 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="产品名称" prop="name">
+      <el-form-item label="广告类型" prop="name">
         <el-input
           v-model="queryParams.name"
-          placeholder="请输入产品名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="公司id" prop="companyId">
-        <el-input
-          v-model="queryParams.companyId"
-          placeholder="请输入公司id"
+          placeholder="请输入广告类型"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -30,7 +22,7 @@
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['budget:product:add']"
+          v-hasPermi="['advertise:scene:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -40,7 +32,7 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['budget:product:edit']"
+          v-hasPermi="['advertise:scene:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -50,7 +42,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['budget:product:remove']"
+          v-hasPermi="['advertise:scene:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -59,22 +51,21 @@
           plain
           icon="Download"
           @click="handleExport"
-          v-hasPermi="['budget:product:export']"
+          v-hasPermi="['advertise:scene:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="productList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="sceneList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="产品名称" align="center" prop="name" />
-      <el-table-column label="公司id" align="center" prop="companyId" />
+      <el-table-column label="广告类型" align="center" prop="name" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:product:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['budget:product:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['advertise:scene:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['advertise:scene:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -87,14 +78,11 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改产品管理对话框 -->
+    <!-- 添加或修改广告类型管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="productRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="产品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入产品名称" />
-        </el-form-item>
-        <el-form-item label="公司id" prop="companyId">
-          <el-input v-model="form.companyId" placeholder="请输入公司id" />
+      <el-form ref="sceneRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="广告类型" prop="name">
+          <el-input v-model="form.name" placeholder="请输入广告类型" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -110,12 +98,12 @@
   </div>
 </template>
 
-<script setup name="Product">
-import { listProduct, getProduct, delProduct, addProduct, updateProduct } from "@/api/budget/product"
+<script setup name="Scene">
+import { listScene, getScene, delScene, addScene, updateScene } from "@/api/advertise/scene"
 
 const { proxy } = getCurrentInstance()
 
-const productList = ref([])
+const sceneList = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -131,25 +119,21 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     name: null,
-    companyId: null,
   },
   rules: {
     name: [
-      { required: true, message: "产品名称不能为空", trigger: "blur" }
-    ],
-    companyId: [
-      { required: true, message: "公司id不能为空", trigger: "blur" }
+      { required: true, message: "广告类型不能为空", trigger: "blur" }
     ],
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
 
-/** 查询产品管理列表 */
+/** 查询广告类型管理列表 */
 function getList() {
   loading.value = true
-  listProduct(queryParams.value).then(response => {
-    productList.value = response.rows
+  listScene(queryParams.value).then(response => {
+    sceneList.value = response.rows
     total.value = response.total
     loading.value = false
   })
@@ -166,14 +150,13 @@ function reset() {
   form.value = {
     id: null,
     name: null,
-    companyId: null,
     createBy: null,
     createTime: null,
     updateBy: null,
     updateTime: null,
     remark: null
   }
-  proxy.resetForm("productRef")
+  proxy.resetForm("sceneRef")
 }
 
 /** 搜索按钮操作 */
@@ -199,36 +182,32 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset()
   open.value = true
-  title.value = "添加产品管理"
+  title.value = "添加广告类型管理"
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
-  getProduct(_id).then(response => {
-    const data = response.data
-    form.value = {
-      ...data,
-      companyId: data.companyId !== null ? Number(data.companyId) : null,
-    }
+  getScene(_id).then(response => {
+    form.value = response.data
     open.value = true
-    title.value = "修改产品管理"
+    title.value = "修改广告类型管理"
   })
 }
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["productRef"].validate(valid => {
+  proxy.$refs["sceneRef"].validate(valid => {
     if (valid) {
       if (form.value.id != null) {
-        updateProduct(form.value).then(response => {
+        updateScene(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功")
           open.value = false
           getList()
         })
       } else {
-        addProduct(form.value).then(response => {
+        addScene(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功")
           open.value = false
           getList()
@@ -241,8 +220,8 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value
-  proxy.$modal.confirm('是否确认删除产品管理编号为"' + _ids + '"的数据项？').then(function() {
-    return delProduct(_ids)
+  proxy.$modal.confirm('是否确认删除广告类型管理编号为"' + _ids + '"的数据项？').then(function() {
+    return delScene(_ids)
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
@@ -251,9 +230,9 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('budget/product/export', {
+  proxy.download('advertise/scene/export', {
     ...queryParams.value
-  }, `product_${new Date().getTime()}.xlsx`)
+  }, `scene_${new Date().getTime()}.xlsx`)
 }
 
 getList()

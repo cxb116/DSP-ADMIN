@@ -28,7 +28,7 @@ public class DspSlotInfo extends BaseEntity
 
     /** 广告类型id */
     @Excel(name = "广告类型id")
-    private Long sceneId;
+    private Long adScene;
 
     /** 预算方广告位 */
     @Excel(name = "预算方广告位")
@@ -112,14 +112,14 @@ public class DspSlotInfo extends BaseEntity
         return osType;
     }
 
-    public void setSceneId(Long sceneId) 
+    public void setadScene(Long adScene) 
     {
-        this.sceneId = sceneId;
+        this.adScene = adScene;
     }
 
-    public Long getSceneId() 
+    public Long getadScene() 
     {
-        return sceneId;
+        return adScene;
     }
 
     public void setDspSlotCode(String dspSlotCode) 
@@ -258,7 +258,7 @@ public class DspSlotInfo extends BaseEntity
             .append("id", getId())
             .append("name", getName())
             .append("osType", getOsType())
-            .append("sceneId", getSceneId())
+            .append("adScene", getadScene())
             .append("dspSlotCode", getDspSlotCode())
             .append("dspAppKey", getDspAppKey())
             .append("dspAppSecret", getDspAppSecret())
