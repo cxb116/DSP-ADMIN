@@ -1,21 +1,29 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="媒体id" prop="mediaId">
-        <el-input
-          v-model="queryParams.mediaId"
-          placeholder="请输入媒体id"
+      <el-form-item label="媒体应用" prop="mediaAppCascade">
+        <el-cascader
+          v-model="queryParams.mediaAppCascade"
+          :options="cascaderData"
+          :props="{ expandTrigger: 'hover' }"
+          placeholder="请选择媒体/应用"
           clearable
-          @keyup.enter="handleQuery"
+          style="width: 240px"
         />
       </el-form-item>
-      <el-form-item label="应用id" prop="appId">
-        <el-input
-          v-model="queryParams.appId"
-          placeholder="请输入应用id"
+      <el-form-item label="场景" prop="sceneId">
+        <el-select
+          v-model="queryParams.sceneId"
+          placeholder="请选择场景"
           clearable
-          @keyup.enter="handleQuery"
-        />
+        >
+          <el-option
+            v-for="dict in ad_scene"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="广告位名称" prop="name">
         <el-input
@@ -33,45 +41,19 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="广告类型id" prop="sceneId">
-        <el-input
-          v-model="queryParams.sceneId"
-          placeholder="请输入广告类型id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="下游媒体分成系数 " prop="sspDealRatio">
-        <el-input
-          v-model="queryParams.sspDealRatio"
-          placeholder="请输入下游媒体分成系数 "
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="广告宽度" prop="width">
-        <el-input
-          v-model="queryParams.width"
-          placeholder="请输入广告宽度"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="广告高度" prop="height">
-        <el-input
-          v-model="queryParams.height"
-          placeholder="请输入广告高度"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="状态：1正常 0禁用 2审核中 3拒绝" prop="enable">
-        <el-input
+      <el-form-item label="状态" prop="enable">
+        <el-select
           v-model="queryParams.enable"
-          placeholder="请输入状态：1正常 0禁用 2审核中 3拒绝"
+          placeholder="请选择状态"
           clearable
-          @keyup.enter="handleQuery"
-        />
+        >
+          <el-option
+            v-for="dict in audit_status"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -128,9 +110,17 @@
       <el-table-column label="应用id" align="center" prop="appId" />
       <el-table-column label="广告位名称" align="center" prop="name" />
       <el-table-column label="内部广告位名称" align="center" prop="nameAlise" />
-      <el-table-column label="广告类型id" align="center" prop="sceneId" />
-      <el-table-column label="下游媒体结算方式，1=分成，2=RTB" align="center" prop="sspPayType" />
-      <el-table-column label="下游媒体分成系数 " align="center" prop="sspDealRatio" />
+      <el-table-column label="场景" align="center" prop="sceneId">
+        <template #default="scope">
+          <dict-tag :options="ad_scene" :value="String(scope.row.sceneId)" />
+        </template>
+      </el-table-column>
+      <el-table-column label="结算方式" align="center" prop="sspPayType">
+        <template #default="scope">
+          <dict-tag :options="ssp_pay_type" :value="String(scope.row.sspPayType)" />
+        </template>
+      </el-table-column>
+      <el-table-column label="分成系数" align="center" prop="sspDealRatio" />
       <el-table-column label="广告宽度" align="center" prop="width" />
       <el-table-column label="广告高度" align="center" prop="height" />
       <el-table-column label="广告位图片" align="center" prop="adImage" width="100">
@@ -138,9 +128,12 @@
           <image-preview :src="scope.row.adImage" :width="50" :height="50"/>
         </template>
       </el-table-column>
-      <el-table-column label="交互类型是否支持，(1：打开网页，2：deeplink，
-3：直接下载应用；4: 广点通; 5 小程序跳转 6,应用商店下载，7 快应用 位掩码表示)" align="center" prop="interactionType" />
-      <el-table-column label="状态：1正常 0禁用 2审核中 3拒绝" align="center" prop="enable" />
+      <el-table-column label="交互类型" align="center" prop="interactionType" />
+      <el-table-column label="状态" align="center" prop="enable">
+        <template #default="scope">
+          <dict-tag :options="audit_status" :value="String(scope.row.enable)" />
+        </template>
+      </el-table-column>
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -173,11 +166,28 @@
         <el-form-item label="内部广告位名称" prop="nameAlise">
           <el-input v-model="form.nameAlise" placeholder="请输入内部广告位名称" />
         </el-form-item>
-        <el-form-item label="广告类型id" prop="sceneId">
-          <el-input v-model="form.sceneId" placeholder="请输入广告类型id" />
+        <el-form-item label="场景" prop="sceneId">
+          <el-select v-model="form.sceneId" placeholder="请选择场景">
+            <el-option
+              v-for="dict in ad_scene"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
         </el-form-item>
-        <el-form-item label="下游媒体分成系数 " prop="sspDealRatio">
-          <el-input v-model="form.sspDealRatio" placeholder="请输入下游媒体分成系数 " />
+        <el-form-item label="结算方式" prop="sspPayType">
+          <el-select v-model="form.sspPayType" placeholder="请选择结算方式">
+            <el-option
+              v-for="dict in ssp_pay_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="分成系数" prop="sspDealRatio">
+          <el-input v-model="form.sspDealRatio" placeholder="请输入分成系数" />
         </el-form-item>
         <el-form-item label="广告宽度" prop="width">
           <el-input v-model="form.width" placeholder="请输入广告宽度" />
@@ -188,8 +198,18 @@
         <el-form-item label="广告位图片" prop="adImage">
           <image-upload v-model="form.adImage"/>
         </el-form-item>
-        <el-form-item label="状态：1正常 0禁用 2审核中 3拒绝" prop="enable">
-          <el-input v-model="form.enable" placeholder="请输入状态：1正常 0禁用 2审核中 3拒绝" />
+        <el-form-item label="交互类型" prop="interactionType">
+          <el-input v-model="form.interactionType" placeholder="请输入交互类型" />
+        </el-form-item>
+        <el-form-item label="状态" prop="enable">
+          <el-select v-model="form.enable" placeholder="请选择状态">
+            <el-option
+              v-for="dict in audit_status"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -207,10 +227,14 @@
 
 <script setup name="MediaAd">
 import { listMediaAd, getMediaAd, delMediaAd, addMediaAd, updateMediaAd } from "@/api/flow/mediaAd"
+import { getMediaAppCascader } from "@/api/flow/media"
+import { useDict } from "@/utils/dict"
 
 const { proxy } = getCurrentInstance()
+const { audit_status, ssp_pay_type, ad_scene } = useDict('audit_status', 'ssp_pay_type', 'ad_scene')
 
 const mediaAdList = ref([])
+const cascaderData = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -227,15 +251,10 @@ const data = reactive({
     pageSize: 10,
     mediaId: null,
     appId: null,
+    mediaAppCascade: [],  // 级联选择器的值
+    sceneId: null,
     name: null,
     nameAlise: null,
-    sceneId: null,
-    sspPayType: null,
-    sspDealRatio: null,
-    width: null,
-    height: null,
-    adImage: null,
-    interactionType: null,
     enable: null,
   },
   rules: {
@@ -248,14 +267,11 @@ const data = reactive({
     name: [
       { required: true, message: "广告位名称不能为空", trigger: "blur" }
     ],
-    sceneId: [
-      { required: true, message: "广告类型id不能为空", trigger: "blur" }
-    ],
     sspPayType: [
-      { required: true, message: "下游媒体结算方式，1=分成，2=RTB不能为空", trigger: "change" }
+      { required: true, message: "结算方式不能为空", trigger: "change" }
     ],
     enable: [
-      { required: true, message: "状态：1正常 0禁用 2审核中 3拒绝不能为空", trigger: "blur" }
+      { required: true, message: "状态不能为空", trigger: "change" }
     ],
   }
 })
@@ -265,10 +281,25 @@ const { queryParams, form, rules } = toRefs(data)
 /** 查询媒体广告位列表 */
 function getList() {
   loading.value = true
+  // 从级联选择器的值中提取 mediaId 和 appId
+  if (queryParams.value.mediaAppCascade && queryParams.value.mediaAppCascade.length > 0) {
+    queryParams.value.mediaId = queryParams.value.mediaAppCascade[0]
+    queryParams.value.appId = queryParams.value.mediaAppCascade[1] || null
+  } else {
+    queryParams.value.mediaId = null
+    queryParams.value.appId = null
+  }
   listMediaAd(queryParams.value).then(response => {
     mediaAdList.value = response.rows
     total.value = response.total
     loading.value = false
+  })
+}
+
+/** 加载媒体应用级联数据 */
+function loadCascaderData() {
+  getMediaAppCascader().then(response => {
+    cascaderData.value = response.data
   })
 }
 
@@ -334,7 +365,18 @@ function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
   getMediaAd(_id).then(response => {
-    form.value = response.data
+    const data = response.data
+    // 将数字类型的字段转为字符串，以便字典匹配
+    if (data.sceneId !== null && data.sceneId !== undefined) {
+      data.sceneId = String(data.sceneId)
+    }
+    if (data.sspPayType !== null && data.sspPayType !== undefined) {
+      data.sspPayType = String(data.sspPayType)
+    }
+    if (data.enable !== null && data.enable !== undefined) {
+      data.enable = String(data.enable)
+    }
+    form.value = data
     open.value = true
     title.value = "修改媒体广告位"
   })
@@ -379,5 +421,7 @@ function handleExport() {
   }, `mediaAd_${new Date().getTime()}.xlsx`)
 }
 
+// 页面加载时获取级联数据
+loadCascaderData()
 getList()
 </script>

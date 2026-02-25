@@ -9,14 +9,6 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="广告类型id" prop="sceneId">
-        <el-input
-          v-model="queryParams.sceneId"
-          placeholder="请输入广告类型id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="预算方广告位" prop="dspSlotCode">
         <el-input
           v-model="queryParams.dspSlotCode"
@@ -166,7 +158,6 @@
       <el-table-column label="ID" align="center" prop="id" />
       <el-table-column label="广告位名称" align="center" prop="name" />
       <el-table-column label="操作系统类型，1=Android，2=iOS" align="center" prop="osType" />
-      <el-table-column label="广告类型id" align="center" prop="sceneId" />
       <el-table-column label="预算方广告位" align="center" prop="dspSlotCode" />
       <el-table-column label="预算方APPKEY" align="center" prop="dspAppKey" />
       <el-table-column label="预算方APPSECRET" align="center" prop="dspAppSecret" />
@@ -202,9 +193,6 @@
       <el-form ref="infoRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="广告位名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入广告位名称" />
-        </el-form-item>
-        <el-form-item label="广告类型id" prop="sceneId">
-          <el-input v-model="form.sceneId" placeholder="请输入广告类型id" />
         </el-form-item>
         <el-form-item label="预算方广告位" prop="dspSlotCode">
           <el-input v-model="form.dspSlotCode" placeholder="请输入预算方广告位" />
@@ -278,7 +266,6 @@ const data = reactive({
     pageSize: 10,
     name: null,
     osType: null,
-    sceneId: null,
     dspSlotCode: null,
     dspAppKey: null,
     dspAppSecret: null,
@@ -299,9 +286,6 @@ const data = reactive({
     ],
     osType: [
       { required: true, message: "操作系统类型，1=Android，2=iOS不能为空", trigger: "change" }
-    ],
-    sceneId: [
-      { required: true, message: "广告类型id不能为空", trigger: "blur" }
     ],
     dspSlotCode: [
       { required: true, message: "预算方广告位不能为空", trigger: "blur" }
@@ -336,7 +320,6 @@ function reset() {
     id: null,
     name: null,
     osType: null,
-    sceneId: null,
     dspSlotCode: null,
     dspAppKey: null,
     dspAppSecret: null,

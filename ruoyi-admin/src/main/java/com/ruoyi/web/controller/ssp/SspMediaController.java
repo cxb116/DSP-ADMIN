@@ -1,6 +1,9 @@
 package com.ruoyi.web.controller.ssp;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +20,9 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SspMedia;
+import com.ruoyi.system.domain.SspApp;
 import com.ruoyi.system.service.ISspMediaService;
+import com.ruoyi.system.service.ISspAppService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
@@ -33,6 +38,9 @@ public class SspMediaController extends BaseController
 {
     @Autowired
     private ISspMediaService sspMediaService;
+
+    @Autowired
+    private ISspAppService sspAppService;
 
     /**
      * 查询媒体管理列表
@@ -100,5 +108,44 @@ public class SspMediaController extends BaseController
     public AjaxResult remove(@PathVariable Long[] ids)
     {
         return toAjax(sspMediaService.deleteSspMediaByIds(ids));
+    }
+
+    /**
+     * 获取媒体应用级联数据
+     */
+    @GetMapping("/cascader")
+    public AjaxResult getCascaderData()
+    {
+        // 查询所有启用的媒体
+        SspMedia mediaQuery = new SspMedia();
+        mediaQuery.setEnable(1L);
+        List<SspMedia> mediaList = sspMediaService.selectSspMediaList(mediaQuery);
+
+        List<Map<String, Object>> cascaderData = new ArrayList<>();
+
+        for (SspMedia media : mediaList) {
+            Map<String, Object> mediaNode = new HashMap<>();
+            mediaNode.put("value", media.getId());
+            mediaNode.put("label", media.getName());
+
+            // 查询该媒体下的所有启用的应用
+            SspApp appQuery = new SspApp();
+            appQuery.setMediaId(media.getId());
+            appQuery.setEnable(1L);
+            List<SspApp> appList = sspAppService.selectSspAppList(appQuery);
+
+            List<Map<String, Object>> children = new ArrayList<>();
+            for (SspApp app : appList) {
+                Map<String, Object> appNode = new HashMap<>();
+                appNode.put("value", app.getId());
+                appNode.put("label", app.getName());
+                children.add(appNode);
+            }
+
+            mediaNode.put("children", children);
+            cascaderData.add(mediaNode);
+        }
+
+        return success(cascaderData);
     }
 }

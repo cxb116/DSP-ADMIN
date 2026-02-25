@@ -1,5 +1,13 @@
 import request from '@/utils/request'
 
+// 获取媒体应用级联数据
+export function getMediaAppCascader() {
+  return request({
+    url: '/flow/media/cascader',
+    method: 'get'
+  })
+}
+
 // 查询媒体管理列表
 export function listMedia(query) {
   return request({

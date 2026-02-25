@@ -34,8 +34,8 @@ public class SspSlotInfo extends BaseEntity
     @Excel(name = "内部广告位名称")
     private String nameAlise;
 
-    /** 广告类型id */
-    @Excel(name = "广告类型id")
+    /** 场景id */
+    @Excel(name = "场景id")
     private Long sceneId;
 
     /** 下游媒体结算方式，1=分成，2=RTB */
@@ -112,22 +112,22 @@ public class SspSlotInfo extends BaseEntity
         this.nameAlise = nameAlise;
     }
 
-    public String getNameAlise() 
+    public String getNameAlise()
     {
         return nameAlise;
     }
 
-    public void setSceneId(Long sceneId) 
+    public void setSceneId(Long sceneId)
     {
         this.sceneId = sceneId;
     }
 
-    public Long getSceneId() 
+    public Long getSceneId()
     {
         return sceneId;
     }
 
-    public void setSspPayType(Long sspPayType) 
+    public void setSspPayType(Long sspPayType)
     {
         this.sspPayType = sspPayType;
     }

@@ -26,12 +26,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSspSlotInfoVo">
-        select id, media_id, app_id, name, name_alise, scene_id, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable, create_by, create_time, update_by, update_time, remark from ssp_slot_info
+        select id, media_id, app_id, name, name_alise, scene_id, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable from ssp_slot_info
     </sql>
 
     <select id="selectSspSlotInfoList" parameterType="SspSlotInfo" resultMap="SspSlotInfoResult">
         <include refid="selectSspSlotInfoVo"/>
-        <where>  
+        <where>
             <if test="mediaId != null "> and media_id = #{mediaId}</if>
             <if test="appId != null "> and app_id = #{appId}</if>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>

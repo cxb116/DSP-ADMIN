@@ -26,10 +26,6 @@ public class DspSlotInfo extends BaseEntity
     @Excel(name = "操作系统类型，1=Android，2=iOS")
     private Long osType;
 
-    /** 广告类型id */
-    @Excel(name = "广告类型id")
-    private Long sceneId;
-
     /** 预算方广告位 */
     @Excel(name = "预算方广告位")
     private String dspSlotCode;
@@ -107,19 +103,9 @@ public class DspSlotInfo extends BaseEntity
         this.osType = osType;
     }
 
-    public Long getOsType() 
+    public Long getOsType()
     {
         return osType;
-    }
-
-    public void setSceneId(Long sceneId) 
-    {
-        this.sceneId = sceneId;
-    }
-
-    public Long getSceneId() 
-    {
-        return sceneId;
     }
 
     public void setDspSlotCode(String dspSlotCode) 
@@ -258,7 +244,6 @@ public class DspSlotInfo extends BaseEntity
             .append("id", getId())
             .append("name", getName())
             .append("osType", getOsType())
-            .append("sceneId", getSceneId())
             .append("dspSlotCode", getDspSlotCode())
             .append("dspAppKey", getDspAppKey())
             .append("dspAppSecret", getDspAppSecret())
