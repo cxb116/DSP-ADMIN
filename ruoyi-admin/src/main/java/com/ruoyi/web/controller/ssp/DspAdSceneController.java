@@ -22,22 +22,22 @@ import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
- * 广告管理Controller
+ * 广告类型管理Controller
  * 
  * @author ruoyi
  * @date 2026-02-24
  */
 @RestController
-@RequestMapping("/flow/scene")
+@RequestMapping("/advertise/scene")
 public class DspAdSceneController extends BaseController
 {
     @Autowired
     private IDspAdSceneService dspAdSceneService;
 
     /**
-     * 查询广告管理列表
+     * 查询广告类型管理列表
      */
-    @PreAuthorize("@ss.hasPermi('flow:scene:list')")
+    @PreAuthorize("@ss.hasPermi('advertise:scene:list')")
     @GetMapping("/list")
     public TableDataInfo list(DspAdScene dspAdScene)
     {
@@ -47,22 +47,22 @@ public class DspAdSceneController extends BaseController
     }
 
     /**
-     * 导出广告管理列表
+     * 导出广告类型管理列表
      */
-    @PreAuthorize("@ss.hasPermi('flow:scene:export')")
-    @Log(title = "广告管理", businessType = BusinessType.EXPORT)
+    @PreAuthorize("@ss.hasPermi('advertise:scene:export')")
+    @Log(title = "广告类型管理", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
     public void export(HttpServletResponse response, DspAdScene dspAdScene)
     {
         List<DspAdScene> list = dspAdSceneService.selectDspAdSceneList(dspAdScene);
         ExcelUtil<DspAdScene> util = new ExcelUtil<DspAdScene>(DspAdScene.class);
-        util.exportExcel(response, list, "广告管理数据");
+        util.exportExcel(response, list, "广告类型管理数据");
     }
 
     /**
-     * 获取广告管理详细信息
+     * 获取广告类型管理详细信息
      */
-    @PreAuthorize("@ss.hasPermi('flow:scene:query')")
+    @PreAuthorize("@ss.hasPermi('advertise:scene:query')")
     @GetMapping(value = "/{id}")
     public AjaxResult getInfo(@PathVariable("id") Long id)
     {
@@ -70,10 +70,10 @@ public class DspAdSceneController extends BaseController
     }
 
     /**
-     * 新增广告管理
+     * 新增广告类型管理
      */
-    @PreAuthorize("@ss.hasPermi('flow:scene:add')")
-    @Log(title = "广告管理", businessType = BusinessType.INSERT)
+    @PreAuthorize("@ss.hasPermi('advertise:scene:add')")
+    @Log(title = "广告类型管理", businessType = BusinessType.INSERT)
     @PostMapping
     public AjaxResult add(@RequestBody DspAdScene dspAdScene)
     {
@@ -81,10 +81,10 @@ public class DspAdSceneController extends BaseController
     }
 
     /**
-     * 修改广告管理
+     * 修改广告类型管理
      */
-    @PreAuthorize("@ss.hasPermi('flow:scene:edit')")
-    @Log(title = "广告管理", businessType = BusinessType.UPDATE)
+    @PreAuthorize("@ss.hasPermi('advertise:scene:edit')")
+    @Log(title = "广告类型管理", businessType = BusinessType.UPDATE)
     @PutMapping
     public AjaxResult edit(@RequestBody DspAdScene dspAdScene)
     {
@@ -92,10 +92,10 @@ public class DspAdSceneController extends BaseController
     }
 
     /**
-     * 删除广告管理
+     * 删除广告类型管理
      */
-    @PreAuthorize("@ss.hasPermi('flow:scene:remove')")
-    @Log(title = "广告管理", businessType = BusinessType.DELETE)
+    @PreAuthorize("@ss.hasPermi('advertise:scene:remove')")
+    @Log(title = "广告类型管理", businessType = BusinessType.DELETE)
 	@DeleteMapping("/{ids}")
     public AjaxResult remove(@PathVariable Long[] ids)
     {

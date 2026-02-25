@@ -22,6 +22,8 @@ public class SspApp extends BaseEntity
     @Excel(name = "媒体Id")
     private Long mediaId;
 
+
+
     /** 应用名称 */
     @Excel(name = "应用名称")
     private String name;

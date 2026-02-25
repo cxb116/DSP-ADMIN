@@ -6,7 +6,7 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 广告管理对象 dsp_ad_scene
+ * 广告类型管理对象 dsp_ad_scene
  * 
  * @author ruoyi
  * @date 2026-02-24
