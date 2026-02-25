@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.SspSlotInfoMapper;
 import com.ruoyi.system.domain.SspSlotInfo;
+import com.ruoyi.system.domain.DspSlotInfo;
 import com.ruoyi.system.service.ISspSlotInfoService;
 
 /**
@@ -84,7 +85,7 @@ public class SspSlotInfoServiceImpl implements ISspSlotInfoService
 
     /**
      * 删除媒体广告位信息
-     * 
+     *
      * @param id 媒体广告位主键
      * @return 结果
      */
@@ -92,5 +93,17 @@ public class SspSlotInfoServiceImpl implements ISspSlotInfoService
     public int deleteSspSlotInfoById(Long id)
     {
         return sspSlotInfoMapper.deleteSspSlotInfoById(id);
+    }
+
+    /**
+     * 根据ssp广告位id查询匹配的预算方广告位列表
+     *
+     * @param sspSlotId ssp广告位主键
+     * @return 匹配的预算方广告位集合
+     */
+    @Override
+    public List<DspSlotInfo> selectMatchedDspSlotInfo(Long sspSlotId)
+    {
+        return sspSlotInfoMapper.selectMatchedDspSlotInfo(sspSlotId);
     }
 }

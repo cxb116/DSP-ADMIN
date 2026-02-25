@@ -34,7 +34,7 @@ public class SspSlotInfo extends BaseEntity
     @Excel(name = "内部广告位名称")
     private String nameAlise;
 
-    /** 广告类型id */
+    /** 广告类型 */
     @Excel(name = "广告类型")
     private Long adScene;
 
@@ -53,31 +53,6 @@ public class SspSlotInfo extends BaseEntity
     /** 广告高度 */
     @Excel(name = "广告高度")
     private Long height;
-
-
-    /** 媒体 */
-    private SspMedia sspMedia;
-
-    public SspMedia getSspMedia() {
-        return sspMedia;
-    }
-
-    public void setSspMedia(SspMedia sspMedia) {
-        this.sspMedia = sspMedia;
-    }
-
-    private SspApp sspApp;
-    public SspApp getSspApp() {
-        return sspApp;
-    }
-
-    public void setSspApp(SspApp sspApp) {
-        this.sspApp = sspApp;
-    }
-
-
-
-
 
     /** 广告位图片 */
     @Excel(name = "广告位图片")
@@ -137,22 +112,22 @@ public class SspSlotInfo extends BaseEntity
         this.nameAlise = nameAlise;
     }
 
-    public String getNameAlise() 
+    public String getNameAlise()
     {
         return nameAlise;
     }
 
-    public void setadScene(Long adScene)
+    public void setAdScene(Long adScene)
     {
         this.adScene = adScene;
     }
 
-    public Long getadScene() 
+    public Long getAdScene()
     {
         return adScene;
     }
 
-    public void setSspPayType(Long sspPayType) 
+    public void setSspPayType(Long sspPayType)
     {
         this.sspPayType = sspPayType;
     }
@@ -230,7 +205,7 @@ public class SspSlotInfo extends BaseEntity
             .append("appId", getAppId())
             .append("name", getName())
             .append("nameAlise", getNameAlise())
-            .append("adScene", getadScene())
+            .append("adScene", getAdScene())
             .append("sspPayType", getSspPayType())
             .append("sspDealRatio", getSspDealRatio())
             .append("width", getWidth())

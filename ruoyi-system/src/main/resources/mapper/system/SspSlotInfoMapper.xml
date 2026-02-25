@@ -23,55 +23,15 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="updateBy"    column="update_by"    />
         <result property="updateTime"    column="update_time"    />
         <result property="remark"    column="remark"    />
-
-        <association property="sspMedia" javaType="com.ruoyi.system.domain.SspMedia">
-            <result property="id"    column="id"    />
-            <result property="name"    column="name"    />
-            <result property="account"    column="account"    />
-            <result property="password"    column="password"    />
-            <result property="mediaCompanyName"    column="media_company_name"    />
-            <result property="mediaCompanyShort"    column="media_company_short"    />
-            <result property="mediaCompanyCode"    column="media_company_code"    />
-            <result property="mediaCompanyLicense"    column="media_company_license"    />
-            <result property="mediaCompanyAddress"    column="media_company_address"    />
-            <result property="mediaOwnerName"    column="media_owner_name"    />
-            <result property="contactName"    column="contact_name"    />
-            <result property="contactPhone"    column="contact_phone"    />
-            <result property="contactEmail"    column="contact_email"    />
-            <result property="enable"    column="enable"    />
-            <result property="createBy"    column="create_by"    />
-            <result property="createTime"    column="create_time"    />
-            <result property="updateBy"    column="update_by"    />
-            <result property="updateTime"    column="update_time"    />
-            <result property="remark"    column="remark"    />
-        </association>
-
-
-        <association property="sspApp" javaType="com.ruoyi.system.domain.SspApp">
-            <result property="id"    column="id"    />
-            <result property="mediaId"    column="media_id"    />
-            <result property="name"    column="name"    />
-            <result property="osType"    column="os_type"    />
-            <result property="accessType"    column="access_type"    />
-            <result property="pkg"    column="pkg"    />
-            <result property="downloadUrl"    column="download_url"    />
-            <result property="enable"    column="enable"    />
-            <result property="createBy"    column="create_by"    />
-            <result property="createTime"    column="create_time"    />
-            <result property="updateBy"    column="update_by"    />
-            <result property="updateTime"    column="update_time"    />
-            <result property="remark"    column="remark"    />
-        </association>
-
     </resultMap>
 
     <sql id="selectSspSlotInfoVo">
-        select id, media_id, app_id, name, name_alise, ad_scene, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable, create_by, create_time, update_by, update_time, remark from ssp_slot_info
+        select id, media_id, app_id, name, name_alise, ad_scene, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable from ssp_slot_info
     </sql>
 
     <select id="selectSspSlotInfoList" parameterType="SspSlotInfo" resultMap="SspSlotInfoResult">
         <include refid="selectSspSlotInfoVo"/>
-        <where>  
+        <where>
             <if test="mediaId != null "> and media_id = #{mediaId}</if>
             <if test="appId != null "> and app_id = #{appId}</if>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
@@ -163,9 +123,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteSspSlotInfoByIds" parameterType="String">
-        delete from ssp_slot_info where id in 
+        delete from ssp_slot_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
+
+    <!-- 根据ssp广告位id查询匹配的预算方广告位列表 -->
+    <select id="selectMatchedDspSlotInfo" parameterType="Long" resultMap="com.ruoyi.system.mapper.DspSlotInfoMapper.DspSlotInfoResult">
+        SELECT DISTINCT dsi.*
+        FROM dsp_slot_info dsi
+        JOIN ssp_slot_info ssi ON dsi.ad_scene = ssi.ad_scene
+        JOIN ssp_app sa ON ssi.app_id = sa.id
+        WHERE dsi.os_type = sa.os_type
+        AND ssi.id = #{sspSlotId}
+    </select>
 </mapper>
