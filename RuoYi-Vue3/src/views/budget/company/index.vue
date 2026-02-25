@@ -280,7 +280,12 @@ function handleUpdate(row) {
     reset()
     const _id = row.id || ids.value
     getCompany(_id).then(response => {
-        form.value = response.data
+        const data = response.data
+        form.value = {
+            ...data,
+            timeout: data.timeout !== null ? Number(data.timeout) : null,
+            method: data.method !== null ? String(data.method) : null,
+        }
         open.value = true
         title.value = "修改公司管理"
     })

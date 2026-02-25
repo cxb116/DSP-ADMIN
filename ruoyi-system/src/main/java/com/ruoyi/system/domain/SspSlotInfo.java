@@ -142,12 +142,12 @@ public class SspSlotInfo extends BaseEntity
         return nameAlise;
     }
 
-    public void setSceneId(Long adScene)
+    public void setadScene(Long adScene)
     {
         this.adScene = adScene;
     }
 
-    public Long getSceneId() 
+    public Long getadScene() 
     {
         return adScene;
     }
@@ -230,7 +230,7 @@ public class SspSlotInfo extends BaseEntity
             .append("appId", getAppId())
             .append("name", getName())
             .append("nameAlise", getNameAlise())
-            .append("sceneId", getSceneId())
+            .append("adScene", getadScene())
             .append("sspPayType", getSspPayType())
             .append("sspDealRatio", getSspDealRatio())
             .append("width", getWidth())

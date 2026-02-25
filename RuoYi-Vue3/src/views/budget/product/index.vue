@@ -207,7 +207,11 @@ function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
   getProduct(_id).then(response => {
-    form.value = response.data
+    const data = response.data
+    form.value = {
+      ...data,
+      companyId: data.companyId !== null ? Number(data.companyId) : null,
+    }
     open.value = true
     title.value = "修改产品管理"
   })

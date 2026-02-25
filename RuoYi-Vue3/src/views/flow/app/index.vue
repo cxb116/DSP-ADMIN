@@ -102,11 +102,9 @@
             <el-table-column label="媒体Id" align="center" prop="mediaId" />
             <el-table-column label="应用名称" align="center" prop="name" />
             <el-table-column label="操作系统类型" align="center" prop="osType">
-                <template #default="scope">
-                    <span v-if="scope.row.osType === 1">Android</span>
-                    <span v-else-if="scope.row.osType === 2">iOS</span>
-                    <span v-else>{{ scope.row.osType }}</span>
-                </template>
+              <template #default="scope">
+                <dict-tag :options="os_type" :value="scope.row.osType" />
+              </template>
             </el-table-column>
             <el-table-column label="接入方式" align="center" prop="accessType">
                 <template #default="scope">
@@ -317,7 +315,18 @@ function handleUpdate(row) {
     reset()
     const _id = row.id || ids.value
     getApp(_id).then(response => {
-        form.value = response.data
+        // 将数字类型的字典值转换为字符串，以便与字典value匹配
+        const data = response.data
+        if (data.osType !== null && data.osType !== undefined) {
+            data.osType = String(data.osType)
+        }
+        if (data.accessType !== null && data.accessType !== undefined) {
+            data.accessType = String(data.accessType)
+        }
+        if (data.enable !== null && data.enable !== undefined) {
+            data.enable = String(data.enable)
+        }
+        form.value = data
         open.value = true
         title.value = "修改应用管理"
     })

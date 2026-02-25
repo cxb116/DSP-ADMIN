@@ -9,9 +9,9 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="广告类型id" prop="sceneId">
+      <el-form-item label="广告类型id" prop="adScene">
         <el-input
-          v-model="queryParams.sceneId"
+          v-model="queryParams.adScene"
           placeholder="请输入广告类型id"
           clearable
           @keyup.enter="handleQuery"
@@ -166,7 +166,7 @@
       <el-table-column label="ID" align="center" prop="id" />
       <el-table-column label="广告位名称" align="center" prop="name" />
       <el-table-column label="操作系统类型，1=Android，2=iOS" align="center" prop="osType" />
-      <el-table-column label="广告类型id" align="center" prop="sceneId" />
+      <el-table-column label="广告类型id" align="center" prop="adScene" />
       <el-table-column label="预算方广告位" align="center" prop="dspSlotCode" />
       <el-table-column label="预算方APPKEY" align="center" prop="dspAppKey" />
       <el-table-column label="预算方APPSECRET" align="center" prop="dspAppSecret" />
@@ -203,8 +203,14 @@
         <el-form-item label="广告位名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入广告位名称" />
         </el-form-item>
-        <el-form-item label="广告类型id" prop="sceneId">
-          <el-input v-model="form.sceneId" placeholder="请输入广告类型id" />
+        <el-form-item label="操作系统类型" prop="osType">
+          <el-select v-model="form.osType" placeholder="请选择操作系统类型">
+            <el-option label="Android" :value="1" />
+            <el-option label="iOS" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="广告类型id" prop="adScene">
+          <el-input v-model="form.adScene" placeholder="请输入广告类型id" />
         </el-form-item>
         <el-form-item label="预算方广告位" prop="dspSlotCode">
           <el-input v-model="form.dspSlotCode" placeholder="请输入预算方广告位" />
@@ -232,6 +238,12 @@
         </el-form-item>
         <el-form-item label="应用商店地址，支持多个，空格分割" prop="dspAppStoreLink">
           <el-input v-model="form.dspAppStoreLink" placeholder="请输入应用商店地址，支持多个，空格分割" />
+        </el-form-item>
+        <el-form-item label="上游预算结算方式" prop="dspPayType">
+          <el-select v-model="form.dspPayType" placeholder="请选择上游预算结算方式">
+            <el-option label="分成" :value="1" />
+            <el-option label="RTB" :value="2" />
+          </el-select>
         </el-form-item>
         <el-form-item label="成交系数，0到100，单位%，给上游预算出价打折扣  " prop="dspDealRatio">
           <el-input v-model="form.dspDealRatio" placeholder="请输入成交系数，0到100，单位%，给上游预算出价打折扣  " />
@@ -278,7 +290,7 @@ const data = reactive({
     pageSize: 10,
     name: null,
     osType: null,
-    sceneId: null,
+    adScene: null,
     dspSlotCode: null,
     dspAppKey: null,
     dspAppSecret: null,
@@ -300,7 +312,7 @@ const data = reactive({
     osType: [
       { required: true, message: "操作系统类型，1=Android，2=iOS不能为空", trigger: "change" }
     ],
-    sceneId: [
+    adScene: [
       { required: true, message: "广告类型id不能为空", trigger: "blur" }
     ],
     dspSlotCode: [
@@ -336,7 +348,7 @@ function reset() {
     id: null,
     name: null,
     osType: null,
-    sceneId: null,
+    adScene: null,
     dspSlotCode: null,
     dspAppKey: null,
     dspAppSecret: null,
@@ -390,7 +402,15 @@ function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
   getInfo(_id).then(response => {
-    form.value = response.data
+    const data = response.data
+    form.value = {
+      ...data,
+      osType: data.osType !== null ? Number(data.osType) : null,
+      adScene: data.adScene !== null ? Number(data.adScene) : null,
+      dspPayType: data.dspPayType !== null ? Number(data.dspPayType) : null,
+      companyId: data.companyId !== null ? Number(data.companyId) : null,
+      productId: data.productId !== null ? Number(data.productId) : null,
+    }
     open.value = true
     title.value = "修改预算广告位"
   })

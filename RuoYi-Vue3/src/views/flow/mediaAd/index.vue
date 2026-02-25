@@ -41,7 +41,7 @@
                     @keyup.enter="handleQuery"
                 />
             </el-form-item>
-            <el-form-item label="内部广告位名称" prop="nameAlise">
+            <el-form-item label="内部广告位" prop="nameAlise">
                 <el-input
                     v-model="queryParams.nameAlise"
                     placeholder="请输入内部广告位名称"
@@ -49,9 +49,9 @@
                     @keyup.enter="handleQuery"
                 />
             </el-form-item>
-            <el-form-item label="广告类型" prop="sceneId">
+            <el-form-item label="广告类型" prop="adScene">
                 <el-select
-                    v-model="queryParams.sceneId"
+                    v-model="queryParams.adScene"
                     placeholder="请选择广告类型"
                     clearable
                     @keyup.enter="handleQuery"
@@ -79,46 +79,8 @@
                     />
                 </el-select>
             </el-form-item>
-            <el-form-item label="下游媒体分成系数" prop="sspDealRatio">
-                <el-input
-                    v-model="queryParams.sspDealRatio"
-                    placeholder="请输入下游媒体分成系数"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="广告宽度" prop="width">
-                <el-input
-                    v-model="queryParams.width"
-                    placeholder="请输入广告宽度"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="广告高度" prop="height">
-                <el-input
-                    v-model="queryParams.height"
-                    placeholder="请输入广告高度"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="交互类型" prop="interactionType">
-                <el-select
-                    v-model="interactionTypeArray"
-                    placeholder="请选择交互类型"
-                    clearable
-                    multiple
-                    @keyup.enter="handleQuery"
-                >
-                    <el-option
-                        v-for="option in interactionTypeOptions"
-                        :key="option.value"
-                        :label="option.label"
-                        :value="option.value"
-                    />
-                </el-select>
-            </el-form-item>
+
+
             <el-form-item label="状态" prop="enable">
                 <el-select
                     v-model="queryParams.enable"
@@ -188,7 +150,7 @@
             <el-table-column label="媒体" align="center" prop="mediaName" />
             <el-table-column label="应用" align="center" prop="appName" />
             <el-table-column label="广告位名称" align="center" prop="name" />
-            <el-table-column label="内部广告位名称" align="center" prop="nameAlise" />
+            <el-table-column label="内部广告位" align="center" prop="nameAlise" />
             <el-table-column label="广告类型" align="center" prop="sceneName" />
             <el-table-column label="结算方式" align="center" prop="sspPayTypeName" />
             <el-table-column label="分成系数" align="center" prop="sspDealRatio" />
@@ -267,7 +229,7 @@
                         />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="下游媒体分成系数" prop="sspDealRatio">
+                <el-form-item label="分成系数" prop="sspDealRatio">
                     <el-input v-model="form.sspDealRatio" placeholder="请输入下游媒体分成系数" />
                 </el-form-item>
                 <el-form-item label="广告宽度" prop="width">
@@ -364,7 +326,7 @@ const data = reactive({
         appId: null,
         name: null,
         nameAlise: null,
-        sceneId: null,
+        adScene: null,
         sspPayType: null,
         sspDealRatio: null,
         width: null,
@@ -582,7 +544,18 @@ function handleUpdate(row) {
     const _id = row.id || ids.value
     getMediaAd(_id).then(response => {
         const data = response.data
-        form.value = { ...data }
+        form.value = {
+            ...data,
+            mediaId: data.mediaId !== null ? Number(data.mediaId) : null,
+            appId: data.appId !== null ? Number(data.appId) : null,
+            adScene: data.adScene !== null ? String(data.adScene) : null,
+            sspPayType: data.sspPayType !== null ? String(data.sspPayType) : null,
+            sspDealRatio: data.sspDealRatio !== null ? Number(data.sspDealRatio) : null,
+            width: data.width !== null ? Number(data.width) : null,
+            height: data.height !== null ? Number(data.height) : null,
+            interactionType: data.interactionType !== null ? Number(data.interactionType) : 0,
+            enable: data.enable !== null ? String(data.enable) : null,
+        }
 
         // 设置交互类型的复选框状态
         dialogInteractionTypeArray.value = bitmaskToArray(data.interactionType || 0)
