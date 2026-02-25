@@ -42,3 +42,20 @@ export function delMediaAd(id) {
     method: 'delete'
   })
 }
+
+// 根据ssp广告位id查询匹配的预算方广告位列表
+export function getMatchedDspSlots(sspSlotId) {
+  return request({
+    url: '/flow/mediaAd/matchedDspSlots/' + sspSlotId,
+    method: 'get'
+  })
+}
+
+// 保存媒体广告位的投放配置
+export function saveLaunchConfig(data) {
+  return request({
+    url: '/flow/mediaAd/saveLaunchConfig',
+    method: 'post',
+    data: data
+  })
+}

@@ -10,7 +10,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="appId"    column="app_id"    />
         <result property="name"    column="name"    />
         <result property="nameAlise"    column="name_alise"    />
-        <result property="sceneId"    column="scene_id"    />
+        <result property="adScene"    column="ad_scene"    />
         <result property="sspPayType"    column="ssp_pay_type"    />
         <result property="sspDealRatio"    column="ssp_deal_ratio"    />
         <result property="width"    column="width"    />
@@ -26,7 +26,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSspSlotInfoVo">
-        select id, media_id, app_id, name, name_alise, scene_id, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable from ssp_slot_info
+        select id, media_id, app_id, name, name_alise, ad_scene, ssp_pay_type, ssp_deal_ratio, width, height, ad_image, interaction_type, enable from ssp_slot_info
     </sql>
 
     <select id="selectSspSlotInfoList" parameterType="SspSlotInfo" resultMap="SspSlotInfoResult">
@@ -36,7 +36,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="appId != null "> and app_id = #{appId}</if>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="nameAlise != null  and nameAlise != ''"> and name_alise = #{nameAlise}</if>
-            <if test="sceneId != null "> and scene_id = #{sceneId}</if>
+            <if test="adScene != null "> and ad_scene = #{adScene}</if>
             <if test="sspPayType != null "> and ssp_pay_type = #{sspPayType}</if>
             <if test="sspDealRatio != null "> and ssp_deal_ratio = #{sspDealRatio}</if>
             <if test="width != null "> and width = #{width}</if>
@@ -59,7 +59,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="appId != null">app_id,</if>
             <if test="name != null and name != ''">name,</if>
             <if test="nameAlise != null">name_alise,</if>
-            <if test="sceneId != null">scene_id,</if>
+            <if test="adScene != null">ad_scene,</if>
             <if test="sspPayType != null">ssp_pay_type,</if>
             <if test="sspDealRatio != null">ssp_deal_ratio,</if>
             <if test="width != null">width,</if>
@@ -78,7 +78,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="appId != null">#{appId},</if>
             <if test="name != null and name != ''">#{name},</if>
             <if test="nameAlise != null">#{nameAlise},</if>
-            <if test="sceneId != null">#{sceneId},</if>
+            <if test="adScene != null">#{adScene},</if>
             <if test="sspPayType != null">#{sspPayType},</if>
             <if test="sspDealRatio != null">#{sspDealRatio},</if>
             <if test="width != null">#{width},</if>
@@ -101,7 +101,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="appId != null">app_id = #{appId},</if>
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="nameAlise != null">name_alise = #{nameAlise},</if>
-            <if test="sceneId != null">scene_id = #{sceneId},</if>
+            <if test="adScene != null">ad_scene = #{adScene},</if>
             <if test="sspPayType != null">ssp_pay_type = #{sspPayType},</if>
             <if test="sspDealRatio != null">ssp_deal_ratio = #{sspDealRatio},</if>
             <if test="width != null">width = #{width},</if>
@@ -123,9 +123,19 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteSspSlotInfoByIds" parameterType="String">
-        delete from ssp_slot_info where id in 
+        delete from ssp_slot_info where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
+
+    <!-- 根据ssp广告位id查询匹配的预算方广告位列表 -->
+    <select id="selectMatchedDspSlotInfo" parameterType="Long" resultMap="com.ruoyi.system.mapper.DspSlotInfoMapper.DspSlotInfoResult">
+        SELECT DISTINCT dsi.*
+        FROM dsp_slot_info dsi
+        JOIN ssp_slot_info ssi ON dsi.ad_scene = ssi.ad_scene
+        JOIN ssp_app sa ON ssi.app_id = sa.id
+        WHERE dsi.os_type = sa.os_type
+        AND ssi.id = #{sspSlotId}
+    </select>
 </mapper>

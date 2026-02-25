@@ -2,6 +2,7 @@ package com.ruoyi.system.mapper;
 
 import java.util.List;
 import com.ruoyi.system.domain.SspSlotInfo;
+import com.ruoyi.system.domain.DspSlotInfo;
 
 /**
  * 媒体广告位Mapper接口
@@ -53,9 +54,17 @@ public interface SspSlotInfoMapper
 
     /**
      * 批量删除媒体广告位
-     * 
+     *
      * @param ids 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteSspSlotInfoByIds(Long[] ids);
+
+    /**
+     * 根据ssp广告位id查询匹配的预算方广告位列表
+     *
+     * @param sspSlotId ssp广告位主键
+     * @return 匹配的预算方广告位集合
+     */
+    public List<DspSlotInfo> selectMatchedDspSlotInfo(Long sspSlotId);
 }

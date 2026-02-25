@@ -17,7 +17,10 @@ import com.ruoyi.common.core.controller.BaseController;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.ruoyi.common.enums.BusinessType;
 import com.ruoyi.system.domain.SspSlotInfo;
+import com.ruoyi.system.domain.DspSlotInfo;
+import com.ruoyi.system.domain.DspLaunch;
 import com.ruoyi.system.service.ISspSlotInfoService;
+import com.ruoyi.system.service.IDspLaunchService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
 
@@ -33,6 +36,9 @@ public class SspSlotInfoController extends BaseController
 {
     @Autowired
     private ISspSlotInfoService sspSlotInfoService;
+
+    @Autowired
+    private IDspLaunchService dspLaunchService;
 
     /**
      * 查询媒体广告位列表
@@ -100,5 +106,45 @@ public class SspSlotInfoController extends BaseController
     public AjaxResult remove(@PathVariable Long[] ids)
     {
         return toAjax(sspSlotInfoService.deleteSspSlotInfoByIds(ids));
+    }
+
+    /**
+     * 根据ssp广告位id查询匹配的预算方广告位列表
+     */
+    @GetMapping("/matchedDspSlots/{sspSlotId}")
+    public AjaxResult getMatchedDspSlots(@PathVariable("sspSlotId") Long sspSlotId)
+    {
+        List<DspSlotInfo> list = sspSlotInfoService.selectMatchedDspSlotInfo(sspSlotId);
+        return success(list);
+    }
+
+    /**
+     * 保存媒体广告位的投放配置
+     */
+    @PreAuthorize("@ss.hasPermi('flow:mediaAd:config')")
+    @Log(title = "媒体广告位", businessType = BusinessType.UPDATE)
+    @PostMapping("/saveLaunchConfig")
+    public AjaxResult saveLaunchConfig(@RequestBody java.util.Map<String, Object> params)
+    {
+        Long mediaAdId = Long.valueOf(params.get("mediaAdId").toString());
+        @SuppressWarnings("unchecked")
+        java.util.List<com.ruoyi.system.domain.DspLaunch> slotList =
+            (java.util.List<com.ruoyi.system.domain.DspLaunch>) params.get("slotList");
+
+        if (mediaAdId == null) {
+            return error("媒体广告位ID不能为空");
+        }
+
+        if (slotList == null || slotList.isEmpty()) {
+            return error("投放配置列表不能为空");
+        }
+
+        // 设置媒体广告位ID
+        for (DspLaunch launch : slotList) {
+            launch.setMediaAdId(mediaAdId);
+        }
+
+        int result = dspLaunchService.batchSaveDspLaunch(mediaAdId, slotList);
+        return toAjax(result);
     }
 }

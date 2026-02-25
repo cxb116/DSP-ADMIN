@@ -2,6 +2,7 @@ package com.ruoyi.system.service;
 
 import java.util.List;
 import com.ruoyi.system.domain.SspSlotInfo;
+import com.ruoyi.system.domain.DspSlotInfo;
 
 /**
  * 媒体广告位Service接口
@@ -53,9 +54,17 @@ public interface ISspSlotInfoService
 
     /**
      * 删除媒体广告位信息
-     * 
+     *
      * @param id 媒体广告位主键
      * @return 结果
      */
     public int deleteSspSlotInfoById(Long id);
+
+    /**
+     * 根据ssp广告位id查询匹配的预算方广告位列表
+     *
+     * @param sspSlotId ssp广告位主键
+     * @return 匹配的预算方广告位集合
+     */
+    public List<DspSlotInfo> selectMatchedDspSlotInfo(Long sspSlotId);
 }
