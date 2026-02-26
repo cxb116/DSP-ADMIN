@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import com.ruoyi.common.core.etcd.EtcdTemplate;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,13 @@ import com.ruoyi.system.service.IDspSlotInfoService;
  * @date 2026-02-24
  */
 @Service
-public class DspSlotInfoServiceImpl implements IDspSlotInfoService 
+public class DspSlotInfoServiceImpl implements IDspSlotInfoService
 {
     @Autowired
     private DspSlotInfoMapper dspSlotInfoMapper;
+
+    @Autowired(required = false)
+    private EtcdTemplate etcdTemplate;
 
     /**
      * 查询预算广告位
@@ -54,7 +58,22 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
     public int insertDspSlotInfo(DspSlotInfo dspSlotInfo)
     {
         dspSlotInfo.setCreateTime(DateUtils.getNowDate());
-        return dspSlotInfoMapper.insertDspSlotInfo(dspSlotInfo);
+        int rows = dspSlotInfoMapper.insertDspSlotInfo(dspSlotInfo);
+
+        // 数据库插入成功后同步到 etcd
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncAdd("dsp", dspSlotInfo.getId(), dspSlotInfo);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志，不影响返回结果
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -67,7 +86,23 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
     public int updateDspSlotInfo(DspSlotInfo dspSlotInfo)
     {
         dspSlotInfo.setUpdateTime(DateUtils.getNowDate());
-        return dspSlotInfoMapper.updateDspSlotInfo(dspSlotInfo);
+        int rows = dspSlotInfoMapper.updateDspSlotInfo(dspSlotInfo);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                // 查询最新数据
+                DspSlotInfo latest = dspSlotInfoMapper.selectDspSlotInfoById(dspSlotInfo.getId());
+                etcdTemplate.syncUpdate("dsp", latest.getId(), latest);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -79,18 +114,49 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
     @Override
     public int deleteDspSlotInfoByIds(Long[] ids)
     {
-        return dspSlotInfoMapper.deleteDspSlotInfoByIds(ids);
+        int rows = dspSlotInfoMapper.deleteDspSlotInfoByIds(ids);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            for (Long id : ids)
+            {
+                try
+                {
+                    etcdTemplate.syncDelete("dsp", id);
+                }
+                catch (Exception e)
+                {
+                    // 仅记录日志
+                }
+            }
+        }
+
+        return rows;
     }
 
     /**
      * 删除预算广告位信息
-     * 
+     *
      * @param id 预算广告位主键
      * @return 结果
      */
     @Override
     public int deleteDspSlotInfoById(Long id)
     {
-        return dspSlotInfoMapper.deleteDspSlotInfoById(id);
+        int rows = dspSlotInfoMapper.deleteDspSlotInfoById(id);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncDelete("dsp", id);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 }

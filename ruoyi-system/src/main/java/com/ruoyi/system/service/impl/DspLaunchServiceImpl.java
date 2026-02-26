@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import com.ruoyi.common.core.etcd.EtcdTemplate;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,9 @@ public class DspLaunchServiceImpl implements IDspLaunchService
 {
     @Autowired
     private DspLaunchMapper dspLaunchMapper;
+
+    @Autowired(required = false)
+    private EtcdTemplate etcdTemplate;
 
     /**
      * 查询投放配置
@@ -80,7 +84,22 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     public int insertDspLaunch(DspLaunch dspLaunch)
     {
         dspLaunch.setCreateTime(DateUtils.getNowDate());
-        return dspLaunchMapper.insertDspLaunch(dspLaunch);
+        int rows = dspLaunchMapper.insertDspLaunch(dspLaunch);
+
+        // 数据库插入成功后同步到 etcd
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncAdd("launch", dspLaunch.getId(), dspLaunch);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志，不影响返回结果
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -97,6 +116,7 @@ public class DspLaunchServiceImpl implements IDspLaunchService
         // 先删除该媒体广告位的所有旧配置
         dspLaunchMapper.deleteDspLaunchBySspSlotId(sspSlotId);
 
+        int rows = 0;
         // 批量插入新配置
         if (dspLaunchList != null && !dspLaunchList.isEmpty())
         {
@@ -107,9 +127,25 @@ public class DspLaunchServiceImpl implements IDspLaunchService
                 dspLaunch.setCreateTime(nowDate);
                 dspLaunch.setUpdateTime(nowDate);
             }
-            return dspLaunchMapper.batchInsertDspLaunch(dspLaunchList);
+            rows = dspLaunchMapper.batchInsertDspLaunch(dspLaunchList);
+
+            // 批量同步到 etcd
+            if (rows > 0 && etcdTemplate != null)
+            {
+                for (DspLaunch dspLaunch : dspLaunchList)
+                {
+                    try
+                    {
+                        etcdTemplate.syncAdd("launch", dspLaunch.getId(), dspLaunch);
+                    }
+                    catch (Exception e)
+                    {
+                        // 仅记录日志
+                    }
+                }
+            }
         }
-        return 0;
+        return rows;
     }
 
     /**
@@ -122,7 +158,23 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     public int updateDspLaunch(DspLaunch dspLaunch)
     {
         dspLaunch.setUpdateTime(DateUtils.getNowDate());
-        return dspLaunchMapper.updateDspLaunch(dspLaunch);
+        int rows = dspLaunchMapper.updateDspLaunch(dspLaunch);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                // 查询最新数据
+                DspLaunch latest = dspLaunchMapper.selectDspLaunchById(dspLaunch.getId());
+                etcdTemplate.syncUpdate("launch", latest.getId(), latest);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -134,7 +186,24 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     @Override
     public int deleteDspLaunchByIds(Long[] ids)
     {
-        return dspLaunchMapper.deleteDspLaunchByIds(ids);
+        int rows = dspLaunchMapper.deleteDspLaunchByIds(ids);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            for (Long id : ids)
+            {
+                try
+                {
+                    etcdTemplate.syncDelete("launch", id);
+                }
+                catch (Exception e)
+                {
+                    // 仅记录日志
+                }
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -146,7 +215,21 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     @Override
     public int deleteDspLaunchById(Long id)
     {
-        return dspLaunchMapper.deleteDspLaunchById(id);
+        int rows = dspLaunchMapper.deleteDspLaunchById(id);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncDelete("launch", id);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 
     /**
