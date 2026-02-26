@@ -99,7 +99,11 @@
         <el-table v-loading="loading" :data="appList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
             <el-table-column label="ID" align="center" prop="id" />
-            <el-table-column label="媒体Id" align="center" prop="mediaId" />
+            <el-table-column label="媒体Id" align="center" prop="mediaId">
+                <template #default="scope">
+                    {{ getMediaCompanyName(scope.row.mediaId) }}
+                </template>
+            </el-table-column>
             <el-table-column label="应用名称" align="center" prop="name" />
             <el-table-column label="操作系统类型" align="center" prop="osType">
               <template #default="scope">
@@ -198,6 +202,7 @@
 
 <script setup name="App">
 import { listApp, getApp, delApp, addApp, updateApp } from "@/api/flow/app"
+import { listMedia } from "@/api/flow/media"
 
 const { proxy } = getCurrentInstance()
 
@@ -213,6 +218,9 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+
+// 创建媒体ID到公司名称的映射
+const mediaCompanyNameMap = ref(new Map())
 
 const data = reactive({
     form: {},
@@ -247,6 +255,21 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+/** 加载媒体列表，建立媒体ID到公司名称的映射 */
+function loadMediaList() {
+    listMedia({ pageNum: 1, pageSize: 1000 }).then(response => {
+        mediaCompanyNameMap.value.clear()
+        response.rows.forEach(media => {
+            mediaCompanyNameMap.value.set(media.id, media.mediaCompanyName)
+        })
+    })
+}
+
+/** 根据媒体ID获取公司名称 */
+function getMediaCompanyName(mediaId) {
+    return mediaCompanyNameMap.value.get(mediaId) || mediaId
+}
 
 /** 查询应用管理列表 */
 function getList() {
@@ -371,5 +394,7 @@ function handleExport() {
     }, `app_${new Date().getTime()}.xlsx`)
 }
 
+// 页面加载时获取媒体列表
+loadMediaList()
 getList()
 </script>

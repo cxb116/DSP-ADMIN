@@ -25,38 +25,6 @@
                     @keyup.enter="handleQuery"
                 />
             </el-form-item>
-            <el-form-item label="公司地址" prop="mediaCompanyAddress">
-                <el-input
-                    v-model="queryParams.mediaCompanyAddress"
-                    placeholder="请输入公司地址"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="法人姓名" prop="mediaOwnerName">
-                <el-input
-                    v-model="queryParams.mediaOwnerName"
-                    placeholder="请输入法人姓名"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="联系电话" prop="contactPhone">
-                <el-input
-                    v-model="queryParams.contactPhone"
-                    placeholder="请输入联系电话"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="联系邮箱" prop="contactEmail">
-                <el-input
-                    v-model="queryParams.contactEmail"
-                    placeholder="请输入联系邮箱"
-                    clearable
-                    @keyup.enter="handleQuery"
-                />
-            </el-form-item>
             <el-form-item label="状态" prop="enable">
                 <el-select
                     v-model="queryParams.enable"
@@ -122,20 +90,18 @@
 
         <el-table v-loading="loading" :data="mediaList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="ID" align="center" prop="id" />
-            <el-table-column label="媒体名称" align="center" prop="name" />
+            <el-table-column label="媒体名称" align="center" prop="name">
+                <template #default="scope">
+                    {{ formatMediaName(scope.row) }}
+                </template>
+            </el-table-column>
             <el-table-column label="公司名称" align="center" prop="mediaCompanyName" />
             <el-table-column label="公司简称" align="center" prop="mediaCompanyShort" />
-            <el-table-column label="公司地址" align="center" prop="mediaCompanyAddress" />
-            <el-table-column label="法人姓名" align="center" prop="mediaOwnerName" />
-            <el-table-column label="联系电话" align="center" prop="contactPhone" />
-            <el-table-column label="联系邮箱" align="center" prop="contactEmail" />
             <el-table-column label="状态" align="center" prop="enable">
                 <template #default="scope">
                     <dict-tag :options="media_status" :value="scope.row.enable"/>
                 </template>
             </el-table-column>
-            <el-table-column label="备注" align="center" prop="remark" />
             <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                 <template #default="scope">
                     <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['flow:media:edit']">修改</el-button>
@@ -261,6 +227,11 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+/** 格式化媒体名称：name(公司名称) */
+function formatMediaName(row) {
+    return `${row.name}(${row.mediaCompanyName})`
+}
 
 /** 查询媒体管理列表 */
 function getList() {

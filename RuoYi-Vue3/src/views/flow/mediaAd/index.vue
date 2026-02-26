@@ -574,7 +574,7 @@
 
 <script setup name="MediaAd">
 import { listMediaAd, getMediaAd, delMediaAd, addMediaAd, updateMediaAd, getMatchedDspSlots, saveLaunchConfig, getLaunchConfig } from "@/api/flow/mediaAd"
-import { getMediaAppCascader } from "@/api/flow/media"
+import { getMediaAppCascader, listMedia } from "@/api/flow/media"
 import { getApp } from "@/api/flow/app"
 import { useDict } from "@/utils/dict"
 import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
@@ -596,6 +596,8 @@ const title = ref("")
 // 创建媒体和应用ID到名称的映射
 const mediaNameMap = ref(new Map())
 const appNameMap = ref(new Map())
+// 创建媒体ID到公司名称的映射
+const mediaCompanyNameMap = ref(new Map())
 
 // Tab 相关状态
 const activeTab = ref('list')
@@ -704,9 +706,19 @@ function loadCascaderData() {
   })
 }
 
+/** 加载媒体列表，建立媒体ID到公司名称的映射 */
+function loadMediaList() {
+  listMedia({ pageNum: 1, pageSize: 1000 }).then(response => {
+    mediaCompanyNameMap.value.clear()
+    response.rows.forEach(media => {
+      mediaCompanyNameMap.value.set(media.id, media.mediaCompanyName)
+    })
+  })
+}
+
 /** 根据媒体ID获取媒体名称 */
 function getMediaName(mediaId) {
-  return mediaNameMap.value.get(mediaId) || mediaId
+  return mediaCompanyNameMap.value.get(mediaId) || mediaId
 }
 
 /** 根据应用ID获取应用名称 */
@@ -1227,8 +1239,9 @@ function handleSaveConfig() {
   })
 }
 
-// 页面加载时获取级联数据
+// 页面加载时获取级联数据和媒体列表
 loadCascaderData()
+loadMediaList()
 getList()
 </script>
 
