@@ -98,10 +98,9 @@
 
         <el-table v-loading="loading" :data="appList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="ID" align="center" prop="id" />
             <el-table-column label="媒体Id" align="center" prop="mediaId">
                 <template #default="scope">
-                    {{ getMediaCompanyName(scope.row.mediaId) }}
+                    {{ getMediaCompanyName(scope.row.mediaId) }}({{ scope.row.mediaId }})
                 </template>
             </el-table-column>
             <el-table-column label="应用名称" align="center" prop="name" />
