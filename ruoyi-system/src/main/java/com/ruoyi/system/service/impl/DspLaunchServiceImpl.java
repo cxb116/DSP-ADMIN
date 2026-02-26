@@ -113,11 +113,30 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     @Transactional
     public int batchSaveDspLaunch(Long sspSlotId, List<DspLaunch> dspLaunchList)
     {
-        // 先删除该媒体广告位的所有旧配置
+        // 1. 先查询该媒体广告位的所有旧配置，获取 ID 用于 etcd 删除
+        List<DspLaunch> oldLaunchList = dspLaunchMapper.selectDspLaunchBySspSlotId(sspSlotId);
+
+        // 2. 删除数据库中的旧配置
         dspLaunchMapper.deleteDspLaunchBySspSlotId(sspSlotId);
 
+        // 3. 同步删除 etcd 中的旧数据
+        if (etcdTemplate != null && oldLaunchList != null && !oldLaunchList.isEmpty())
+        {
+            for (DspLaunch oldLaunch : oldLaunchList)
+            {
+                try
+                {
+                    etcdTemplate.syncDelete("launch", oldLaunch.getId());
+                }
+                catch (Exception e)
+                {
+                    // 仅记录日志
+                }
+            }
+        }
+
         int rows = 0;
-        // 批量插入新配置
+        // 4. 批量插入新配置
         if (dspLaunchList != null && !dspLaunchList.isEmpty())
         {
             // 设置创建时间和更新时间
@@ -129,14 +148,17 @@ public class DspLaunchServiceImpl implements IDspLaunchService
             }
             rows = dspLaunchMapper.batchInsertDspLaunch(dspLaunchList);
 
-            // 批量同步到 etcd
-            if (rows > 0 && etcdTemplate != null)
+            // 5. 重新查询获取插入后的完整数据（包含自增 ID）
+            List<DspLaunch> newLaunchList = dspLaunchMapper.selectDspLaunchBySspSlotId(sspSlotId);
+
+            // 6. 批量同步到 etcd
+            if (rows > 0 && etcdTemplate != null && newLaunchList != null && !newLaunchList.isEmpty())
             {
-                for (DspLaunch dspLaunch : dspLaunchList)
+                for (DspLaunch newLaunch : newLaunchList)
                 {
                     try
                     {
-                        etcdTemplate.syncAdd("launch", dspLaunch.getId(), dspLaunch);
+                        etcdTemplate.syncAdd("launch", newLaunch.getId(), newLaunch);
                     }
                     catch (Exception e)
                     {
