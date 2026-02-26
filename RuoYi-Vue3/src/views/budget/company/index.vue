@@ -112,7 +112,6 @@
                     <span v-if="scope.row.timeout">{{ scope.row.timeout }}ms</span>
                 </template>
             </el-table-column>
-            <el-table-column label="备注" align="center" prop="remark" />
             <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                 <template #default="scope">
                     <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:company:edit']">修改</el-button>

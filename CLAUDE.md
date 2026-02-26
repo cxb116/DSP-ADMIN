@@ -194,7 +194,7 @@ ruoyi-generator/      # 代码生成 - 数据库到代码的生成工具
 
 ## Git 提交规范
 
-本项目遵循 **Google git commit log** 风格进行代码提交。
+本项目遵循 **Google git commit log** 风格进行代码提交，**必须使用中文编写提交信息**。
 
 ### 提交消息格式
 
@@ -210,7 +210,7 @@ ruoyi-generator/      # 代码生成 - 数据库到代码的生成工具
 
 必须使用以下类型之一：
 
-- **feat**: 新功能（feature）
+- **feat**: 新功能
 - **fix**: 修复 bug
 - **docs**: 文档变更
 - **style**: 代码格式调整（不影响代码运行的变动）
@@ -227,14 +227,21 @@ ruoyi-generator/      # 代码生成 - 数据库到代码的生成工具
 - `frontend`: 前端相关
 - `database`: 数据库相关
 - `api`: API 接口相关
-- 或具体模块名，如 `budget`、`user` 等
+- 或具体模块名，如 `budget`、`user`、`product`、`company` 等
 
 ### Subject（主题）
 
-- 使用动词原形开头（如 "add"、"update"、"remove"）
-- 首字母小写
+- **必须使用中文**
+- 使用动词开头（如"添加"、"修复"、"优化"、"移除"、"更新"等）
+- 简洁明了，不超过 50 个字符
 - 不以句号结尾
-- 限制在 50 个字符以内
+- 清晰描述做了什么
+
+### Body（正文）
+
+- **必须使用中文**
+- 详细说明本次提交的内容和原因
+- 可以分多条说明，每条一行
 
 ### 示例
 
@@ -249,18 +256,33 @@ git commit -m "fix(backend): 修复用户登录时 token 验证失败的问题"
 git commit -m "docs: 更新 CLAUDE.md 添加 Git 提交规范"
 
 # 重构代码
-git commit -m "refactor(frontend): 优化用户列表页面的组件结构"
+git commit -m "refactor(frontend): 优化产品列表页面的组件结构"
 
 # 性能优化
 git commit -m "perf(database): 为查询频繁的字段添加索引"
+
+# 移除功能
+git commit -m "remove(frontend): 移除产品管理列表中的备注字段展示"
+
+# 完整示例（包含 body）
+git commit -m "feat(budget): 实现公司管理模块
+
+新增公司信息的增删改查功能，包括：
+- 公司名称、预算映射值配置
+- 请求地址和方法设置
+- 超时时间配置
+
+关联产品管理，支持下拉选择公司"
 ```
 
 ### 注意事项
 
+- **提交信息必须使用中文编写**
 - 每次提交只做一件事，保持提交的原子性
 - 提交消息应该清晰地描述"做了什么"和"为什么"
-- 避免使用如 "update files"、"fix bug" 等模糊的描述
-- 中文项目可以使用中文提交消息，但格式必须遵循上述规范
+- 避免使用如 "update files"、"fix bug"、"修改代码" 等模糊的描述
+- Subject 保持简短，详细内容放在 Body 中
+- 使用专业的中文技术术语
 
 ## 重要说明
 
@@ -271,4 +293,4 @@ git commit -m "perf(database): 为查询频繁的字段添加索引"
 - 系统支持基于 **profile 的配置**（dev/test/prod），通过 Spring profiles 切换
 - 前端 API 代理将 `/dev-api/*` 映射到后端 `http://localhost:8080`
 - 后端启动后，Swagger UI 可通过 `http://localhost:8080/swagger-ui.html` 访问
-- **所有代码提交必须遵循 Google git commit log 风格规范**
+- **所有代码提交必须使用中文编写提交信息，并遵循 Google git commit log 风格规范**

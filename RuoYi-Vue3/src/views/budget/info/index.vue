@@ -9,13 +9,19 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="广告类型id" prop="adScene">
-        <el-input
+      <el-form-item label="广告类型" prop="adScene">
+        <el-select
           v-model="queryParams.adScene"
-          placeholder="请输入广告类型id"
+          placeholder="请选择广告类型"
           clearable
-          @keyup.enter="handleQuery"
-        />
+        >
+          <el-option
+            v-for="dict in ad_scene"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="预算方广告位" prop="dspSlotCode">
         <el-input
@@ -29,14 +35,6 @@
         <el-input
           v-model="queryParams.dspAppKey"
           placeholder="请输入预算方APPKEY"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="预算方APPSECRET" prop="dspAppSecret">
-        <el-input
-          v-model="queryParams.dspAppSecret"
-          placeholder="请输入预算方APPSECRET"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -57,60 +55,22 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="应用版本号，支持多个，空格分割" prop="dspAppVer">
-        <el-input
-          v-model="queryParams.dspAppVer"
-          placeholder="请输入应用版本号，支持多个，空格分割"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="应用商店版本号，支持多个，空格分割" prop="dspAppStoreVer">
-        <el-input
-          v-model="queryParams.dspAppStoreVer"
-          placeholder="请输入应用商店版本号，支持多个，空格分割"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="价格加密key" prop="priceEncryptKey">
-        <el-input
-          v-model="queryParams.priceEncryptKey"
-          placeholder="请输入价格加密key"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="应用商店地址，支持多个，空格分割" prop="dspAppStoreLink">
-        <el-input
-          v-model="queryParams.dspAppStoreLink"
-          placeholder="请输入应用商店地址，支持多个，空格分割"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="成交系数，0到100，单位%，给上游预算出价打折扣  " prop="dspDealRatio">
+      <el-form-item label="成交系数" prop="dspDealRatio">
         <el-input
           v-model="queryParams.dspDealRatio"
-          placeholder="请输入成交系数，0到100，单位%，给上游预算出价打折扣  "
+          placeholder="请输入成交系数"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="公司ID" prop="companyId">
-        <el-input
-          v-model="queryParams.companyId"
-          placeholder="请输入公司ID"
+      <el-form-item label="产品" prop="companyProductId">
+        <el-cascader
+          v-model="queryParams.companyProductId"
+          :options="cascaderOptions"
+          :props="{ expandTrigger: 'hover' }"
+          placeholder="请选择产品"
           clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="产品ID" prop="productId">
-        <el-input
-          v-model="queryParams.productId"
-          placeholder="请输入产品ID"
-          clearable
-          @keyup.enter="handleQuery"
+          @change="handleQueryCascaderChange"
         />
       </el-form-item>
       <el-form-item>
@@ -163,24 +123,41 @@
 
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="广告位名称" align="center" prop="name" />
-      <el-table-column label="操作系统类型，1=Android，2=iOS" align="center" prop="osType" />
-      <el-table-column label="广告类型id" align="center" prop="adScene" />
+      <el-table-column label="广告位名称" align="center" prop="name">
+        <template #default="scope">
+          {{ formatSlotName(scope.row) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作系统类型" align="center" prop="osType">
+        <template #default="scope">
+          <dict-tag :options="os_type" :value="scope.row.osType" />
+        </template>
+      </el-table-column>
+      <el-table-column label="广告类型" align="center" prop="adScene">
+        <template #default="scope">
+          <dict-tag :options="ad_scene" :value="scope.row.adScene" />
+        </template>
+      </el-table-column>
       <el-table-column label="预算方广告位" align="center" prop="dspSlotCode" />
       <el-table-column label="预算方APPKEY" align="center" prop="dspAppKey" />
-      <el-table-column label="预算方APPSECRET" align="center" prop="dspAppSecret" />
       <el-table-column label="预算方AppId" align="center" prop="dspAppId" />
       <el-table-column label="预算方应用包名" align="center" prop="dspAppPkg" />
-      <el-table-column label="应用版本号，支持多个，空格分割" align="center" prop="dspAppVer" />
-      <el-table-column label="应用商店版本号，支持多个，空格分割" align="center" prop="dspAppStoreVer" />
-      <el-table-column label="价格加密key" align="center" prop="priceEncryptKey" />
-      <el-table-column label="应用商店地址，支持多个，空格分割" align="center" prop="dspAppStoreLink" />
-      <el-table-column label="上游预算结算方式，1=分成，2=RTB" align="center" prop="dspPayType" />
-      <el-table-column label="成交系数，0到100，单位%，给上游预算出价打折扣  " align="center" prop="dspDealRatio" />
-      <el-table-column label="公司ID" align="center" prop="companyId" />
-      <el-table-column label="产品ID" align="center" prop="productId" />
-      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="结算方式" align="center" prop="dspPayType">
+        <template #default="scope">
+          <dict-tag :options="ssp_pay_type" :value="scope.row.dspPayType" />
+        </template>
+      </el-table-column>
+      <el-table-column label="成交系数" align="center" prop="dspDealRatio" />
+      <el-table-column label="公司" align="center" prop="companyId">
+        <template #default="scope">
+          {{ getCompanyName(scope.row.companyId) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="产品" align="center" prop="productId">
+        <template #default="scope">
+          {{ getProductName(scope.row.productId) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:info:edit']">修改</el-button>
@@ -199,18 +176,29 @@
 
     <!-- 添加或修改预算广告位对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="infoRef" :model="form" :rules="rules" label-width="80px">
+      <el-form ref="infoRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="广告位名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入广告位名称" />
         </el-form-item>
         <el-form-item label="操作系统类型" prop="osType">
           <el-select v-model="form.osType" placeholder="请选择操作系统类型">
-            <el-option label="Android" :value="1" />
-            <el-option label="iOS" :value="2" />
+            <el-option
+              v-for="dict in os_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="广告类型id" prop="adScene">
-          <el-input v-model="form.adScene" placeholder="请输入广告类型id" />
+        <el-form-item label="广告类型" prop="adScene">
+          <el-select v-model="form.adScene" placeholder="请选择广告类型">
+            <el-option
+              v-for="dict in ad_scene"
+              :key="dict.value"
+              :label="dict.label"
+              :value="Number(dict.value)"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="预算方广告位" prop="dspSlotCode">
           <el-input v-model="form.dspSlotCode" placeholder="请输入预算方广告位" />
@@ -227,32 +215,40 @@
         <el-form-item label="预算方应用包名" prop="dspAppPkg">
           <el-input v-model="form.dspAppPkg" placeholder="请输入预算方应用包名" />
         </el-form-item>
-        <el-form-item label="应用版本号，支持多个，空格分割" prop="dspAppVer">
-          <el-input v-model="form.dspAppVer" placeholder="请输入应用版本号，支持多个，空格分割" />
+        <el-form-item label="应用版本号" prop="dspAppVer">
+          <el-input v-model="form.dspAppVer" placeholder="请输入应用版本号" />
         </el-form-item>
-        <el-form-item label="应用商店版本号，支持多个，空格分割" prop="dspAppStoreVer">
-          <el-input v-model="form.dspAppStoreVer" placeholder="请输入应用商店版本号，支持多个，空格分割" />
+        <el-form-item label="应用商店版本号" prop="dspAppStoreVer">
+          <el-input v-model="form.dspAppStoreVer" placeholder="请输入应用商店版本号" />
         </el-form-item>
         <el-form-item label="价格加密key" prop="priceEncryptKey">
           <el-input v-model="form.priceEncryptKey" placeholder="请输入价格加密key" />
         </el-form-item>
-        <el-form-item label="应用商店地址，支持多个，空格分割" prop="dspAppStoreLink">
-          <el-input v-model="form.dspAppStoreLink" placeholder="请输入应用商店地址，支持多个，空格分割" />
+        <el-form-item label="应用商店地址" prop="dspAppStoreLink">
+          <el-input v-model="form.dspAppStoreLink" placeholder="请输入应用商店地址" />
         </el-form-item>
-        <el-form-item label="上游预算结算方式" prop="dspPayType">
-          <el-select v-model="form.dspPayType" placeholder="请选择上游预算结算方式">
-            <el-option label="分成" :value="1" />
-            <el-option label="RTB" :value="2" />
+        <el-form-item label="结算方式" prop="dspPayType">
+          <el-select v-model="form.dspPayType" placeholder="请选择结算方式">
+            <el-option
+              v-for="dict in ssp_pay_type"
+              :key="dict.value"
+              :label="dict.label"
+              :value="dict.value"
+            />
           </el-select>
         </el-form-item>
-        <el-form-item label="成交系数，0到100，单位%，给上游预算出价打折扣  " prop="dspDealRatio">
-          <el-input v-model="form.dspDealRatio" placeholder="请输入成交系数，0到100，单位%，给上游预算出价打折扣  " />
+        <el-form-item label="成交系数" prop="dspDealRatio">
+          <el-input v-model="form.dspDealRatio" placeholder="请输入成交系数" />
         </el-form-item>
-        <el-form-item label="公司ID" prop="companyId">
-          <el-input v-model="form.companyId" placeholder="请输入公司ID" />
-        </el-form-item>
-        <el-form-item label="产品ID" prop="productId">
-          <el-input v-model="form.productId" placeholder="请输入产品ID" />
+        <el-form-item label="产品" prop="companyProductId" required>
+          <el-cascader
+            v-model="form.companyProductId"
+            :options="cascaderOptions"
+            :props="{ expandTrigger: 'hover' }"
+            placeholder="请选择产品"
+            clearable
+            @change="handleCascaderChange"
+          />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -270,10 +266,17 @@
 
 <script setup name="Info">
 import { listInfo, getInfo, delInfo, addInfo, updateInfo } from "@/api/budget/info"
+import { listCompany } from "@/api/budget/company"
+import { listProduct } from "@/api/budget/product"
 
 const { proxy } = getCurrentInstance()
 
+// 获取字典数据
+const { os_type, ad_scene, ssp_pay_type } = proxy.useDict("os_type", "ad_scene", "ssp_pay_type")
+
 const infoList = ref([])
+const companyList = ref([])
+const productList = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -304,27 +307,101 @@ const data = reactive({
     dspDealRatio: null,
     companyId: null,
     productId: null,
+    companyProductId: [],
   },
   rules: {
     name: [
       { required: true, message: "广告位名称不能为空", trigger: "blur" }
     ],
     osType: [
-      { required: true, message: "操作系统类型，1=Android，2=iOS不能为空", trigger: "change" }
+      { required: true, message: "操作系统类型不能为空", trigger: "change" }
     ],
     adScene: [
-      { required: true, message: "广告类型id不能为空", trigger: "blur" }
+      { required: true, message: "广告类型不能为空", trigger: "change" }
     ],
     dspSlotCode: [
       { required: true, message: "预算方广告位不能为空", trigger: "blur" }
     ],
     dspPayType: [
-      { required: true, message: "上游预算结算方式，1=分成，2=RTB不能为空", trigger: "change" }
+      { required: true, message: "结算方式不能为空", trigger: "change" }
+    ],
+    companyProductId: [
+      { required: true, message: "产品不能为空", trigger: "change" }
     ],
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+/** 级联选择器选项 */
+const cascaderOptions = computed(() => {
+  return companyList.value.map(company => ({
+    value: company.id,
+    label: company.name,
+    children: productList.value
+      .filter(product => product.companyId === company.id)
+      .map(product => ({
+        value: product.id,
+        label: product.name
+      }))
+  }))
+})
+
+/** 查询公司列表 */
+function getCompanyList() {
+  listCompany().then(response => {
+    companyList.value = response.rows || []
+  })
+}
+
+/** 查询产品列表 */
+function getProductList() {
+  listProduct().then(response => {
+    productList.value = response.rows || []
+  })
+}
+
+/** 根据公司ID获取公司名称 */
+function getCompanyName(companyId) {
+  const company = companyList.value.find(item => item.id === companyId)
+  return company ? company.name : '-'
+}
+
+/** 根据产品ID获取产品名称 */
+function getProductName(productId) {
+  const product = productList.value.find(item => item.id === productId)
+  return product ? product.name : '-'
+}
+
+/** 格式化广告位名称：name(id) */
+function formatSlotName(row) {
+  return `${row.name}(${row.id})`
+}
+
+/** 级联选择器变化处理 */
+function handleCascaderChange(value) {
+  if (value && value.length === 2) {
+    form.value.companyId = value[0]
+    form.value.productId = value[1]
+  } else {
+    form.value.companyId = null
+    form.value.productId = null
+  }
+}
+
+/** 查询条件级联选择器变化处理 */
+function handleQueryCascaderChange(value) {
+  if (value && value.length === 2) {
+    queryParams.value.companyId = value[0]
+    queryParams.value.productId = value[1]
+  } else if (value && value.length === 1) {
+    queryParams.value.companyId = value[0]
+    queryParams.value.productId = null
+  } else {
+    queryParams.value.companyId = null
+    queryParams.value.productId = null
+  }
+}
 
 /** 查询预算广告位列表 */
 function getList() {
@@ -362,6 +439,7 @@ function reset() {
     dspDealRatio: null,
     companyId: null,
     productId: null,
+    companyProductId: [],
     createBy: null,
     createTime: null,
     updateBy: null,
@@ -407,9 +485,10 @@ function handleUpdate(row) {
       ...data,
       osType: data.osType !== null ? Number(data.osType) : null,
       adScene: data.adScene !== null ? Number(data.adScene) : null,
-      dspPayType: data.dspPayType !== null ? Number(data.dspPayType) : null,
+      dspPayType: data.dspPayType !== null ? String(data.dspPayType) : null,
       companyId: data.companyId !== null ? Number(data.companyId) : null,
       productId: data.productId !== null ? Number(data.productId) : null,
+      companyProductId: data.companyId && data.productId ? [Number(data.companyId), Number(data.productId)] : []
     }
     open.value = true
     title.value = "修改预算广告位"
@@ -455,5 +534,7 @@ function handleExport() {
   }, `info_${new Date().getTime()}.xlsx`)
 }
 
+getCompanyList()
+getProductList()
 getList()
 </script>
