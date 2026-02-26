@@ -485,7 +485,7 @@ function handleUpdate(row) {
       ...data,
       osType: data.osType !== null ? Number(data.osType) : null,
       adScene: data.adScene !== null ? Number(data.adScene) : null,
-      dspPayType: data.dspPayType !== null ? Number(data.dspPayType) : null,
+      dspPayType: data.dspPayType !== null ? String(data.dspPayType) : null,
       companyId: data.companyId !== null ? Number(data.companyId) : null,
       productId: data.productId !== null ? Number(data.productId) : null,
       companyProductId: data.companyId && data.productId ? [Number(data.companyId), Number(data.productId)] : []

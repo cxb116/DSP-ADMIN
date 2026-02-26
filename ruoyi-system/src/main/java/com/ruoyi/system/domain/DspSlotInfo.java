@@ -70,7 +70,7 @@ public class DspSlotInfo extends BaseEntity
 
     /** 上游预算结算方式，1=分成，2=RTB */
     @Excel(name = "上游预算结算方式，1=分成，2=RTB")
-    private Long dspPayType;
+    private String dspPayType;
 
     /** 成交系数，0到100，单位%，给上游预算出价打折扣  （rtb 时有这个） */
     @Excel(name = "成交系数，0到100，单位%，给上游预算出价打折扣  ", readConverterExp = "r=tb,时=有这个")
@@ -170,7 +170,7 @@ public class DspSlotInfo extends BaseEntity
         this.dspAppStoreLink = dspAppStoreLink;
     }
 
-    public void setDspPayType(Long dspPayType)
+    public void setDspPayType(String dspPayType)
     {
         this.dspPayType = dspPayType;
     }
@@ -257,7 +257,7 @@ public class DspSlotInfo extends BaseEntity
     }
 
     @JSONField(name = "dsp_pay_type")
-    public Long getDspPayType()
+    public String getDspPayType()
     {
         return dspPayType;
     }
