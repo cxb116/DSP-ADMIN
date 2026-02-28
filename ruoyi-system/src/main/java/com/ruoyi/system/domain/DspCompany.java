@@ -1,9 +1,11 @@
 package com.ruoyi.system.domain;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import java.util.Date;
 
 /**
  * 公司管理对象 dsp_company
@@ -32,7 +34,7 @@ public class DspCompany extends BaseEntity
 
     /** 请求方法 1 post 2 get */
     @Excel(name = "请求方法 1 post 2 get")
-    private Long method;
+    private String method;
 
     /** 超时时间 (例如650ms) */
     @Excel(name = "超时时间 (例如650ms)")
@@ -43,57 +45,63 @@ public class DspCompany extends BaseEntity
         this.id = id;
     }
 
-    public Long getId() 
+    @JSONField(name = "id")
+    public Long getId()
     {
         return id;
     }
 
-    public void setName(String name) 
+    public void setName(String name)
     {
         this.name = name;
     }
 
-    public String getName() 
+    @JSONField(name = "name")
+    public String getName()
     {
         return name;
     }
 
-    public void setDspCode(Long dspCode) 
+    public void setDspCode(Long dspCode)
     {
         this.dspCode = dspCode;
     }
 
-    public Long getDspCode() 
+    @JSONField(name = "dsp_code")
+    public Long getDspCode()
     {
         return dspCode;
     }
 
-    public void setUrl(String url) 
+    public void setUrl(String url)
     {
         this.url = url;
     }
 
-    public String getUrl() 
+    @JSONField(name = "url")
+    public String getUrl()
     {
         return url;
     }
 
-    public void setMethod(Long method) 
+    public void setMethod(String method)
     {
         this.method = method;
     }
 
-    public Long getMethod() 
+    @JSONField(name = "method")
+    public String getMethod()
     {
         return method;
     }
 
-    public void setTimeout(Long timeout) 
+    public void setTimeout(Long timeout)
     {
         this.timeout = timeout;
     }
 
-    public Long getTimeout() 
+    @JSONField(name = "timeout")
+    public Long getTimeout()
     {
         return timeout;
     }

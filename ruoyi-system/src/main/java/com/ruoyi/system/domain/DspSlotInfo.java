@@ -1,9 +1,11 @@
 package com.ruoyi.system.domain;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import java.util.Date;
 
 /**
  * 预算广告位对象 dsp_slot_info
@@ -68,7 +70,7 @@ public class DspSlotInfo extends BaseEntity
 
     /** 上游预算结算方式，1=分成，2=RTB */
     @Excel(name = "上游预算结算方式，1=分成，2=RTB")
-    private Long dspPayType;
+    private String dspPayType;
 
     /** 成交系数，0到100，单位%，给上游预算出价打折扣  （rtb 时有这个） */
     @Excel(name = "成交系数，0到100，单位%，给上游预算出价打折扣  ", readConverterExp = "r=tb,时=有这个")
@@ -87,7 +89,8 @@ public class DspSlotInfo extends BaseEntity
         this.id = id;
     }
 
-    public Long getId() 
+    @JSONField(name = "id")
+    public Long getId()
     {
         return id;
     }
@@ -122,114 +125,59 @@ public class DspSlotInfo extends BaseEntity
         return adScene;
     }
 
-    public void setDspSlotCode(String dspSlotCode) 
+    public void setDspSlotCode(String dspSlotCode)
     {
         this.dspSlotCode = dspSlotCode;
     }
 
-    public String getDspSlotCode() 
-    {
-        return dspSlotCode;
-    }
-
-    public void setDspAppKey(String dspAppKey) 
+    public void setDspAppKey(String dspAppKey)
     {
         this.dspAppKey = dspAppKey;
     }
 
-    public String getDspAppKey() 
-    {
-        return dspAppKey;
-    }
-
-    public void setDspAppSecret(String dspAppSecret) 
+    public void setDspAppSecret(String dspAppSecret)
     {
         this.dspAppSecret = dspAppSecret;
     }
 
-    public String getDspAppSecret() 
-    {
-        return dspAppSecret;
-    }
-
-    public void setDspAppId(String dspAppId) 
+    public void setDspAppId(String dspAppId)
     {
         this.dspAppId = dspAppId;
     }
 
-    public String getDspAppId() 
-    {
-        return dspAppId;
-    }
-
-    public void setDspAppPkg(String dspAppPkg) 
+    public void setDspAppPkg(String dspAppPkg)
     {
         this.dspAppPkg = dspAppPkg;
     }
 
-    public String getDspAppPkg() 
-    {
-        return dspAppPkg;
-    }
-
-    public void setDspAppVer(String dspAppVer) 
+    public void setDspAppVer(String dspAppVer)
     {
         this.dspAppVer = dspAppVer;
     }
 
-    public String getDspAppVer() 
-    {
-        return dspAppVer;
-    }
-
-    public void setDspAppStoreVer(String dspAppStoreVer) 
+    public void setDspAppStoreVer(String dspAppStoreVer)
     {
         this.dspAppStoreVer = dspAppStoreVer;
     }
 
-    public String getDspAppStoreVer() 
-    {
-        return dspAppStoreVer;
-    }
-
-    public void setPriceEncryptKey(String priceEncryptKey) 
+    public void setPriceEncryptKey(String priceEncryptKey)
     {
         this.priceEncryptKey = priceEncryptKey;
     }
 
-    public String getPriceEncryptKey() 
-    {
-        return priceEncryptKey;
-    }
-
-    public void setDspAppStoreLink(String dspAppStoreLink) 
+    public void setDspAppStoreLink(String dspAppStoreLink)
     {
         this.dspAppStoreLink = dspAppStoreLink;
     }
 
-    public String getDspAppStoreLink() 
-    {
-        return dspAppStoreLink;
-    }
-
-    public void setDspPayType(Long dspPayType) 
+    public void setDspPayType(String dspPayType)
     {
         this.dspPayType = dspPayType;
     }
 
-    public Long getDspPayType() 
-    {
-        return dspPayType;
-    }
-
-    public void setDspDealRatio(Long dspDealRatio) 
+    public void setDspDealRatio(Long dspDealRatio)
     {
         this.dspDealRatio = dspDealRatio;
-    }
-
-    public Long getDspDealRatio() 
-    {
-        return dspDealRatio;
     }
 
     public void setCompanyId(Long companyId) 
@@ -237,7 +185,8 @@ public class DspSlotInfo extends BaseEntity
         this.companyId = companyId;
     }
 
-    public Long getCompanyId() 
+    @JSONField(name = "dsp_company_id")
+    public Long getCompanyId()
     {
         return companyId;
     }
@@ -247,9 +196,76 @@ public class DspSlotInfo extends BaseEntity
         this.productId = productId;
     }
 
-    public Long getProductId() 
+    @JSONField(name = "dsp_product_id")
+    public Long getProductId()
     {
         return productId;
+    }
+
+    @JSONField(name = "dsp_slot_code")
+    public String getDspSlotCode()
+    {
+        return dspSlotCode;
+    }
+
+    @JSONField(name = "dsp_app_key")
+    public String getDspAppKey()
+    {
+        return dspAppKey;
+    }
+
+    @JSONField(name = "dsp_app_secret")
+    public String getDspAppSecret()
+    {
+        return dspAppSecret;
+    }
+
+    @JSONField(name = "dsp_app_id")
+    public String getDspAppId()
+    {
+        return dspAppId;
+    }
+
+    @JSONField(name = "dsp_app_pkg")
+    public String getDspAppPkg()
+    {
+        return dspAppPkg;
+    }
+
+    @JSONField(name = "dsp_app_ver")
+    public String getDspAppVer()
+    {
+        return dspAppVer;
+    }
+
+    @JSONField(name = "dsp_app_store_ver")
+    public String getDspAppStoreVer()
+    {
+        return dspAppStoreVer;
+    }
+
+    @JSONField(name = "price_encrypt_key")
+    public String getPriceEncryptKey()
+    {
+        return priceEncryptKey;
+    }
+
+    @JSONField(name = "dsp_app_store_link")
+    public String getDspAppStoreLink()
+    {
+        return dspAppStoreLink;
+    }
+
+    @JSONField(name = "dsp_pay_type")
+    public String getDspPayType()
+    {
+        return dspPayType;
+    }
+
+    @JSONField(name = "dsp_deal_ratio")
+    public Long getDspDealRatio()
+    {
+        return dspDealRatio;
     }
 
     @Override

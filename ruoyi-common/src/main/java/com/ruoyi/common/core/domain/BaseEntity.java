@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import com.alibaba.fastjson2.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -62,6 +63,7 @@ public class BaseEntity implements Serializable
         this.createBy = createBy;
     }
 
+    @JSONField(name = "created_at")
     public Date getCreateTime()
     {
         return createTime;
@@ -82,6 +84,7 @@ public class BaseEntity implements Serializable
         this.updateBy = updateBy;
     }
 
+    @JSONField(name = "updated_at")
     public Date getUpdateTime()
     {
         return updateTime;

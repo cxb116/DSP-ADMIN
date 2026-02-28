@@ -1,5 +1,6 @@
 package com.ruoyi.system.domain;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -72,7 +73,8 @@ public class SspSlotInfo extends BaseEntity
         this.id = id;
     }
 
-    public Long getId() 
+    @JSONField(name = "id")
+    public Long getId()
     {
         return id;
     }
@@ -82,7 +84,8 @@ public class SspSlotInfo extends BaseEntity
         this.mediaId = mediaId;
     }
 
-    public Long getMediaId() 
+    @JSONField(name = "media_id")
+    public Long getMediaId()
     {
         return mediaId;
     }
@@ -92,7 +95,8 @@ public class SspSlotInfo extends BaseEntity
         this.appId = appId;
     }
 
-    public Long getAppId() 
+    @JSONField(name = "app_id")
+    public Long getAppId()
     {
         return appId;
     }
@@ -102,7 +106,8 @@ public class SspSlotInfo extends BaseEntity
         this.name = name;
     }
 
-    public String getName() 
+    @JSONField(name = "name")
+    public String getName()
     {
         return name;
     }
@@ -112,6 +117,7 @@ public class SspSlotInfo extends BaseEntity
         this.nameAlise = nameAlise;
     }
 
+    @JSONField(name = "name_alise")
     public String getNameAlise()
     {
         return nameAlise;
@@ -122,6 +128,7 @@ public class SspSlotInfo extends BaseEntity
         this.adScene = adScene;
     }
 
+    @JSONField(name = "scene_id")
     public Long getAdScene()
     {
         return adScene;
@@ -132,7 +139,8 @@ public class SspSlotInfo extends BaseEntity
         this.sspPayType = sspPayType;
     }
 
-    public Long getSspPayType() 
+    @JSONField(name = "ssp_pay_type")
+    public Long getSspPayType()
     {
         return sspPayType;
     }
@@ -142,7 +150,8 @@ public class SspSlotInfo extends BaseEntity
         this.sspDealRatio = sspDealRatio;
     }
 
-    public Long getSspDealRatio() 
+    @JSONField(name = "ssp_deal_ratio")
+    public Long getSspDealRatio()
     {
         return sspDealRatio;
     }
@@ -152,47 +161,52 @@ public class SspSlotInfo extends BaseEntity
         this.width = width;
     }
 
-    public Long getWidth() 
+    @JSONField(name = "width")
+    public Long getWidth()
     {
         return width;
     }
 
-    public void setHeight(Long height) 
+    public void setHeight(Long height)
     {
         this.height = height;
     }
 
-    public Long getHeight() 
+    @JSONField(name = "height")
+    public Long getHeight()
     {
         return height;
     }
 
-    public void setAdImage(String adImage) 
+    public void setAdImage(String adImage)
     {
         this.adImage = adImage;
     }
 
-    public String getAdImage() 
+    @JSONField(name = "ad_image")
+    public String getAdImage()
     {
         return adImage;
     }
 
-    public void setInteractionType(Long interactionType) 
+    public void setInteractionType(Long interactionType)
     {
         this.interactionType = interactionType;
     }
 
-    public Long getInteractionType() 
+    @JSONField(name = "interaction_type")
+    public Long getInteractionType()
     {
         return interactionType;
     }
 
-    public void setEnable(Long enable) 
+    public void setEnable(Long enable)
     {
         this.enable = enable;
     }
 
-    public Long getEnable() 
+    @JSONField(name = "enable")
+    public Long getEnable()
     {
         return enable;
     }

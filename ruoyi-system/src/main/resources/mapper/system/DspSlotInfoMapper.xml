@@ -66,6 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="id != null">id,</if>
             <if test="name != null and name != ''">name,</if>
             <if test="osType != null">os_type,</if>
+            <if test="adScene != null">ad_scene,</if>
             <if test="dspSlotCode != null and dspSlotCode != ''">dsp_slot_code,</if>
             <if test="dspAppKey != null">dsp_app_key,</if>
             <if test="dspAppSecret != null">dsp_app_secret,</if>
@@ -89,6 +90,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="id != null">#{id},</if>
             <if test="name != null and name != ''">#{name},</if>
             <if test="osType != null">#{osType},</if>
+            <if test="adScene != null">#{adScene},</if>
             <if test="dspSlotCode != null and dspSlotCode != ''">#{dspSlotCode},</if>
             <if test="dspAppKey != null">#{dspAppKey},</if>
             <if test="dspAppSecret != null">#{dspAppSecret},</if>
@@ -115,6 +117,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <trim prefix="SET" suffixOverrides=",">
             <if test="name != null and name != ''">name = #{name},</if>
             <if test="osType != null">os_type = #{osType},</if>
+            <if test="adScene != null">ad_scene = #{adScene},</if>
             <if test="dspSlotCode != null and dspSlotCode != ''">dsp_slot_code = #{dspSlotCode},</if>
             <if test="dspAppKey != null">dsp_app_key = #{dspAppKey},</if>
             <if test="dspAppSecret != null">dsp_app_secret = #{dspAppSecret},</if>

@@ -64,7 +64,7 @@ spring:
   devtools:
     restart:
       # 热部署开关
-      enabled: true
+      enabled:  false
   # redis 配置
   redis:
     # 地址
@@ -134,3 +134,21 @@ xss:
   excludes: /system/notice
   # 匹配链接
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# etcd 配置
+etcd:
+  # 是否启用 etcd 同步功能
+  enabled: true
+  # etcd 服务器地址（支持多个，逗号分隔）
+  endpoints: http://117.72.67.186
+  # etcd key 前缀
+  prefix: /dsp/config
+  # 连接超时时间（秒）
+  connect-timeout: 5
+  # 请求超时时间（秒）
+  request-timeout: 10
+  # 是否开启认证
+  auth:
+    enabled: false
+    user: ""
+    password: ""

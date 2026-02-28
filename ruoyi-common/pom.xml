@@ -113,6 +113,12 @@
             <artifactId>javax.servlet-api</artifactId>
         </dependency>
 
+        <!-- etcd 客户端 -->
+        <dependency>
+            <groupId>io.etcd</groupId>
+            <artifactId>jetcd-core</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

@@ -9,13 +9,19 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="公司id" prop="companyId">
-        <el-input
+      <el-form-item label="公司" prop="companyId">
+        <el-select
           v-model="queryParams.companyId"
-          placeholder="请输入公司id"
+          placeholder="请选择公司"
           clearable
-          @keyup.enter="handleQuery"
-        />
+        >
+          <el-option
+            v-for="company in companyList"
+            :key="company.id"
+            :label="company.name"
+            :value="company.id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -69,8 +75,11 @@
       <el-table-column type="selection" width="55" align="center" />
       <el-table-column label="ID" align="center" prop="id" />
       <el-table-column label="产品名称" align="center" prop="name" />
-      <el-table-column label="公司id" align="center" prop="companyId" />
-      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="公司" align="center" prop="companyId">
+        <template #default="scope">
+          {{ getCompanyName(scope.row.companyId) }}
+        </template>
+      </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:product:edit']">修改</el-button>
@@ -93,8 +102,15 @@
         <el-form-item label="产品名称" prop="name">
           <el-input v-model="form.name" placeholder="请输入产品名称" />
         </el-form-item>
-        <el-form-item label="公司id" prop="companyId">
-          <el-input v-model="form.companyId" placeholder="请输入公司id" />
+        <el-form-item label="公司" prop="companyId">
+          <el-select v-model="form.companyId" placeholder="请选择公司">
+            <el-option
+              v-for="company in companyList"
+              :key="company.id"
+              :label="company.name"
+              :value="company.id"
+            />
+          </el-select>
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -112,10 +128,12 @@
 
 <script setup name="Product">
 import { listProduct, getProduct, delProduct, addProduct, updateProduct } from "@/api/budget/product"
+import { listCompany } from "@/api/budget/company"
 
 const { proxy } = getCurrentInstance()
 
 const productList = ref([])
+const companyList = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -138,12 +156,25 @@ const data = reactive({
       { required: true, message: "产品名称不能为空", trigger: "blur" }
     ],
     companyId: [
-      { required: true, message: "公司id不能为空", trigger: "blur" }
+      { required: true, message: "公司不能为空", trigger: "change" }
     ],
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+/** 查询公司列表 */
+function getCompanyList() {
+  listCompany().then(response => {
+    companyList.value = response.rows || []
+  })
+}
+
+/** 根据公司ID获取公司名称 */
+function getCompanyName(companyId) {
+  const company = companyList.value.find(item => item.id === companyId)
+  return company ? company.name : '-'
+}
 
 /** 查询产品管理列表 */
 function getList() {
@@ -256,5 +287,6 @@ function handleExport() {
   }, `product_${new Date().getTime()}.xlsx`)
 }
 
+getCompanyList()
 getList()
 </script>

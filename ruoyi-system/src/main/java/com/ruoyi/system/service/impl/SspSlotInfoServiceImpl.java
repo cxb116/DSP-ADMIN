@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import com.ruoyi.common.core.etcd.EtcdTemplate;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,13 @@ import com.ruoyi.system.service.ISspSlotInfoService;
  * @date 2026-02-24
  */
 @Service
-public class SspSlotInfoServiceImpl implements ISspSlotInfoService 
+public class SspSlotInfoServiceImpl implements ISspSlotInfoService
 {
     @Autowired
     private SspSlotInfoMapper sspSlotInfoMapper;
+
+    @Autowired(required = false)
+    private EtcdTemplate etcdTemplate;
 
     /**
      * 查询媒体广告位
@@ -55,7 +59,22 @@ public class SspSlotInfoServiceImpl implements ISspSlotInfoService
     public int insertSspSlotInfo(SspSlotInfo sspSlotInfo)
     {
         sspSlotInfo.setCreateTime(DateUtils.getNowDate());
-        return sspSlotInfoMapper.insertSspSlotInfo(sspSlotInfo);
+        int rows = sspSlotInfoMapper.insertSspSlotInfo(sspSlotInfo);
+
+        // 数据库插入成功后同步到 etcd
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncAdd("sspslot", sspSlotInfo.getId(), sspSlotInfo);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志，不影响返回结果
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -68,7 +87,23 @@ public class SspSlotInfoServiceImpl implements ISspSlotInfoService
     public int updateSspSlotInfo(SspSlotInfo sspSlotInfo)
     {
         sspSlotInfo.setUpdateTime(DateUtils.getNowDate());
-        return sspSlotInfoMapper.updateSspSlotInfo(sspSlotInfo);
+        int rows = sspSlotInfoMapper.updateSspSlotInfo(sspSlotInfo);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                // 查询最新数据
+                SspSlotInfo latest = sspSlotInfoMapper.selectSspSlotInfoById(sspSlotInfo.getId());
+                etcdTemplate.syncUpdate("sspslot", latest.getId(), latest);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -80,7 +115,24 @@ public class SspSlotInfoServiceImpl implements ISspSlotInfoService
     @Override
     public int deleteSspSlotInfoByIds(Long[] ids)
     {
-        return sspSlotInfoMapper.deleteSspSlotInfoByIds(ids);
+        int rows = sspSlotInfoMapper.deleteSspSlotInfoByIds(ids);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            for (Long id : ids)
+            {
+                try
+                {
+                    etcdTemplate.syncDelete("sspslot", id);
+                }
+                catch (Exception e)
+                {
+                    // 仅记录日志
+                }
+            }
+        }
+
+        return rows;
     }
 
     /**
@@ -92,7 +144,21 @@ public class SspSlotInfoServiceImpl implements ISspSlotInfoService
     @Override
     public int deleteSspSlotInfoById(Long id)
     {
-        return sspSlotInfoMapper.deleteSspSlotInfoById(id);
+        int rows = sspSlotInfoMapper.deleteSspSlotInfoById(id);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncDelete("sspslot", id);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 
     /**

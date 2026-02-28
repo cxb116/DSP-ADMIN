@@ -1,9 +1,11 @@
 package com.ruoyi.system.domain;
 
+import com.alibaba.fastjson2.annotation.JSONField;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import java.util.Date;
 
 /**
  * 投放配置对象 dsp_launch
@@ -79,6 +81,7 @@ public class DspLaunch extends BaseEntity
         this.id = id;
     }
 
+    @JSONField(name = "id")
     public Long getId()
     {
         return id;
@@ -89,6 +92,7 @@ public class DspLaunch extends BaseEntity
         this.sspSlotId = sspSlotId;
     }
 
+    @JSONField(name = "ssp_slot_id")
     public Long getSspSlotId()
     {
         return sspSlotId;
@@ -99,6 +103,7 @@ public class DspLaunch extends BaseEntity
         this.dspSlotId = dspSlotId;
     }
 
+    @JSONField(name = "dsp_slot_id")
     public Long getDspSlotId()
     {
         return dspSlotId;
@@ -109,6 +114,7 @@ public class DspLaunch extends BaseEntity
         this.trafficWeight = trafficWeight;
     }
 
+    @JSONField(name = "traffic_weight")
     public Integer getTrafficWeight()
     {
         return trafficWeight;
@@ -119,6 +125,7 @@ public class DspLaunch extends BaseEntity
         this.launchStrategy = launchStrategy;
     }
 
+    @JSONField(name = "launch_strategy")
     public Integer getLaunchStrategy()
     {
         return launchStrategy;
@@ -129,6 +136,7 @@ public class DspLaunch extends BaseEntity
         this.floorPrice = floorPrice;
     }
 
+    @JSONField(name = "floor_price")
     public Long getFloorPrice()
     {
         return floorPrice;
@@ -139,6 +147,7 @@ public class DspLaunch extends BaseEntity
         this.ipLimit = ipLimit;
     }
 
+    @JSONField(name = "ip_limit")
     public Integer getIpLimit()
     {
         return ipLimit;
@@ -149,6 +158,7 @@ public class DspLaunch extends BaseEntity
         this.logCaptureAt = logCaptureAt;
     }
 
+    @JSONField(name = "log_capture_at")
     public Integer getLogCaptureAt()
     {
         return logCaptureAt;
@@ -159,6 +169,7 @@ public class DspLaunch extends BaseEntity
         this.trackSchwarz = trackSchwarz;
     }
 
+    @JSONField(name = "track_schwarz")
     public String getTrackSchwarz()
     {
         return trackSchwarz;
@@ -169,6 +180,7 @@ public class DspLaunch extends BaseEntity
         this.req = req;
     }
 
+    @JSONField(name = "req")
     public Long getReq()
     {
         return req;
@@ -179,6 +191,7 @@ public class DspLaunch extends BaseEntity
         this.ims = ims;
     }
 
+    @JSONField(name = "ims")
     public Long getIms()
     {
         return ims;
@@ -189,6 +202,7 @@ public class DspLaunch extends BaseEntity
         this.clk = clk;
     }
 
+    @JSONField(name = "clk")
     public Long getClk()
     {
         return clk;
@@ -199,6 +213,7 @@ public class DspLaunch extends BaseEntity
         this.launchTime = launchTime;
     }
 
+    @JSONField(name = "launch_time")
     public Integer getLaunchTime()
     {
         return launchTime;
@@ -209,6 +224,7 @@ public class DspLaunch extends BaseEntity
         this.regionDirection = regionDirection;
     }
 
+    @JSONField(name = "region_direction")
     public Integer getRegionDirection()
     {
         return regionDirection;
@@ -219,6 +235,7 @@ public class DspLaunch extends BaseEntity
         this.brandDirection = brandDirection;
     }
 
+    @JSONField(name = "brand_direction")
     public Integer getBrandDirection()
     {
         return brandDirection;

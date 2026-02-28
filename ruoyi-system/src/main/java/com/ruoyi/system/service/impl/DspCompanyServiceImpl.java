@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import com.ruoyi.common.core.etcd.EtcdTemplate;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,13 @@ import com.ruoyi.system.service.IDspCompanyService;
  * @date 2026-02-24
  */
 @Service
-public class DspCompanyServiceImpl implements IDspCompanyService 
+public class DspCompanyServiceImpl implements IDspCompanyService
 {
     @Autowired
     private DspCompanyMapper dspCompanyMapper;
+
+    @Autowired(required = false)
+    private EtcdTemplate etcdTemplate;
 
     /**
      * 查询公司管理
@@ -54,12 +58,27 @@ public class DspCompanyServiceImpl implements IDspCompanyService
     public int insertDspCompany(DspCompany dspCompany)
     {
         dspCompany.setCreateTime(DateUtils.getNowDate());
-        return dspCompanyMapper.insertDspCompany(dspCompany);
+        int rows = dspCompanyMapper.insertDspCompany(dspCompany);
+
+        // 数据库插入成功后同步到 etcd
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncAdd("company", dspCompany.getId(), dspCompany);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志，不影响返回结果
+            }
+        }
+
+        return rows;
     }
 
     /**
      * 修改公司管理
-     * 
+     *
      * @param dspCompany 公司管理
      * @return 结果
      */
@@ -67,30 +86,77 @@ public class DspCompanyServiceImpl implements IDspCompanyService
     public int updateDspCompany(DspCompany dspCompany)
     {
         dspCompany.setUpdateTime(DateUtils.getNowDate());
-        return dspCompanyMapper.updateDspCompany(dspCompany);
+        int rows = dspCompanyMapper.updateDspCompany(dspCompany);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                // 查询最新数据
+                DspCompany latest = dspCompanyMapper.selectDspCompanyById(dspCompany.getId());
+                etcdTemplate.syncUpdate("company", latest.getId(), latest);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 
     /**
      * 批量删除公司管理
-     * 
+     *
      * @param ids 需要删除的公司管理主键
      * @return 结果
      */
     @Override
     public int deleteDspCompanyByIds(Long[] ids)
     {
-        return dspCompanyMapper.deleteDspCompanyByIds(ids);
+        int rows = dspCompanyMapper.deleteDspCompanyByIds(ids);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            for (Long id : ids)
+            {
+                try
+                {
+                    etcdTemplate.syncDelete("company", id);
+                }
+                catch (Exception e)
+                {
+                    // 仅记录日志
+                }
+            }
+        }
+
+        return rows;
     }
 
     /**
      * 删除公司管理信息
-     * 
+     *
      * @param id 公司管理主键
      * @return 结果
      */
     @Override
     public int deleteDspCompanyById(Long id)
     {
-        return dspCompanyMapper.deleteDspCompanyById(id);
+        int rows = dspCompanyMapper.deleteDspCompanyById(id);
+
+        if (rows > 0 && etcdTemplate != null)
+        {
+            try
+            {
+                etcdTemplate.syncDelete("company", id);
+            }
+            catch (Exception e)
+            {
+                // 仅记录日志
+            }
+        }
+
+        return rows;
     }
 }
