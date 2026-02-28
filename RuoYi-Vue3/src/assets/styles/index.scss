@@ -12,6 +12,12 @@ body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Helvetica Neue, Helvetica, PingFang SC, Hiragino Sans GB, Microsoft YaHei, Arial, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  &.dark {
+    background-color: #1a1a1a;
+    color: #e0e0e0;
+  }
 }
 
 label {
@@ -109,10 +115,25 @@ aside {
   color: #2c3e50;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  html.dark & {
+    background: #2a2a2a;
+    color: #e0e0e0;
+  }
 
   a {
     color: #337ab7;
     cursor: pointer;
+    transition: color 0.3s ease;
+
+    html.dark & {
+      color: #409eff;
+
+      &:hover {
+        color: #66b1ff;
+      }
+    }
 
     &:hover {
       color: rgb(32, 160, 255);
@@ -123,6 +144,11 @@ aside {
 //main-container全局样式
 .app-container {
   padding: 20px;
+  transition: background-color 0.3s ease;
+
+  html.dark & {
+    background-color: #1a1a1a;
+  }
 }
 
 .components-container {

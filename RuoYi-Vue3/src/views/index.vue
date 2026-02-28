@@ -1,5 +1,5 @@
 <template>
-  <div class="dsp-dashboard">
+  <div class="dsp-dashboard" :class="{ 'dark-mode': isDark }">
     <!-- 顶部统计卡片 -->
     <el-row :gutter="20" class="stats-cards">
       <el-col :xs="24" :sm="12" :lg="6">
@@ -189,8 +189,12 @@
 </template>
 
 <script setup name="Index">
-import { ref, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
 import * as echarts from 'echarts'
+import useSettingsStore from '@/store/modules/settings'
+
+const settingsStore = useSettingsStore()
+const isDark = computed(() => settingsStore.isDark)
 import {
   View,
   Pointer,
@@ -611,6 +615,70 @@ onUnmounted(() => {
   padding: 20px;
   background: #f5f7fa;
   min-height: calc(100vh - 84px);
+  transition: background-color 0.3s ease;
+
+  &.dark-mode {
+    background: #1a1a1a;
+
+    .chart-card {
+      :deep(.el-card__header) {
+        background: #2a2a2a !important;
+        border-bottom-color: #3a3a3a !important;
+
+        .card-title {
+          color: #e0e0e0 !important;
+        }
+      }
+
+      :deep(.el-card__body) {
+        background: #2a2a2a !important;
+      }
+    }
+
+    :deep(.el-table) {
+      background-color: #2a2a2a !important;
+      color: #e0e0e0 !important;
+
+      th {
+        background-color: #1f1f1f !important;
+        color: #b0b0b0 !important;
+      }
+
+      tr {
+        background-color: #2a2a2a !important;
+
+        &:hover {
+          background-color: #3a3a3a !important;
+        }
+      }
+
+      td {
+        border-color: #3a3a3a !important;
+      }
+    }
+
+    :deep(.el-radio-group) {
+      .el-radio-button {
+        .el-radio-button__inner {
+          background: #2a2a2a;
+          border-color: #3a3a3a;
+          color: #e0e0e0;
+
+          &:hover {
+            color: var(--el-color-primary);
+          }
+        }
+
+        &.is-active {
+          .el-radio-button__inner {
+            background: var(--el-color-primary);
+            border-color: var(--el-color-primary);
+            color: #fff;
+          }
+        }
+      }
+    }
+  }
 
   .stats-cards {
     margin-bottom: 20px;
@@ -715,15 +783,24 @@ onUnmounted(() => {
     .chart-card {
       border-radius: 12px;
       overflow: hidden;
+      transition: all 0.3s ease;
+
+      :deep(.el-card) {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      }
 
       :deep(.el-card__header) {
         padding: 18px 24px;
         border-bottom: 1px solid #f0f0f0;
         background: #fff;
+        transition: all 0.3s ease;
       }
 
       :deep(.el-card__body) {
         padding: 24px;
+        transition: all 0.3s ease;
       }
 
       .card-header {

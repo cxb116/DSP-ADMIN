@@ -9,7 +9,7 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="广告类型id" prop="adScene">
+      <el-form-item label="广告类型" prop="adScene">
         <el-input
           v-model="queryParams.adScene"
           placeholder="请输入广告类型id"
@@ -21,78 +21,6 @@
         <el-input
           v-model="queryParams.dspSlotCode"
           placeholder="请输入预算方广告位"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="预算方APPKEY" prop="dspAppKey">
-        <el-input
-          v-model="queryParams.dspAppKey"
-          placeholder="请输入预算方APPKEY"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="预算方APPSECRET" prop="dspAppSecret">
-        <el-input
-          v-model="queryParams.dspAppSecret"
-          placeholder="请输入预算方APPSECRET"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="预算方AppId" prop="dspAppId">
-        <el-input
-          v-model="queryParams.dspAppId"
-          placeholder="请输入预算方AppId"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="预算方应用包名" prop="dspAppPkg">
-        <el-input
-          v-model="queryParams.dspAppPkg"
-          placeholder="请输入预算方应用包名"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="应用版本号，支持多个，空格分割" prop="dspAppVer">
-        <el-input
-          v-model="queryParams.dspAppVer"
-          placeholder="请输入应用版本号，支持多个，空格分割"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="应用商店版本号，支持多个，空格分割" prop="dspAppStoreVer">
-        <el-input
-          v-model="queryParams.dspAppStoreVer"
-          placeholder="请输入应用商店版本号，支持多个，空格分割"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="价格加密key" prop="priceEncryptKey">
-        <el-input
-          v-model="queryParams.priceEncryptKey"
-          placeholder="请输入价格加密key"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="应用商店地址，支持多个，空格分割" prop="dspAppStoreLink">
-        <el-input
-          v-model="queryParams.dspAppStoreLink"
-          placeholder="请输入应用商店地址，支持多个，空格分割"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="成交系数，0到100，单位%，给上游预算出价打折扣  " prop="dspDealRatio">
-        <el-input
-          v-model="queryParams.dspDealRatio"
-          placeholder="请输入成交系数，0到100，单位%，给上游预算出价打折扣  "
           clearable
           @keyup.enter="handleQuery"
         />
@@ -163,24 +91,14 @@
 
     <el-table v-loading="loading" :data="infoList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="广告位名称" align="center" prop="name" />
-      <el-table-column label="操作系统类型，1=Android，2=iOS" align="center" prop="osType" />
-      <el-table-column label="广告类型id" align="center" prop="adScene" />
       <el-table-column label="预算方广告位" align="center" prop="dspSlotCode" />
-      <el-table-column label="预算方APPKEY" align="center" prop="dspAppKey" />
-      <el-table-column label="预算方APPSECRET" align="center" prop="dspAppSecret" />
-      <el-table-column label="预算方AppId" align="center" prop="dspAppId" />
-      <el-table-column label="预算方应用包名" align="center" prop="dspAppPkg" />
-      <el-table-column label="应用版本号，支持多个，空格分割" align="center" prop="dspAppVer" />
-      <el-table-column label="应用商店版本号，支持多个，空格分割" align="center" prop="dspAppStoreVer" />
-      <el-table-column label="价格加密key" align="center" prop="priceEncryptKey" />
-      <el-table-column label="应用商店地址，支持多个，空格分割" align="center" prop="dspAppStoreLink" />
-      <el-table-column label="上游预算结算方式，1=分成，2=RTB" align="center" prop="dspPayType" />
-      <el-table-column label="成交系数，0到100，单位%，给上游预算出价打折扣  " align="center" prop="dspDealRatio" />
-      <el-table-column label="公司ID" align="center" prop="companyId" />
-      <el-table-column label="产品ID" align="center" prop="productId" />
-      <el-table-column label="备注" align="center" prop="remark" />
+      <el-table-column label="广告位名称" align="center" prop="name" />
+      <el-table-column label="操作系统，1=Android，2=iOS" align="center" prop="osType" />
+      <el-table-column label="广告类型" align="center" prop="adScene" />
+      <el-table-column label="结算方式" align="center" prop="dspPayType" />
+      <el-table-column label="成交系数" align="center" prop="dspDealRatio" />
+      <el-table-column label="公司" align="center" prop="companyId" />
+      <el-table-column label="产品" align="center" prop="productId" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:info:edit']">修改</el-button>
@@ -227,31 +145,31 @@
         <el-form-item label="预算方应用包名" prop="dspAppPkg">
           <el-input v-model="form.dspAppPkg" placeholder="请输入预算方应用包名" />
         </el-form-item>
-        <el-form-item label="应用版本号，支持多个，空格分割" prop="dspAppVer">
+        <el-form-item label="应用版本号" prop="dspAppVer">
           <el-input v-model="form.dspAppVer" placeholder="请输入应用版本号，支持多个，空格分割" />
         </el-form-item>
-        <el-form-item label="应用商店版本号，支持多个，空格分割" prop="dspAppStoreVer">
+        <el-form-item label="应用商店版本号" prop="dspAppStoreVer">
           <el-input v-model="form.dspAppStoreVer" placeholder="请输入应用商店版本号，支持多个，空格分割" />
         </el-form-item>
         <el-form-item label="价格加密key" prop="priceEncryptKey">
           <el-input v-model="form.priceEncryptKey" placeholder="请输入价格加密key" />
         </el-form-item>
-        <el-form-item label="应用商店地址，支持多个，空格分割" prop="dspAppStoreLink">
+        <el-form-item label="应用商店地址" prop="dspAppStoreLink">
           <el-input v-model="form.dspAppStoreLink" placeholder="请输入应用商店地址，支持多个，空格分割" />
         </el-form-item>
-        <el-form-item label="上游预算结算方式" prop="dspPayType">
+        <el-form-item label="结算方式" prop="dspPayType">
           <el-select v-model="form.dspPayType" placeholder="请选择上游预算结算方式">
             <el-option label="分成" :value="1" />
             <el-option label="RTB" :value="2" />
           </el-select>
         </el-form-item>
-        <el-form-item label="成交系数，0到100，单位%，给上游预算出价打折扣  " prop="dspDealRatio">
+        <el-form-item label="成交系数" prop="dspDealRatio">
           <el-input v-model="form.dspDealRatio" placeholder="请输入成交系数，0到100，单位%，给上游预算出价打折扣  " />
         </el-form-item>
-        <el-form-item label="公司ID" prop="companyId">
+        <el-form-item label="公司名称" prop="companyId">
           <el-input v-model="form.companyId" placeholder="请输入公司ID" />
         </el-form-item>
-        <el-form-item label="产品ID" prop="productId">
+        <el-form-item label="产品名称" prop="productId">
           <el-input v-model="form.productId" placeholder="请输入产品ID" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">

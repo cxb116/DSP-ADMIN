@@ -1,5 +1,5 @@
 <template>
-  <section class="app-main">
+  <section class="app-main" :class="{ 'dark-mode': isDark }">
     <router-view v-slot="{ Component, route }">
       <transition name="fade-transform" mode="out-in">
         <keep-alive :include="tagsViewStore.cachedViews">
@@ -16,9 +16,12 @@
 import copyright from "./Copyright/index"
 import iframeToggle from "./IframeToggle/index"
 import useTagsViewStore from '@/store/modules/tagsView'
+import useSettingsStore from '@/store/modules/settings'
 
 const route = useRoute()
 const tagsViewStore = useTagsViewStore()
+const settingsStore = useSettingsStore()
+const isDark = computed(() => settingsStore.isDark)
 
 onMounted(() => {
   addIframe()
@@ -119,5 +122,20 @@ function addIframe() {
 ::-webkit-scrollbar-thumb {
   background-color: #c0c0c0;
   border-radius: 3px;
+}
+
+// 暗夜模式滚动条样式
+.app-main.dark-mode {
+  ::-webkit-scrollbar-track {
+    background-color: #2a2a2a;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #4a4a4a;
+
+    &:hover {
+      background-color: #5a5a5a;
+    }
+  }
 }
 </style>
