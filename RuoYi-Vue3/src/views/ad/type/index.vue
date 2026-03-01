@@ -1,13 +1,13 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="广告类型" prop="name">
-        <el-input
-          v-model="queryParams.name"
-          placeholder="请输入广告类型"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <el-form-item label="创建时间" prop="createTime">
+        <el-date-picker clearable
+          v-model="queryParams.createTime"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="请选择创建时间">
+        </el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -22,7 +22,7 @@
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['advertise:scene:add']"
+          v-hasPermi="['ad:type:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -32,7 +32,7 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['advertise:scene:edit']"
+          v-hasPermi="['ad:type:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -42,7 +42,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['advertise:scene:remove']"
+          v-hasPermi="['ad:type:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -51,21 +51,20 @@
           plain
           icon="Download"
           @click="handleExport"
-          v-hasPermi="['advertise:scene:export']"
+          v-hasPermi="['ad:type:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="sceneList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="typeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="广告类型" align="center" prop="name" />
+      <el-table-column label=" ID" align="center" prop="id" />
       <el-table-column label="备注" align="center" prop="remark" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['advertise:scene:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['advertise:scene:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['ad:type:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['ad:type:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -78,12 +77,9 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改广告类型管理对话框 -->
+    <!-- 添加或修改广告类型对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="sceneRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="广告类型" prop="name">
-          <el-input v-model="form.name" placeholder="请输入广告类型" />
-        </el-form-item>
+      <el-form ref="typeRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
         </el-form-item>
@@ -98,12 +94,12 @@
   </div>
 </template>
 
-<script setup name="Scene">
-import { listScene, getScene, delScene, addScene, updateScene } from "@/api/advertise/scene"
+<script setup name="Type">
+import { listType, getType, delType, addType, updateType } from "@/api/ad/type"
 
 const { proxy } = getCurrentInstance()
 
-const sceneList = ref([])
+const typeList = ref([])
 const open = ref(false)
 const loading = ref(true)
 const showSearch = ref(true)
@@ -118,22 +114,19 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    name: null,
+    createTime: null,
   },
   rules: {
-    name: [
-      { required: true, message: "广告类型不能为空", trigger: "blur" }
-    ],
   }
 })
 
 const { queryParams, form, rules } = toRefs(data)
 
-/** 查询广告类型管理列表 */
+/** 查询广告类型列表 */
 function getList() {
   loading.value = true
-  listScene(queryParams.value).then(response => {
-    sceneList.value = response.rows
+  listType(queryParams.value).then(response => {
+    typeList.value = response.rows
     total.value = response.total
     loading.value = false
   })
@@ -149,14 +142,13 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    name: null,
     createBy: null,
     createTime: null,
     updateBy: null,
     updateTime: null,
     remark: null
   }
-  proxy.resetForm("sceneRef")
+  proxy.resetForm("typeRef")
 }
 
 /** 搜索按钮操作 */
@@ -182,32 +174,32 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset()
   open.value = true
-  title.value = "添加广告类型管理"
+  title.value = "添加广告类型"
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset()
   const _id = row.id || ids.value
-  getScene(_id).then(response => {
+  getType(_id).then(response => {
     form.value = response.data
     open.value = true
-    title.value = "修改广告类型管理"
+    title.value = "修改广告类型"
   })
 }
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["sceneRef"].validate(valid => {
+  proxy.$refs["typeRef"].validate(valid => {
     if (valid) {
       if (form.value.id != null) {
-        updateScene(form.value).then(response => {
+        updateType(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功")
           open.value = false
           getList()
         })
       } else {
-        addScene(form.value).then(response => {
+        addType(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功")
           open.value = false
           getList()
@@ -220,8 +212,8 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value
-  proxy.$modal.confirm('是否确认删除广告类型管理编号为"' + _ids + '"的数据项？').then(function() {
-    return delScene(_ids)
+  proxy.$modal.confirm('是否确认删除广告类型编号为"' + _ids + '"的数据项？').then(function() {
+    return delType(_ids)
   }).then(() => {
     getList()
     proxy.$modal.msgSuccess("删除成功")
@@ -230,9 +222,9 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('advertise/scene/export', {
+  proxy.download('ad/type/export', {
     ...queryParams.value
-  }, `scene_${new Date().getTime()}.xlsx`)
+  }, `type_${new Date().getTime()}.xlsx`)
 }
 
 getList()

@@ -14,21 +14,21 @@
           style="width: 240px"
         />
       </el-form-item>
-      <el-form-item label="广告类型" prop="adScene">
+      <el-form-item label="广告类型" prop="adTypeId">
         <el-select
-          v-model="queryParams.adScene"
+          v-model="queryParams.adTypeId"
           placeholder="请选择广告类型"
           clearable
         >
           <el-option
-            v-for="dict in ad_scene"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
+            v-for="item in adTypeList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="广告位名称" prop="name">
+      <el-form-item label="广告位名称" label-width="110px" prop="name">
         <el-input
           v-model="queryParams.name"
           placeholder="请输入广告位名称"
@@ -36,12 +36,51 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="内部广告位名称" prop="nameAlise">
+      <el-form-item label="内部广告位名称" label-width="110px" prop="nameAlise">
         <el-input
           v-model="queryParams.nameAlise"
           placeholder="请输入内部广告位名称"
           clearable
           @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="操作系统类型" prop="osType">
+        <el-select
+          v-model="queryParams.osType"
+          placeholder="请选择操作系统类型"
+          clearable
+        >
+          <el-option
+            v-for="dict in os_type"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="接入方式" prop="accessType">
+        <el-select
+          v-model="queryParams.accessType"
+          placeholder="请选择接入方式"
+          clearable
+        >
+          <el-option
+            v-for="dict in access_type"
+            :key="dict.value"
+            :label="dict.label"
+            :value="dict.value"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="创建时间" prop="createTimeRange">
+        <el-date-picker
+            v-model="createTimeRange"
+            type="daterange"
+            range-separator="-"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+            style="width: 240px"
         />
       </el-form-item>
       <el-form-item label="状态" prop="enable">
@@ -58,6 +97,7 @@
           />
         </el-select>
       </el-form-item>
+
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -106,49 +146,71 @@
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="mediaAdList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="媒体" align="center" prop="mediaId">
-        <template #default="scope">
-          {{ getMediaName(scope.row.mediaId) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="应用" align="center" prop="appId">
-        <template #default="scope">
-          {{ getAppName(scope.row.appId) }}
-        </template>
-      </el-table-column>
-      <el-table-column label="广告位名称" align="center" prop="name">
+    <el-table
+      v-loading="loading"
+      :data="mediaAdList"
+      @selection-change="handleSelectionChange"
+      class="media-ad-table"
+      style="width: 100%"
+      table-layout="auto"
+    >
+      <el-table-column type="selection" width="55" align="center" fixed />
+      <el-table-column label="广告位名称" align="center" prop="name" width="250" fixed>
         <template #default="scope">
           {{ scope.row.name }}({{ scope.row.id }})
         </template>
       </el-table-column>
-      <el-table-column label="内部广告位名称" align="center" prop="nameAlise" />
-      <el-table-column label="广告类型" align="center" prop="adScene">
+      <el-table-column label="内部广告位名称" align="center" prop="nameAlise" width="230" />
+      <el-table-column label="广告类型" align="center" prop="adTypeId" width="150">
         <template #default="scope">
-          <dict-tag :options="ad_scene" :value="String(scope.row.adScene)" />
+          {{ getAdTypeName(scope.row.adTypeId) }}
         </template>
       </el-table-column>
-      <el-table-column label="结算方式" align="center" prop="sspPayType">
+      <el-table-column label="广告场景" align="center" prop="adSceneId" width="120">
+        <template #default="scope">
+          {{ scope.row.adSceneId ? getAdSceneName(scope.row.adSceneId) : '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="广告尺寸" align="center" prop="adSizeId" width="120">
+        <template #default="scope">
+          {{ scope.row.adSizeId ? getAdSizeName(scope.row.adSizeId) : '-' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="操作系统" align="center" prop="osType" width="120">
+        <template #default="scope">
+          <span v-if="scope.row.osType && scope.row.osType != '0'">
+            <dict-tag :options="os_type" :value="String(scope.row.osType)" />
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="接入方式" align="center" prop="accessType" width="120">
+        <template #default="scope">
+          <span v-if="scope.row.accessType && scope.row.accessType != '0'">
+            <dict-tag :options="access_type" :value="String(scope.row.accessType)" />
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="应用" align="center" prop="appId" width="120">
+        <template #default="scope">
+          {{ getAppName(scope.row.appId) }}
+        </template>
+      </el-table-column>
+
+      <el-table-column label="结算方式" align="center" width="120" prop="sspPayType">
         <template #default="scope">
           <dict-tag :options="ssp_pay_type" :value="String(scope.row.sspPayType)" />
         </template>
       </el-table-column>
-      <el-table-column label="分成系数" align="center" prop="sspDealRatio" />
-      <el-table-column label="广告宽度" align="center" prop="width" />
-      <el-table-column label="广告高度" align="center" prop="height" />
-      <el-table-column label="广告位图片" align="center" prop="adImage" width="100">
-        <template #default="scope">
-          <image-preview :src="scope.row.adImage" :width="50" :height="50"/>
-        </template>
-      </el-table-column>
-      <el-table-column label="交互类型" align="center" prop="interactionType" />
-      <el-table-column label="状态" align="center" prop="enable">
+      <el-table-column label="交互类型" align="center" width="120" prop="interactionType" />
+      <el-table-column label="状态" align="center" width="120" prop="enable">
         <template #default="scope">
           <dict-tag :options="audit_status" :value="String(scope.row.enable)" />
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="创建时间" align="center" width="200" prop="createTime"/>
+      <el-table-column label="操作" align="center" width="200" fixed="right" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['flow:mediaAd:edit']">修改</el-button>
           <el-button link type="primary" icon="Setting" @click="handleConfig(scope.row)" v-hasPermi="['flow:mediaAd:config']">配置</el-button>
@@ -164,82 +226,220 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
-
-    <!-- 添加或修改媒体广告位对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="mediaAdRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="媒体/应用" prop="mediaAppCascade">
-          <el-cascader
-            v-model="form.mediaAppCascade"
-            :options="cascaderData"
-            :props="{ expandTrigger: 'hover' }"
-            placeholder="请选择媒体/应用"
-            clearable
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item label="广告位名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入广告位名称" />
-        </el-form-item>
-        <el-form-item label="内部广告位名称" prop="nameAlise">
-          <el-input v-model="form.nameAlise" placeholder="请输入内部广告位名称" />
-        </el-form-item>
-        <el-form-item label="广告类型" prop="adScene">
-          <el-select v-model="form.adScene" placeholder="请选择广告类型">
-            <el-option
-              v-for="dict in ad_scene"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="结算方式" prop="sspPayType">
-          <el-select v-model="form.sspPayType" placeholder="请选择结算方式" @change="handleSspPayTypeChange">
-            <el-option
-              v-for="dict in ssp_pay_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="分成系数" prop="sspDealRatio">
-          <el-input v-model="form.sspDealRatio" placeholder="请输入分成系数" />
-        </el-form-item>
-        <el-form-item label="广告宽度" prop="width">
-          <el-input v-model="form.width" placeholder="请输入广告宽度" />
-        </el-form-item>
-        <el-form-item label="广告高度" prop="height">
-          <el-input v-model="form.height" placeholder="请输入广告高度" />
-        </el-form-item>
-        <el-form-item label="广告位图片" prop="adImage">
-          <image-upload v-model="form.adImage"/>
-        </el-form-item>
-        <el-form-item label="交互类型" prop="interactionType">
-          <el-input v-model="form.interactionType" placeholder="请输入交互类型" />
-        </el-form-item>
-        <el-form-item label="状态" prop="enable">
-          <el-select v-model="form.enable" placeholder="请选择状态">
-            <el-option
-              v-for="dict in audit_status"
-              :key="dict.value"
-              :label="dict.label"
-              :value="dict.value"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
         </div>
-      </template>
-    </el-dialog>
+      </el-tab-pane>
+
+      <!-- 编辑 Tab -->
+      <el-tab-pane label="编辑广告位" name="edit">
+        <div class="app-container-edit" v-if="editMediaAd || activeTab === 'edit'">
+          <el-page-header @back="handleBackToList" :content="editMediaAd ? '编辑: ' + editMediaAd.name + '(' + editMediaAd.id + ')' : '新增广告位'">
+            <template #extra>
+              <el-button type="primary" size="small" @click="handleEditSave">{{ editMediaAd ? '保存' : '创建' }}</el-button>
+            </template>
+          </el-page-header>
+
+          <el-divider />
+
+          <el-card class="edit-card">
+            <el-form ref="editFormRef" :model="editForm" :rules="editRules" label-width="120px">
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="媒体/应用" prop="mediaAppCascade">
+                    <el-cascader
+                      v-model="editForm.mediaAppCascade"
+                      :options="cascaderData"
+                      :props="{ expandTrigger: 'hover' }"
+                      placeholder="请选择媒体/应用"
+                      clearable
+                      style="width: 100%"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="广告位名称" prop="name">
+                    <el-input v-model="editForm.name" placeholder="请输入广告位名称" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="内部广告位名称" prop="nameAlise">
+                    <el-input v-model="editForm.nameAlise" placeholder="请输入内部广告位名称" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="广告类型" prop="adTypeId">
+                    <el-select
+                      v-model="editForm.adTypeId"
+                      placeholder="请先选择广告类型"
+                      clearable
+                      filterable
+                      style="width: 100%"
+                      @change="handleAdTypeChange"
+                    >
+                      <el-option
+                        v-for="item in adTypeList"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="广告场景" prop="adSceneId">
+                    <el-select
+                      v-model="editForm.adSceneId"
+                      placeholder="请选择广告场景"
+                      clearable
+                      filterable
+                      style="width: 100%"
+                      :disabled="!editForm.adTypeId"
+                    >
+                      <el-option
+                        v-for="item in filteredAdSceneList"
+                        :key="item.id"
+                        :label="item.name"
+                        :value="item.id"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="样式尺寸" prop="adSizeId">
+                    <el-select
+                      v-model="editForm.adSizeId"
+                      placeholder="请选择样式尺寸"
+                      clearable
+                      filterable
+                      style="width: 100%"
+                      :disabled="!editForm.adTypeId"
+                    >
+                      <el-option
+                        v-for="item in filteredAdSizeList"
+                        :key="item.id"
+                        :label="item.size"
+                        :value="item.id"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="操作系统类型" prop="osType">
+                    <el-select v-model="editForm.osType" placeholder="请选择操作系统类型" style="width: 100%">
+                      <el-option
+                        v-for="dict in os_type"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="接入方式" prop="accessType">
+                    <el-select v-model="editForm.accessType" placeholder="请选择接入方式" style="width: 100%">
+                      <el-option
+                        v-for="dict in access_type"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="6">
+                  <el-form-item label="结算方式" prop="sspPayType">
+                    <el-select v-model="editForm.sspPayType" placeholder="请选择结算方式" style="width: 100%" @change="handleEditSspPayTypeChange">
+                      <el-option
+                        v-for="dict in ssp_pay_type"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                  <el-form-item label="分成系数" prop="sspDealRatio">
+                    <el-input
+                      v-model="editForm.sspDealRatio"
+                      placeholder="请输入分成系数"
+                      :disabled="editForm.sspPayType === '2'"
+                    />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                  <el-form-item label="广告宽度" prop="width">
+                    <el-input v-model="editForm.width" placeholder="请输入广告宽度" />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                  <el-form-item label="广告高度" prop="height">
+                    <el-input v-model="editForm.height" placeholder="请输入广告高度" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="交互类型" prop="interactionType">
+                    <div class="interaction-type-selector-wrapper">
+                      <el-checkbox-group v-model="selectedInteractionTypes" @change="handleInteractionTypeGroupChange">
+                        <el-checkbox
+                          v-for="item in interactionTypeOptions"
+                          :key="item.value"
+                          :value="item.value"
+                          :label="item.value"
+                          border
+                        >
+                          {{ item.label }}
+                        </el-checkbox>
+                      </el-checkbox-group>
+                      <div class="interaction-hint">
+                        <el-icon color="#909399"><InfoFilled /></el-icon>
+                        <span>已选择 {{ getSelectedInteractionTypes().length }} 种交互类型，位掩码值：{{ editForm.interactionType }}</span>
+                      </div>
+                    </div>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="状态" prop="enable">
+                    <el-select v-model="editForm.enable" placeholder="请选择状态" style="width: 100%">
+                      <el-option
+                        v-for="dict in audit_status"
+                        :key="dict.value"
+                        :label="dict.label"
+                        :value="dict.value"
+                      />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="24">
+                  <el-form-item label="广告位图片" prop="adImage">
+                    <image-upload v-model="editForm.adImage"/>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="24">
+                  <el-form-item label="备注" prop="remark">
+                    <el-input v-model="editForm.remark" type="textarea" placeholder="请输入备注" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </el-form>
+          </el-card>
+        </div>
+        <div v-else class="empty-edit">
+          <el-empty description="请选择一个广告位进行编辑" />
         </div>
       </el-tab-pane>
 
@@ -260,47 +460,118 @@
                 <span>基础信息</span>
               </div>
             </template>
-            <el-descriptions :column="2" border>
-              <el-descriptions-item label="广告位名称">{{ configMediaAd.name }}</el-descriptions-item>
-              <el-descriptions-item label="内部名称">{{ configMediaAd.nameAlise }}</el-descriptions-item>
-              <el-descriptions-item label="媒体">{{ getMediaName(configMediaAd.mediaId) }}</el-descriptions-item>
-              <el-descriptions-item label="应用">{{ getAppName(configMediaAd.appId) }}</el-descriptions-item>
-              <!-- 隐藏内部名称字段 -->
-              <el-descriptions-item label="操作系统类型">
-                <span v-if="appInfo">
-                  <el-tag v-if="appInfo.osType === 1" type="success">Android</el-tag>
-                  <el-tag v-else-if="appInfo.osType === 2" type="primary">iOS</el-tag>
-                  <el-tag v-else type="info">未知</el-tag>
-                </span>
-                <span v-else class="os-loading">加载中...</span>
-              </el-descriptions-item>
-              <el-descriptions-item label="广告类型">
-                <dict-tag :options="ad_scene" :value="String(configMediaAd.adScene)" />
-              </el-descriptions-item>
-              <el-descriptions-item label="结算方式">
-                <dict-tag :options="ssp_pay_type" :value="String(configMediaAd.sspPayType)" />
-              </el-descriptions-item>
-              <el-descriptions-item label="分成系数">
-                {{ configMediaAd.sspPayType === '2' ? '-' : configMediaAd.sspDealRatio }}
-              </el-descriptions-item>
-            </el-descriptions>
+            <div class="basic-info-container">
+              <!-- 第一行：广告位基本信息 -->
+              <el-row :gutter="16" class="info-row">
+                <el-col :span="6">
+                  <div class="info-item">
+                    <span class="info-label">广告位名称</span>
+                    <span class="info-value">{{ configMediaAd.name }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="info-item">
+                    <span class="info-label">内部名称</span>
+                    <span class="info-value">{{ configMediaAd.nameAlise }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="info-item">
+                    <span class="info-label">媒体</span>
+                    <span class="info-value">{{ getMediaName(configMediaAd.mediaId) }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="info-item">
+                    <span class="info-label">应用</span>
+                    <span class="info-value">{{ getAppName(configMediaAd.appId) }}</span>
+                  </div>
+                </el-col>
+              </el-row>
+
+              <!-- 第二行：广告属性信息 -->
+              <el-row :gutter="16" class="info-row">
+                <el-col :span="4">
+                  <div class="info-item">
+                    <span class="info-label">操作系统类型</span>
+                    <div class="info-value" v-if="appInfo">
+                      <el-tag v-if="appInfo.osType === 1" type="success">Android</el-tag>
+                      <el-tag v-else-if="appInfo.osType === 2" type="primary">iOS</el-tag>
+                      <el-tag v-else type="info">未知</el-tag>
+                    </div>
+                    <span v-else class="os-loading">加载中...</span>
+                  </div>
+                </el-col>
+                <el-col :span="4">
+                  <div class="info-item">
+                    <span class="info-label">广告类型</span>
+                    <span class="info-value">{{ getAdTypeName(configMediaAd.adTypeId) }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="5">
+                  <div class="info-item">
+                    <span class="info-label">广告场景</span>
+                    <span class="info-value">{{ configMediaAd.adSceneId ? getAdSceneName(configMediaAd.adSceneId) : '-' }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="5">
+                  <div class="info-item">
+                    <span class="info-label">广告尺寸</span>
+                    <span class="info-value">{{ configMediaAd.adSizeId ? getAdSizeName(configMediaAd.adSizeId) : '-' }}</span>
+                  </div>
+                </el-col>
+                <el-col :span="6">
+                  <div class="info-item">
+                    <span class="info-label">接入方式</span>
+                    <div class="info-value">
+                      <dict-tag :options="access_type" :value="String(configMediaAd.accessType)" />
+                    </div>
+                  </div>
+                </el-col>
+              </el-row>
+
+              <!-- 第三行：结算配置 -->
+              <el-row :gutter="16" class="info-row">
+                <el-col :span="6">
+                  <div class="info-item-group">
+                    <span class="info-label-group">结算配置</span>
+                    <div class="info-value-group">
+                      <div class="settlement-info">
+                        <div class="settlement-item">
+                          <span class="settlement-label">结算方式:</span>
+                          <dict-tag :options="ssp_pay_type" :value="String(configMediaAd.sspPayType)" />
+                        </div>
+                        <el-divider direction="vertical" />
+                        <div class="settlement-item">
+                          <span class="settlement-label">分成系数:</span>
+                          <span class="settlement-value">{{ configMediaAd.sspPayType === '2' ? '-' : configMediaAd.sspDealRatio }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </el-col>
+              </el-row>
+            </div>
           </el-card>
 
           <el-card class="config-card" style="margin-top: 20px;">
             <template #header>
               <div class="card-header">
-                <span>流量分配</span>
-                <el-button type="primary" size="small" icon="Plus" @click="handleAddSlot">添加预算方</el-button>
+                <span>流量分配（DSP广告位绑定）</span>
+                <el-button type="primary" size="small" icon="Plus" @click="handleAddSlot">添加DSP广告位</el-button>
               </div>
             </template>
 
             <!-- 流量权重配置区域 -->
             <div v-if="slotList.length > 0" class="traffic-weight-config">
               <div class="weight-header">
-                <span class="weight-title">流量权重配置 (总和: {{ totalTrafficWeight }} / 100)</span>
+                <span class="weight-title">
+                  <el-icon color="#409eff"><Link /></el-icon>
+                  已绑定 {{ slotList.length }} 个 DSP 广告位，流量权重总和: {{ totalTrafficWeight }} / 100
+                </span>
                 <div class="weight-actions">
                   <el-tag :type="totalTrafficWeight === 100 ? 'success' : 'warning'" size="small">
-                    {{ totalTrafficWeight === 100 ? '权重配置正确' : '权重总和不为100' }}
+                    {{ totalTrafficWeight === 100 ? '✓ 权重配置正确' : '⚠ 权重总和不为100' }}
                   </el-tag>
                   <el-divider direction="vertical" />
                   <el-button-group size="small">
@@ -322,7 +593,11 @@
                   :key="slot.id || index"
                   class="weight-item"
                 >
-                  <span class="weight-label">{{ slot.name }}({{ slot.dspSlotInfoId }}):</span>
+                  <span class="weight-label">
+                    <el-tag size="small" type="info">{{ index + 1 }}</el-tag>
+                    {{ slot.name }}
+                    <el-text size="small" type="info">(ID: {{ slot.dspSlotInfoId }})</el-text>
+                  </span>
                   <el-input-number
                     v-model="slot.trafficWeight"
                     :min="0"
@@ -335,26 +610,40 @@
             </div>
 
             <div v-if="slotList.length === 0" class="empty-slots">
-              <el-empty description="暂无预算方配置，点击上方按钮添加" />
+              <el-empty description="暂未绑定任何 DSP 广告位">
+                <el-text type="info" size="small">点击上方按钮添加 DSP 广告位绑定</el-text>
+                <template #image>
+                  <el-icon :size="60" color="#909399"><Link /></el-icon>
+                </template>
+              </el-empty>
             </div>
 
             <div v-for="(slot, index) in slotList" :key="slot.id || index" class="slot-card">
               <el-card shadow="hover">
                 <template #header>
                   <div class="slot-card-header">
-                    <span>{{ slot.name || '新建预算方' }}({{ slot.dspSlotInfoId }})</span>
+                    <div class="header-title">
+                      <el-icon color="#409eff" :size="18"><Link /></el-icon>
+                      <span class="title-text">{{ slot.name || 'DSP广告位' }}</span>
+                      <el-tag size="small" type="info">ID: {{ slot.dspSlotInfoId }}</el-tag>
+                    </div>
                     <div class="header-actions">
                       <el-button type="primary" size="small" icon="Document">捕获日志</el-button>
-                      <el-button type="danger" size="small" icon="Delete" @click="handleDeleteSlot(index)">删除</el-button>
+                      <el-button type="danger" size="small" icon="Delete" @click="handleDeleteSlot(index)">解绑</el-button>
                     </div>
                   </div>
                 </template>
 
-                <!-- 不可编辑部分：来源于 dsp_slot_info -->
+                <!-- DSP广告位基础信息（从 dsp_slot_info 获取，不可编辑） -->
                 <div class="slot-info-section">
-                  <el-descriptions title="基础信息（从 dsp_slot_info 获取，不可编辑）" :column="2" border size="small">
+                  <el-divider content-position="left">
+                    <el-icon><InfoFilled /></el-icon>
+                    DSP 广告位基础信息
+                    <el-text size="small" type="info">(来源: dsp_slot_info 表，只读)</el-text>
+                  </el-divider>
+                  <el-descriptions :column="2" border size="small">
                     <el-descriptions-item label="预算方名称">
-                      <span>{{ slot.name }}</span>
+                      <span class="info-highlight">{{ slot.name }}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="操作系统">
                       <span v-if="appInfo">
@@ -365,18 +654,18 @@
                       <span v-else>未知</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="广告类型">
-                      <dict-tag :options="ad_scene" :value="String(slot.adScene)" />
+                      <el-tag type="primary">{{ getAdTypeName(slot.adTypeId) }}</el-tag>
                     </el-descriptions-item>
-                    <el-descriptions-item label="预算方广告位">
-                      <span>{{ slot.dspSlotCode }}</span>
+                    <el-descriptions-item label="广告位编码">
+                      <span class="info-code">{{ slot.dspSlotCode }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="预算方APPKEY">
-                      <span>{{ slot.dspAppKey }}</span>
+                    <el-descriptions-item label="DSP AppKey">
+                      <span class="info-code">{{ slot.dspAppKey }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="预算方APPSECRET">
+                    <el-descriptions-item label="DSP AppSecret">
                       <span>{{ slot.dspAppSecret ? '******' : '-' }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="预算方AppId">
+                    <el-descriptions-item label="DSP AppId">
                       <span>{{ slot.dspAppId }}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="应用包名">
@@ -385,11 +674,11 @@
                     <el-descriptions-item label="应用版本号">
                       <span>{{ slot.dspAppVer }}</span>
                     </el-descriptions-item>
-                    <el-descriptions-item label="应用商店版本号">
+                    <el-descriptions-item label="商店版本号">
                       <span>{{ slot.dspAppStoreVer }}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="价格加密Key">
-                      <span>{{ slot.priceEncryptKey }}</span>
+                      <span class="info-code">{{ slot.priceEncryptKey }}</span>
                     </el-descriptions-item>
                     <el-descriptions-item label="结算方式">
                       <el-tag v-if="slot.dspPayType == 1 || slot.dspPayType == '1'" type="success">分成</el-tag>
@@ -397,14 +686,21 @@
                       <el-tag v-else type="info">未知</el-tag>
                     </el-descriptions-item>
                     <el-descriptions-item label="应用商店地址" :span="2">
-                      <span>{{ slot.dspAppStoreLink }}</span>
+                      <span class="info-link">{{ slot.dspAppStoreLink || '-' }}</span>
                     </el-descriptions-item>
                   </el-descriptions>
                 </div>
 
-                <!-- 可折叠部分：来源于 dsp_launch -->
+                <!-- 投放配置（来源于 dsp_launch 表，可编辑） -->
                 <el-collapse v-model="slot.activeCollapse" class="slot-collapse">
-                  <el-collapse-item title="投放配置（可编辑）" name="launch">
+                  <el-collapse-item name="launch">
+                    <template #title>
+                      <div class="collapse-title">
+                        <el-icon color="#409eff"><Setting /></el-icon>
+                        <span>投放配置</span>
+                        <el-text size="small" type="info">(来源: dsp_launch 表，可编辑)</el-text>
+                      </div>
+                    </template>
                     <el-form :model="slot" label-width="140px" size="small">
                       <!-- 投放策略 -->
                       <el-divider content-position="left">投放配置</el-divider>
@@ -531,30 +827,41 @@
       </el-tab-pane>
     </el-tabs>
 
-    <!-- 选择预算方对话框 -->
+    <!-- 选择DSP广告位对话框 -->
     <el-dialog
       v-model="selectSlotDialogVisible"
-      title="选择预算方"
-      width="800px"
+      title="绑定 DSP 广告位"
+      width="900px"
       append-to-body
     >
+      <template #header>
+        <div class="dialog-header-content">
+          <span>绑定 DSP 广告位</span>
+          <el-text size="small" type="info">从匹配的 DSP 广告位中选择，创建与 dsp_launch 表的关联</el-text>
+        </div>
+      </template>
       <el-table
         :data="matchedDspSlots"
         @selection-change="handleSlotSelectionChange"
         style="width: 100%"
       >
-        <el-table-column type="selection" width="55" align="center" />
-        <el-table-column label="预算方名称" align="center" prop="name" />
-        <el-table-column label="操作系统" align="center" prop="osType">
+        <el-table-column type="selection" width="55" align="center" fixed />
+        <el-table-column label="预算方名称" align="center" prop="name" width="150" fixed />
+        <el-table-column label="操作系统" align="center" prop="osType" width="100">
           <template #default="scope">
             <el-tag v-if="scope.row.osType === 1" type="success">Android</el-tag>
             <el-tag v-else-if="scope.row.osType === 2" type="primary">iOS</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="广告位编码" align="center" prop="dspSlotCode" />
-        <el-table-column label="APPKEY" align="center" prop="dspAppKey" />
-        <el-table-column label="结算方式" align="center" prop="dspPayType">
+        <el-table-column label="广告类型" align="center" prop="adTypeId" width="120">
+          <template #default="scope">
+            {{ getAdTypeName(scope.row.adTypeId) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="广告位编码" align="center" prop="dspSlotCode" width="150" />
+        <el-table-column label="DSP AppKey" align="center" prop="dspAppKey" width="150" />
+        <el-table-column label="结算方式" align="center" prop="dspPayType" width="100">
           <template #default="scope">
             <el-tag v-if="scope.row.dspPayType == 1 || scope.row.dspPayType == '1'" type="success">分成</el-tag>
             <el-tag v-else-if="scope.row.dspPayType == 2 || scope.row.dspPayType == '2'" type="primary">RTB</el-tag>
@@ -565,7 +872,9 @@
       <template #footer>
         <div class="dialog-footer">
           <el-button @click="handleCancelSelectSlot">取 消</el-button>
-          <el-button type="primary" @click="handleConfirmSelectSlot">确 定</el-button>
+          <el-button type="primary" @click="handleConfirmSelectSlot">
+            确定绑定 ({{ selectedDspSlotIds.length }})
+          </el-button>
         </div>
       </template>
     </el-dialog>
@@ -576,11 +885,15 @@
 import { listMediaAd, getMediaAd, delMediaAd, addMediaAd, updateMediaAd, getMatchedDspSlots, saveLaunchConfig, getLaunchConfig } from "@/api/flow/mediaAd"
 import { getMediaAppCascader, listMedia } from "@/api/flow/media"
 import { getApp } from "@/api/flow/app"
+import { listType } from "@/api/ad/type"
+import { listScene } from "@/api/ad/scene"
+import { listSize } from "@/api/ad/size"
 import { useDict } from "@/utils/dict"
-import { ref, reactive, toRefs, computed, getCurrentInstance } from "vue"
+import { ref, reactive, toRefs, computed, getCurrentInstance, watch } from "vue"
+import { InfoFilled, Link, Setting } from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
-const { audit_status, ssp_pay_type, ad_scene } = useDict('audit_status', 'ssp_pay_type', 'ad_scene')
+const { audit_status, ssp_pay_type, ad_scene, os_type, access_type } = useDict('audit_status', 'ssp_pay_type', 'ad_scene', 'os_type', 'access_type')
 
 const mediaAdList = ref([])
 const cascaderData = ref([])
@@ -598,28 +911,95 @@ const mediaNameMap = ref(new Map())
 const appNameMap = ref(new Map())
 // 创建媒体ID到公司名称的映射
 const mediaCompanyNameMap = ref(new Map())
+// 创建时间范围
+const createTimeRange = ref([])
 
 // Tab 相关状态
 const activeTab = ref('list')
 const configMediaAd = ref(null)
+const editMediaAd = ref(null)
 const configForm = ref({
   item1: '',
   item2: '',
   item3: ''
 })
+const editForm = ref({
+  mediaAppCascade: [],
+  name: null,
+  nameAlise: null,
+  adSceneId: null,
+  adTypeId: null,
+  adSizeId: null,
+  osType: null,
+  accessType: null,
+  sspPayType: null,
+  sspDealRatio: null,
+  width: null,
+  height: null,
+  adImage: null,
+  interactionType: 0,
+  enable: null,
+  remark: null
+})
 
-// 流量分配 - 预算方列表
+// 广告类型、广告场景、样式尺寸列表
+const adTypeList = ref([])
+const adSceneList = ref([])
+const adSizeList = ref([])
+
+// 交互类型选项
+const interactionTypeOptions = [
+  { value: 1, label: '打开网页' },
+  { value: 2, label: 'deeplink' },
+  { value: 3, label: '直接下载应用' },
+  { value: 4, label: '广点通' },
+  { value: 5, label: '小程序跳转' },
+  { value: 6, label: '应用商店下载' },
+  { value: 7, label: '快应用' }
+]
+
+// 选中的交互类型列表（用于checkbox group）
+const selectedInteractionTypes = ref([])
+
+// 计算属性：筛选后的广告场景列表
+const filteredAdSceneList = computed(() => {
+  if (!editForm.value.adTypeId) {
+    return []
+  }
+  return adSceneList.value.filter(scene => scene.typeId === editForm.value.adTypeId)
+})
+
+// 计算属性：筛选后的样式尺寸列表
+const filteredAdSizeList = computed(() => {
+  if (!editForm.value.adTypeId) {
+    return []
+  }
+  return adSizeList.value.filter(size => size.typeId === editForm.value.adTypeId)
+})
+
+// 计算属性：显示宽度×高度
+const widthHeightDisplay = computed(() => {
+  if (editForm.value.sizeId && filteredAdSizeList.value.length > 0) {
+    const size = filteredAdSizeList.value.find(s => s.id === editForm.value.sizeId)
+    if (size) {
+      return size.size
+    }
+  }
+  return editForm.value.width && editForm.value.height ? `${editForm.value.width}×${editForm.height}` : ''
+})
+
+// 流量分配 - 已绑定的DSP广告位列表（通过 dsp_launch 关联）
 const slotList = ref([])
 // 应用信息
 const appInfo = ref(null)
-// 选择预算方对话框
+// 选择DSP广告位对话框
 const selectSlotDialogVisible = ref(false)
-// 匹配的预算方列表
+// 匹配的DSP广告位列表（从 dsp_slot_info 表查询）
 const matchedDspSlots = ref([])
-// 选中的预算方
+// 选中的DSP广告位ID列表
 const selectedDspSlotIds = ref([])
 
-// 计算总流量权重
+// 计算总流量权重（所有已绑定的DSP广告位的权重之和）
 const totalTrafficWeight = computed(() => {
   return slotList.value.reduce((sum, slot) => {
     return sum + (slot.trafficWeight || 0)
@@ -634,10 +1014,16 @@ const data = reactive({
     mediaId: null,
     appId: null,
     mediaAppCascade: [],  // 级联选择器的值
-    adScene: null,
+    adTypeId: null,
     name: null,
     nameAlise: null,
+    osType: null,
+    accessType: null,
     enable: null,
+    params: {
+      startTime: null,
+      endTime: null
+    }
   },
   rules: {
     mediaAppCascade: [
@@ -667,6 +1053,35 @@ const data = reactive({
     ],
   }
 })
+
+// 编辑表单验证规则
+const editRules = {
+  mediaAppCascade: [
+    { required: true, message: "媒体/应用不能为空", trigger: "change", type: 'array' }
+  ],
+  name: [
+    { required: true, message: "广告位名称不能为空", trigger: "blur" }
+  ],
+  sspPayType: [
+    { required: true, message: "结算方式不能为空", trigger: "change" }
+  ],
+  sspDealRatio: [
+    {
+      validator: (_rule, value, callback) => {
+        // 如果结算方式选择分成，则分成系数必填
+        if (editForm.value.sspPayType === '1' && !value) {
+          callback(new Error('分成系数不能为空'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur'
+    }
+  ],
+  enable: [
+    { required: true, message: "状态不能为空", trigger: "change" }
+  ],
+}
 
 const { queryParams, form, rules } = toRefs(data)
 
@@ -716,6 +1131,27 @@ function loadMediaList() {
   })
 }
 
+/** 加载广告类型列表 */
+function loadAdTypeList() {
+  listType().then(response => {
+    adTypeList.value = response.rows
+  })
+}
+
+/** 加载广告场景列表 */
+function loadAdSceneList() {
+  listScene().then(response => {
+    adSceneList.value = response.rows
+  })
+}
+
+/** 加载样式尺寸列表 */
+function loadAdSizeList() {
+  listSize().then(response => {
+    adSizeList.value = response.rows
+  })
+}
+
 /** 根据媒体ID获取媒体名称 */
 function getMediaName(mediaId) {
   return mediaCompanyNameMap.value.get(mediaId) || mediaId
@@ -724,6 +1160,24 @@ function getMediaName(mediaId) {
 /** 根据应用ID获取应用名称 */
 function getAppName(appId) {
   return appNameMap.value.get(appId) || appId
+}
+
+/** 根据广告类型ID获取广告类型名称 */
+function getAdTypeName(typeId) {
+  const type = adTypeList.value.find(item => item.id === typeId)
+  return type ? type.name : typeId
+}
+
+/** 根据广告场景ID获取广告场景名称 */
+function getAdSceneName(sceneId) {
+  const scene = adSceneList.value.find(item => item.id === sceneId)
+  return scene ? scene.name : sceneId
+}
+
+/** 根据样式尺寸ID获取样式尺寸 */
+function getAdSizeName(sizeId) {
+  const size = adSizeList.value.find(item => item.id === sizeId)
+  return size ? size.size : sizeId
 }
 
 // 取消按钮
@@ -741,7 +1195,11 @@ function reset() {
     mediaAppCascade: [],
     name: null,
     nameAlise: null,
-    adScene: null,
+    adSceneId: null,
+    adTypeId: null,
+    adSizeId: null,
+    osType: null,
+    accessType: null,
     sspPayType: null,
     sspDealRatio: null,
     width: null,
@@ -760,12 +1218,23 @@ function reset() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
+  // 处理时间范围
+  if (createTimeRange.value && createTimeRange.value.length === 2) {
+    queryParams.value.params.startTime = createTimeRange.value[0]
+    queryParams.value.params.endTime = createTimeRange.value[1]
+  } else {
+    queryParams.value.params.startTime = null
+    queryParams.value.params.endTime = null
+  }
   queryParams.value.pageNum = 1
   getList()
 }
 
 /** 重置按钮操作 */
 function resetQuery() {
+  createTimeRange.value = []
+  queryParams.value.params.startTime = null
+  queryParams.value.params.endTime = null
   proxy.resetForm("queryRef")
   handleQuery()
 }
@@ -787,38 +1256,199 @@ function handleSspPayTypeChange() {
   proxy.$refs["mediaAdRef"].validateField('sspDealRatio')
 }
 
+/** 编辑页面结算方式改变时触发分成系数验证 */
+function handleEditSspPayTypeChange() {
+  // 如果结算方式切换为RTB，清空分成系数
+  if (editForm.value.sspPayType === '2') {
+    editForm.value.sspDealRatio = null
+  }
+  // 触发分成系数字段的验证
+  proxy.$refs["editFormRef"].validateField('sspDealRatio')
+}
+
+/** 检查某个交互类型是否被选中 */
+function isInteractionTypeSelected(typeValue) {
+  return (editForm.value.interactionType & (1 << (typeValue - 1))) !== 0
+}
+
+/** 获取选中的交互类型列表 */
+function getSelectedInteractionTypes() {
+  return interactionTypeOptions.filter(option => isInteractionTypeSelected(option.value))
+}
+
+/** 获取交互类型标签文本 */
+function getInteractionTypeLabel() {
+  const selected = getSelectedInteractionTypes()
+  if (selected.length === 0) {
+    return '选择交互类型'
+  }
+  return selected.map(item => item.label).join('、')
+}
+
+/** 处理交互类型checkbox group变化 */
+function handleInteractionTypeGroupChange(checkedValues) {
+  // 计算位掩码
+  let mask = 0
+  checkedValues.forEach(value => {
+    mask |= (1 << (value - 1))
+  })
+  editForm.value.interactionType = mask
+}
+
+/** 处理交互类型选择变化 */
+function handleInteractionTypeChange(typeValue) {
+  if (isInteractionTypeSelected(typeValue)) {
+    // 取消选中：使用位掩码清除该位
+    editForm.value.interactionType = editForm.value.interactionType & ~(1 << (typeValue - 1))
+  } else {
+    // 选中：使用位掩码设置该位
+    editForm.value.interactionType = editForm.value.interactionType | (1 << (typeValue - 1))
+  }
+  // 更新checkbox group的选中状态
+  updateSelectedInteractionTypes()
+}
+
+/** 更新checkbox group的选中状态 */
+function updateSelectedInteractionTypes() {
+  selectedInteractionTypes.value = interactionTypeOptions
+    .filter(option => isInteractionTypeSelected(option.value))
+    .map(option => option.value)
+}
+
+/** 广告类型改变时的处理 */
+function handleAdTypeChange() {
+  // 清空广告场景和样式尺寸的选择
+  editForm.value.adSceneId = null
+  editForm.value.adSizeId = null
+  // 清空宽度和高度
+  editForm.value.width = null
+  editForm.value.height = null
+}
+
+/** 监听样式尺寸变化，自动填充宽度和高度 */
+watch(() => editForm.value.adSizeId, (newSizeId) => {
+  if (newSizeId && filteredAdSizeList.value.length > 0) {
+    const size = filteredAdSizeList.value.find(s => s.id === newSizeId)
+    if (size && size.size) {
+      // 解析尺寸字符串，格式如 "1080*1920"
+      const dimensions = size.size.split('*')
+      if (dimensions.length === 2) {
+        editForm.value.width = dimensions[0]
+        editForm.value.height = dimensions[1]
+      }
+    }
+  }
+})
+
+/** 监听媒体/应用选择变化，自动填充osType和accessType */
+watch(() => editForm.value.mediaAppCascade, async (newCascade) => {
+  if (newCascade && newCascade.length === 2) {
+    const appId = newCascade[1]
+    if (appId) {
+      try {
+        const response = await getApp(appId)
+        const appData = response.data
+        // 自动填充osType和accessType
+        if (appData.osType !== null && appData.osType !== undefined) {
+          editForm.value.osType = String(appData.osType)
+        }
+        if (appData.accessType !== null && appData.accessType !== undefined) {
+          editForm.value.accessType = String(appData.accessType)
+        }
+      } catch (error) {
+        console.error('获取应用信息失败:', error)
+      }
+    }
+  }
+})
+
 /** 新增按钮操作 */
 function handleAdd() {
-  reset()
-  open.value = true
-  title.value = "添加媒体广告位"
+  // 重置编辑表单
+  editMediaAd.value = null
+  editForm.value = {
+    id: null,
+    mediaAppCascade: [],
+    name: null,
+    nameAlise: null,
+    adSceneId: null,
+    adTypeId: null,
+    adSizeId: null,
+    osType: null,
+    accessType: null,
+    sspPayType: null,
+    sspDealRatio: null,
+    width: null,
+    height: null,
+    adImage: null,
+    interactionType: 0,
+    enable: null,
+    remark: null
+  }
+  // 清空交互类型选中状态
+  selectedInteractionTypes.value = []
+  // 切换到编辑 Tab
+  activeTab.value = 'edit'
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  reset()
   const _id = row.id || ids.value
   getMediaAd(_id).then(response => {
     const data = response.data
+    editMediaAd.value = data
+
     // 将数字类型的字段转为字符串，以便字典匹配
-    if (data.adScene !== null && data.adScene !== undefined) {
-      data.adScene = String(data.adScene)
-    }
     if (data.sspPayType !== null && data.sspPayType !== undefined) {
       data.sspPayType = String(data.sspPayType)
     }
     if (data.enable !== null && data.enable !== undefined) {
       data.enable = String(data.enable)
     }
+    if (data.osType !== null && data.osType !== undefined) {
+      data.osType = String(data.osType)
+    }
+    if (data.accessType !== null && data.accessType !== undefined) {
+      data.accessType = String(data.accessType)
+    }
     // 将 mediaId 和 appId 转换为级联选择器格式
     if (data.mediaId && data.appId) {
-      data.mediaAppCascade = [data.mediaId, data.appId]
+      editForm.value.mediaAppCascade = [data.mediaId, data.appId]
     } else {
-      data.mediaAppCascade = []
+      editForm.value.mediaAppCascade = []
     }
-    form.value = data
-    open.value = true
-    title.value = "修改媒体广告位"
+
+    // 复制其他字段到编辑表单
+    editForm.value = {
+      id: data.id,
+      mediaAppCascade: data.mediaId && data.appId ? [data.mediaId, data.appId] : [],
+      name: data.name,
+      nameAlise: data.nameAlise,
+      adSceneId: data.adSceneId,
+      adTypeId: data.adTypeId,
+      adSizeId: data.adSizeId,
+      osType: data.osType,
+      accessType: data.accessType,
+      sspPayType: data.sspPayType,
+      sspDealRatio: data.sspDealRatio,
+      width: data.width,
+      height: data.height,
+      adImage: data.adImage,
+      interactionType: data.interactionType || 0,
+      enable: data.enable,
+      remark: data.remark
+    }
+
+    // 更新交互类型的checkbox选中状态
+    updateSelectedInteractionTypes()
+
+    // 清除表格选中状态
+    ids.value = []
+    single.value = true
+    multiple.value = true
+
+    // 切换到编辑 Tab
+    activeTab.value = 'edit'
   })
 }
 
@@ -907,16 +1537,17 @@ function loadAppInfo(appId) {
   })
 }
 
-/** 加载预算方列表 */
+/** 加载已绑定的DSP广告位列表 */
 function loadSlotList(mediaAdId) {
   getLaunchConfig(mediaAdId).then(response => {
     const launchConfigList = response.data || []
-    // 将后端返回的数据转换为前端需要的格式
+    // 将后端返回的 dsp_launch 数据转换为前端需要的格式
+    // dsp_launch 通过 ssp_slot_id 和 dsp_slot_id 关联三张表
     slotList.value = launchConfigList.map(launch => {
       const slotInfo = launch.dspSlotInfo || {}
       return {
-        id: launch.id,
-        dspSlotInfoId: launch.dspSlotId,
+        id: launch.id, // dsp_launch 表的 ID
+        dspSlotInfoId: launch.dspSlotId, // dsp_slot_info 表的 ID
         trafficWeight: launch.trafficWeight,
         launchStrategy: launch.launchStrategy,
         floorPrice: launch.floorPrice,
@@ -929,10 +1560,12 @@ function loadSlotList(mediaAdId) {
         launchTime: launch.launchTime,
         regionDirection: launch.regionDirection,
         brandDirection: launch.brandDirection,
-        // DspSlotInfo 的字段
+        // DspSlotInfo 的字段（从 dsp_slot_info 表获取）
         name: slotInfo.name || '',
         osType: slotInfo.osType,
-        adScene: slotInfo.adScene,
+        adTypeId: slotInfo.adTypeId,
+        adSceneId: slotInfo.adSceneId,
+        adSizeId: slotInfo.adSizeId,
         dspSlotCode: slotInfo.dspSlotCode || '',
         dspAppKey: slotInfo.dspAppKey || '',
         dspAppSecret: slotInfo.dspAppSecret || '',
@@ -953,44 +1586,41 @@ function loadSlotList(mediaAdId) {
   })
 }
 
-/** 添加预算方 */
+/** 添加DSP广告位绑定 */
 async function handleAddSlot() {
-  // 从数据库查询匹配的预算方数据
-  // 传入 ssp_slot_info 的 id，通过关联查询获取匹配的 dsp_slot_info 数据
+  // 从数据库查询匹配的 DSP 广告位数据
+  // 传入当前 ssp_slot_info 的 id，通过关联查询获取匹配的 dsp_slot_info 数据
   const sspSlotId = configMediaAd.value?.id
 
   if (!sspSlotId) {
-    proxy.$modal.msgError('无法获取当前广告位ID')
+    proxy.$modal.msgError('无法获取当前 SSP 广告位 ID')
     return
   }
 
   try {
-    // 调用接口查询匹配的数据
+    // 调用接口查询匹配的 DSP 广告位
     const response = await getMatchedDspSlots(sspSlotId)
     let matchedSlots = response.data || []
 
-    console.log('查询到的预算方数量:', matchedSlots.length)
-    console.log('已添加的预算方列表:', slotList.value)
+    console.log('查询到的 DSP 广告位数量:', matchedSlots.length)
+    console.log('已绑定的 DSP 广告位列表:', slotList.value)
 
-    // 过滤掉已经添加的预算方
-    // 获取已经添加的预算方的 dspSlotCode 列表
-    const addedSlotCodes = slotList.value.map(slot => slot.dspSlotCode).filter(code => code)
+    // 过滤掉已经绑定的 DSP 广告位
     const addedSlotIds = slotList.value.map(slot => slot.dspSlotInfoId).filter(id => id)
 
-    console.log('已添加的 dspSlotCode:', addedSlotCodes)
-    console.log('已添加的 dspSlotInfoId:', addedSlotIds)
+    console.log('已绑定的 dspSlotInfoId:', addedSlotIds)
 
-    // 过滤：排除掉已经添加的预算方（通过 dspSlotInfoId 判断）
+    // 过滤：排除掉已经绑定的 DSP 广告位（通过 dsp_slot_info 的 id 判断）
     matchedSlots = matchedSlots.filter(slot => {
-      // 如果当前预算方的 id 已存在于列表中（通过 dspSlotInfoId 存储），则排除
+      // 如果当前 DSP 广告位的 id 已存在于列表中，则排除
       if (addedSlotIds.includes(slot.id)) {
-        console.log('过滤掉已添加的预算方 (id):', slot.id, slot.name)
+        console.log('过滤掉已绑定的 DSP 广告位 (id):', slot.id, slot.name)
         return false
       }
       return true
     })
 
-    console.log('过滤后的预算方数量:', matchedSlots.length)
+    console.log('过滤后的 DSP 广告位数量:', matchedSlots.length)
 
     if (matchedSlots.length > 0) {
       // 如果有匹配的数据，打开选择对话框
@@ -998,19 +1628,19 @@ async function handleAddSlot() {
       selectedDspSlotIds.value = []
       selectSlotDialogVisible.value = true
     } else {
-      // 所有匹配的数据都已添加，提示用户
-      proxy.$modal.msgWarning('所有匹配的预算方都已被添加')
+      // 所有匹配的数据都已绑定，提示用户
+      proxy.$modal.msgWarning('所有匹配的 DSP 广告位都已被绑定')
     }
   } catch (error) {
-    console.error('查询预算方数据失败:', error)
-    proxy.$modal.msgError('查询预算方数据失败')
+    console.error('查询 DSP 广告位数据失败:', error)
+    proxy.$modal.msgError('查询 DSP 广告位数据失败')
   }
 }
 
-/** 确认选择预算方 */
+/** 确认绑定DSP广告位 */
 function handleConfirmSelectSlot() {
   if (selectedDspSlotIds.value.length === 0) {
-    proxy.$modal.msgWarning('请至少选择一个预算方')
+    proxy.$modal.msgWarning('请至少选择一个 DSP 广告位')
     return
   }
 
@@ -1019,11 +1649,13 @@ function handleConfirmSelectSlot() {
     const matchedSlot = matchedDspSlots.value.find(slot => slot.id === slotId)
     if (matchedSlot) {
       const newSlot = {
-        id: null,
-        dspSlotInfoId: matchedSlot.id, // 保存原始的 dsp_slot_info id，用于判断重复
-        name: matchedSlot.name || '新建预算方',
+        id: null, // dsp_launch 表的 ID（保存时生成）
+        dspSlotInfoId: matchedSlot.id, // dsp_slot_info 表的 ID
+        name: matchedSlot.name || 'DSP广告位',
         osType: matchedSlot.osType,
-        adScene: matchedSlot.adScene,
+        adTypeId: matchedSlot.adTypeId,
+        adSceneId: matchedSlot.adSceneId,
+        adSizeId: matchedSlot.adSizeId,
         dspSlotCode: matchedSlot.dspSlotCode || '',
         dspAppKey: matchedSlot.dspAppKey || '',
         dspAppSecret: matchedSlot.dspAppSecret || '',
@@ -1035,7 +1667,7 @@ function handleConfirmSelectSlot() {
         dspAppStoreLink: matchedSlot.dspAppStoreLink || '',
         dspPayType: matchedSlot.dspPayType || null,
         dspDealRatio: matchedSlot.dspDealRatio || null,
-        // 投放配置字段
+        // 投放配置字段（保存到 dsp_launch 表）
         trafficWeight: null, // 流量权重
         launchStrategy: 1, // 投放策略：1对接第三方，2：自主投放
         floorPrice: null, // 底价
@@ -1056,25 +1688,25 @@ function handleConfirmSelectSlot() {
 
   // 关闭对话框
   selectSlotDialogVisible.value = false
-  proxy.$modal.msgSuccess(`成功添加 ${selectedDspSlotIds.value.length} 个预算方`)
+  proxy.$modal.msgSuccess(`成功绑定 ${selectedDspSlotIds.value.length} 个 DSP 广告位`)
 }
 
-/** 取消选择预算方 */
+/** 取消选择DSP广告位 */
 function handleCancelSelectSlot() {
   selectSlotDialogVisible.value = false
 }
 
-/** 预算方表格选择变化 */
+/** DSP广告位表格选择变化 */
 function handleSlotSelectionChange(selection) {
   selectedDspSlotIds.value = selection.map(item => item.id)
 }
 
-/** 复制预算方 */
+/** 复制DSP广告位配置 */
 function handleCopySlot(index) {
   const originalSlot = slotList.value[index]
   const copiedSlot = {
     ...originalSlot,
-    id: null,
+    id: null, // 清空 dsp_launch ID，表示新建
     name: originalSlot.name + ' (副本)',
     activeCollapse: ['launch'] // 默认展开投放配置
   }
@@ -1082,11 +1714,11 @@ function handleCopySlot(index) {
   proxy.$modal.msgSuccess('复制成功')
 }
 
-/** 删除预算方 */
+/** 解绑DSP广告位 */
 function handleDeleteSlot(index) {
-  proxy.$modal.confirm('确认删除该预算方配置吗？').then(() => {
+  proxy.$modal.confirm('确认解绑该 DSP 广告位吗？这将删除与 dsp_launch 表的关联记录。').then(() => {
     slotList.value.splice(index, 1)
-    proxy.$modal.msgSuccess('删除成功')
+    proxy.$modal.msgSuccess('解绑成功')
   }).catch(() => {})
 }
 
@@ -1094,16 +1726,76 @@ function handleDeleteSlot(index) {
 function handleBackToList() {
   activeTab.value = 'list'
   configMediaAd.value = null
+  editMediaAd.value = null
+  // 清空编辑表单验证状态
+  if (proxy.$refs["editFormRef"]) {
+    proxy.$refs["editFormRef"].clearValidate()
+  }
 }
 
-/** 首个预算方设置为100% */
+/** 编辑页面保存按钮 */
+function handleEditSave() {
+  proxy.$refs["editFormRef"].validate(valid => {
+    if (valid) {
+      // 从级联选择器中提取 mediaId 和 appId
+      if (editForm.value.mediaAppCascade && editForm.value.mediaAppCascade.length > 0) {
+        editForm.value.mediaId = editForm.value.mediaAppCascade[0]
+        editForm.value.appId = editForm.value.mediaAppCascade[1] || null
+      }
+
+      // 如果结算方式是RTB，将分成系数设置为null
+      if (editForm.value.sspPayType === '2') {
+        editForm.value.sspDealRatio = null
+      }
+
+      // 移除不需要提交的字段（osType和accessType从app表获取，不需要保存）
+      const submitData = {
+        id: editForm.value.id,
+        mediaId: editForm.value.mediaId,
+        appId: editForm.value.appId,
+        name: editForm.value.name,
+        nameAlise: editForm.value.nameAlise,
+        adTypeId: editForm.value.adTypeId,
+        adSceneId: editForm.value.adSceneId,
+        adSizeId: editForm.value.adSizeId,
+        sspPayType: editForm.value.sspPayType,
+        sspDealRatio: editForm.value.sspDealRatio,
+        width: editForm.value.width,
+        height: editForm.value.height,
+        adImage: editForm.value.adImage,
+        interactionType: editForm.value.interactionType,
+        enable: editForm.value.enable,
+        remark: editForm.value.remark
+      }
+
+      // 根据是否有id判断是新增还是修改
+      if (submitData.id) {
+        updateMediaAd(submitData).then(() => {
+          proxy.$modal.msgSuccess("修改成功")
+          activeTab.value = 'list'
+          editMediaAd.value = null
+          getList()
+        })
+      } else {
+        addMediaAd(submitData).then(() => {
+          proxy.$modal.msgSuccess("新增成功")
+          activeTab.value = 'list'
+          editMediaAd.value = null
+          getList()
+        })
+      }
+    }
+  })
+}
+
+/** 首个DSP广告位设置为100% */
 function handleSetFirstTo100() {
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请先添加预算方')
+    proxy.$modal.msgWarning('请先绑定 DSP 广告位')
     return
   }
 
-  // 将第一个预算方设置为100，其他设置为0
+  // 将第一个 DSP 广告位设置为100，其他设置为0
   slotList.value.forEach((slot, index) => {
     if (index === 0) {
       slot.trafficWeight = 100
@@ -1112,13 +1804,13 @@ function handleSetFirstTo100() {
     }
   })
 
-  proxy.$modal.msgSuccess('已将首个预算方设置为100%')
+  proxy.$modal.msgSuccess('已将首个 DSP 广告位设置为100%')
 }
 
 /** 平均分配权重 */
 function handleAverageWeight() {
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请先添加预算方')
+    proxy.$modal.msgWarning('请先绑定 DSP 广告位')
     return
   }
 
@@ -1126,7 +1818,7 @@ function handleAverageWeight() {
   const averageWeight = Math.floor(100 / count)
   const remainder = 100 % count
 
-  // 平均分配权重，余数加到第一个预算方
+  // 平均分配权重，余数加到第一个 DSP 广告位
   slotList.value.forEach((slot, index) => {
     if (index === 0) {
       slot.trafficWeight = averageWeight + remainder
@@ -1135,17 +1827,17 @@ function handleAverageWeight() {
     }
   })
 
-  proxy.$modal.msgSuccess(`已平均分配权重（每个预算方 ${averageWeight}%，首个预算方 +${remainder}%）`)
+  proxy.$modal.msgSuccess(`已平均分配权重（每个 DSP 广告位 ${averageWeight}%，首个 +${remainder}%）`)
 }
 
 /** 重置所有权重 */
 function handleResetWeight() {
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请先添加预算方')
+    proxy.$modal.msgWarning('请先绑定 DSP 广告位')
     return
   }
 
-  proxy.$modal.confirm('确认重置所有预算方的流量权重为0吗？').then(() => {
+  proxy.$modal.confirm('确认重置所有 DSP 广告位的流量权重为0吗？').then(() => {
     slotList.value.forEach(slot => {
       slot.trafficWeight = 0
     })
@@ -1153,67 +1845,68 @@ function handleResetWeight() {
   }).catch(() => {})
 }
 
-/** 保存配置 */
+/** 保存投放配置 */
 function handleSaveConfig() {
-  // 验证预算方配置
+  // 验证DSP广告位配置
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请至少添加一个预算方配置')
+    proxy.$modal.msgWarning('请至少绑定一个 DSP 广告位')
     return
   }
 
   // 验证流量权重总和必须等于100
   const totalWeight = totalTrafficWeight.value
   if (totalWeight !== 100) {
-    proxy.$modal.msgWarning(`所有预算方的流量权重总和必须等于100，当前总权重为：${totalWeight}`)
+    proxy.$modal.msgWarning(`所有 DSP 广告位的流量权重总和必须等于100，当前总权重为：${totalWeight}`)
     return
   }
 
-  // 验证每个预算方的必填字段
+  // 验证每个DSP广告位的必填字段
   for (let i = 0; i < slotList.value.length; i++) {
     const slot = slotList.value[i]
 
     // 验证流量权重
     if (!slot.trafficWeight || slot.trafficWeight <= 0) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的流量权重不能为空且必须大于0`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的流量权重不能为空且必须大于0`)
       return
     }
 
     // 验证底价必填（仅 RTB 模式）
     if (slot.dspPayType == 2 || slot.dspPayType == '2') {
       if (!slot.floorPrice || slot.floorPrice <= 0) {
-        proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的底价不能为空且必须大于0`)
+        proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的底价不能为空且必须大于0`)
         return
       }
     }
 
     // 验证其他必填字段
     if (!slot.launchStrategy) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的投放策略不能为空`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的投放策略不能为空`)
       return
     }
     if (!slot.logCaptureAt && slot.logCaptureAt !== 0) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的捕获日志时长不能为空`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的捕获日志时长不能为空`)
       return
     }
     if (!slot.launchTime) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的投放时段不能为空`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的投放时段不能为空`)
       return
     }
     if (!slot.regionDirection) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的地域定向不能为空`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的地域定向不能为空`)
       return
     }
     if (!slot.brandDirection) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个预算方的品牌定向不能为空`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的品牌定向不能为空`)
       return
     }
   }
 
   // 构建保存数据
+  // 数据结构：将保存到 dsp_launch 表，通过 ssp_slot_id 和 dsp_slot_id 关联
   const saveData = {
-    mediaAdId: configMediaAd.value.id,
+    mediaAdId: configMediaAd.value.id, // ssp_slot_info 表的 ID
     slotList: slotList.value.map(slot => ({
-      dspSlotId: slot.dspSlotInfoId,
+      dspSlotId: slot.dspSlotInfoId, // dsp_slot_info 表的 ID
       trafficWeight: slot.trafficWeight,
       launchStrategy: slot.launchStrategy,
       floorPrice: slot.floorPrice,
@@ -1231,23 +1924,64 @@ function handleSaveConfig() {
 
   console.log('保存配置数据:', saveData)
 
-  // 调用 API 保存预算方配置
+  // 调用 API 保存投放配置到 dsp_launch 表
   saveLaunchConfig(saveData).then(() => {
-    proxy.$modal.msgSuccess('配置保存成功')
+    proxy.$modal.msgSuccess('投放配置保存成功')
   }).catch(() => {
-    proxy.$modal.msgError('配置保存失败')
+    proxy.$modal.msgError('投放配置保存失败')
   })
 }
 
 // 页面加载时获取级联数据和媒体列表
 loadCascaderData()
 loadMediaList()
+loadAdTypeList()
+loadAdSceneList()
+loadAdSizeList()
 getList()
 </script>
 
 <style scoped>
 .app-container-list {
   padding: 0;
+}
+
+/* 表格容器样式 */
+.media-ad-table {
+  width: 100%;
+}
+
+/* 表格内部包装器 - 这是关键 */
+.media-ad-table :deep(.el-table__inner-wrapper) {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+/* 表头和表格体也要横向滚动 */
+.media-ad-table :deep(.el-table__header-wrapper),
+.media-ad-table :deep(.el-table__body-wrapper) {
+  overflow-x: auto !important;
+  overflow-y: visible !important;
+}
+
+/* 固定列的样式 */
+.media-ad-table :deep(.el-table__fixed) {
+  height: 100% !important;
+}
+
+/* 确保表格列宽度不会被压缩 */
+.media-ad-table :deep(.el-table__header),
+.media-ad-table :deep(.el-table__body) {
+  width: max-content !important;
+}
+
+.media-ad-table :deep(table) {
+  width: 100%;
+  table-layout: auto;
+}
+
+.app-container-edit {
+  padding: 20px;
 }
 
 .app-container-config {
@@ -1258,6 +1992,64 @@ getList()
   margin-bottom: 20px;
 }
 
+.edit-card {
+  margin-bottom: 20px;
+}
+
+/* 交互类型选择器样式 */
+.interaction-type-selector-wrapper {
+  width: 100%;
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox-group) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox.is-bordered) {
+  margin-right: 0;
+  padding: 10px 16px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox.is-bordered:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox.is-bordered.is-checked) {
+  background: #409eff !important;
+  border-color: #409eff !important;
+  color: #fff !important;
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox.is-bordered.is-checked .el-checkbox__label) {
+  color: #fff !important;
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox.is-bordered.is-checked .el-checkbox__input.is-checked .el-checkbox__inner) {
+  background-color: #fff !important;
+  border-color: #fff !important;
+}
+
+.interaction-type-selector-wrapper :deep(.el-checkbox.is-bordered.is-checked .el-checkbox__input.is-checked .el-checkbox__inner::after) {
+  border-color: #409eff !important;
+}
+
+.interaction-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: #f4f4f5;
+  border-radius: 4px;
+  font-size: 13px;
+  color: #606266;
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -1266,6 +2058,13 @@ getList()
 }
 
 .empty-config {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.empty-edit {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1288,7 +2087,45 @@ getList()
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-weight: 600;
+}
+
+.title-text {
+  font-size: 15px;
+  color: #303133;
+}
+
+.info-highlight {
+  font-weight: 600;
+  color: #409eff;
+}
+
+.info-code {
+  font-family: 'Courier New', monospace;
+  background: #f5f7fa;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #606266;
+}
+
+.info-link {
+  color: #409eff;
+  word-break: break-all;
+}
+
+.collapse-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 14px;
 }
 
 .header-actions {
@@ -1388,5 +2225,128 @@ getList()
   font-size: 14px;
   color: #606266;
   margin-right: 12px;
+}
+
+/* 基础信息容器样式 */
+.basic-info-container {
+  padding: 8px 0;
+}
+
+.info-row {
+  margin-bottom: 16px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  border: 1px solid #e4e7ed;
+  transition: all 0.3s ease;
+  min-height: 40px;
+}
+
+.info-item:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.1);
+}
+
+.info-label {
+  font-size: 13px;
+  color: #909399;
+  font-weight: 500;
+  line-height: 1.4;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #303133;
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: break-all;
+  flex: 1;
+}
+
+/* 结算配置组合样式 */
+.info-item-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8f4ff 100%);
+  border-radius: 6px;
+  border: 1px solid #d9ecff;
+  transition: all 0.3s ease;
+  min-height: 40px;
+}
+
+.info-item-group:hover {
+  border-color: #409eff;
+  box-shadow: 0 2px 12px rgba(64, 158, 255, 0.15);
+}
+
+.info-label-group {
+  font-size: 13px;
+  color: #409eff;
+  font-weight: 600;
+  line-height: 1.4;
+  flex-shrink: 0;
+  min-width: 80px;
+}
+
+.info-value-group {
+  font-size: 14px;
+  color: #303133;
+  flex: 1;
+}
+
+.settlement-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.settlement-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settlement-label {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+}
+
+.settlement-value {
+  font-size: 14px;
+  color: #303133;
+  font-weight: 600;
+}
+
+.settlement-info :deep(.el-divider--vertical) {
+  height: 20px;
+  margin: 0;
+  border-color: #dcdfe6;
+}
+
+/* 对话框样式 */
+.dialog-header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialog-header-content .el-text {
+  font-weight: normal;
 }
 </style>

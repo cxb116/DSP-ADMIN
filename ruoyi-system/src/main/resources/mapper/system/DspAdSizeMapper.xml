@@ -2,11 +2,11 @@
 <!DOCTYPE mapper
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ruoyi.system.mapper.DspAdSceneMapper">
+<mapper namespace="com.ruoyi.system.mapper.DspAdSizeMapper">
     
-    <resultMap type="DspAdScene" id="DspAdSceneResult">
+    <resultMap type="DspAdSize" id="DspAdSizeResult">
         <result property="id"    column="id"    />
-        <result property="name"    column="name"    />
+        <result property="size"    column="size"    />
         <result property="typeId"    column="type_id"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
@@ -15,28 +15,28 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="remark"    column="remark"    />
     </resultMap>
 
-    <sql id="selectDspAdSceneVo">
-        select id, name, type_id, create_by, create_time, update_by, update_time, remark from dsp_ad_scene
+    <sql id="selectDspAdSizeVo">
+        select id, size, type_id, create_by, create_time, update_by, update_time, remark from dsp_ad_size
     </sql>
 
-    <select id="selectDspAdSceneList" parameterType="DspAdScene" resultMap="DspAdSceneResult">
-        <include refid="selectDspAdSceneVo"/>
+    <select id="selectDspAdSizeList" parameterType="DspAdSize" resultMap="DspAdSizeResult">
+        <include refid="selectDspAdSizeVo"/>
         <where>  
-            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="typeId != null "> and type_id = #{typeId}</if>
             <if test="createTime != null "> and create_time = #{createTime}</if>
         </where>
     </select>
     
-    <select id="selectDspAdSceneById" parameterType="Long" resultMap="DspAdSceneResult">
-        <include refid="selectDspAdSceneVo"/>
+    <select id="selectDspAdSizeById" parameterType="Long" resultMap="DspAdSizeResult">
+        <include refid="selectDspAdSizeVo"/>
         where id = #{id}
     </select>
 
-    <insert id="insertDspAdScene" parameterType="DspAdScene" useGeneratedKeys="true" keyProperty="id">
-        insert into dsp_ad_scene
+    <insert id="insertDspAdSize" parameterType="DspAdSize">
+        insert into dsp_ad_size
         <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="name != null and name != ''">name,</if>
+            <if test="id != null">id,</if>
+            <if test="size != null">size,</if>
             <if test="typeId != null">type_id,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
@@ -45,7 +45,8 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="name != null and name != ''">#{name},</if>
+            <if test="id != null">#{id},</if>
+            <if test="size != null">#{size},</if>
             <if test="typeId != null">#{typeId},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
@@ -55,10 +56,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
          </trim>
     </insert>
 
-    <update id="updateDspAdScene" parameterType="DspAdScene">
-        update dsp_ad_scene
+    <update id="updateDspAdSize" parameterType="DspAdSize">
+        update dsp_ad_size
         <trim prefix="SET" suffixOverrides=",">
-            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="size != null">size = #{size},</if>
             <if test="typeId != null">type_id = #{typeId},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
@@ -69,12 +70,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         where id = #{id}
     </update>
 
-    <delete id="deleteDspAdSceneById" parameterType="Long">
-        delete from dsp_ad_scene where id = #{id}
+    <delete id="deleteDspAdSizeById" parameterType="Long">
+        delete from dsp_ad_size where id = #{id}
     </delete>
 
-    <delete id="deleteDspAdSceneByIds" parameterType="String">
-        delete from dsp_ad_scene where id in 
+    <delete id="deleteDspAdSizeByIds" parameterType="String">
+        delete from dsp_ad_size where id in 
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>

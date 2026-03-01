@@ -6,21 +6,21 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 广告场景对象 dsp_ad_scene
+ * 样式尺寸对象 dsp_ad_size
  * 
  * @author ruoyi
  * @date 2026-02-28
  */
-public class DspAdScene extends BaseEntity
+public class DspAdSize extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
 
     /** ID */
     private Long id;
 
-    /** 广告场景 */
-    @Excel(name = "广告场景")
-    private String name;
+    /** 样式尺寸 */
+    @Excel(name = "样式尺寸")
+    private String size;
 
     /** 广告类型Id */
     @Excel(name = "广告类型Id")
@@ -36,14 +36,14 @@ public class DspAdScene extends BaseEntity
         return id;
     }
 
-    public void setName(String name) 
+    public void setSize(String size) 
     {
-        this.name = name;
+        this.size = size;
     }
 
-    public String getName() 
+    public String getSize() 
     {
-        return name;
+        return size;
     }
 
     public void setTypeId(Long typeId) 
@@ -60,7 +60,7 @@ public class DspAdScene extends BaseEntity
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("id", getId())
-            .append("name", getName())
+            .append("size", getSize())
             .append("typeId", getTypeId())
             .append("createBy", getCreateBy())
             .append("createTime", getCreateTime())

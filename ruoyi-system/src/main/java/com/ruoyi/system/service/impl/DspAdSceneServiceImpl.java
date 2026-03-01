@@ -9,10 +9,10 @@ import com.ruoyi.system.domain.DspAdScene;
 import com.ruoyi.system.service.IDspAdSceneService;
 
 /**
- * 广告类型管理Service业务层处理
+ * 广告场景Service业务层处理
  * 
  * @author ruoyi
- * @date 2026-02-24
+ * @date 2026-02-28
  */
 @Service
 public class DspAdSceneServiceImpl implements IDspAdSceneService 
@@ -21,10 +21,10 @@ public class DspAdSceneServiceImpl implements IDspAdSceneService
     private DspAdSceneMapper dspAdSceneMapper;
 
     /**
-     * 查询广告类型管理
+     * 查询广告场景
      * 
-     * @param id 广告类型管理主键
-     * @return 广告类型管理
+     * @param id 广告场景主键
+     * @return 广告场景
      */
     @Override
     public DspAdScene selectDspAdSceneById(Long id)
@@ -33,10 +33,10 @@ public class DspAdSceneServiceImpl implements IDspAdSceneService
     }
 
     /**
-     * 查询广告类型管理列表
+     * 查询广告场景列表
      * 
-     * @param dspAdScene 广告类型管理
-     * @return 广告类型管理
+     * @param dspAdScene 广告场景
+     * @return 广告场景
      */
     @Override
     public List<DspAdScene> selectDspAdSceneList(DspAdScene dspAdScene)
@@ -45,9 +45,9 @@ public class DspAdSceneServiceImpl implements IDspAdSceneService
     }
 
     /**
-     * 新增广告类型管理
+     * 新增广告场景
      * 
-     * @param dspAdScene 广告类型管理
+     * @param dspAdScene 广告场景
      * @return 结果
      */
     @Override
@@ -58,9 +58,9 @@ public class DspAdSceneServiceImpl implements IDspAdSceneService
     }
 
     /**
-     * 修改广告类型管理
+     * 修改广告场景
      * 
-     * @param dspAdScene 广告类型管理
+     * @param dspAdScene 广告场景
      * @return 结果
      */
     @Override
@@ -71,9 +71,9 @@ public class DspAdSceneServiceImpl implements IDspAdSceneService
     }
 
     /**
-     * 批量删除广告类型管理
+     * 批量删除广告场景
      * 
-     * @param ids 需要删除的广告类型管理主键
+     * @param ids 需要删除的广告场景主键
      * @return 结果
      */
     @Override
@@ -83,9 +83,9 @@ public class DspAdSceneServiceImpl implements IDspAdSceneService
     }
 
     /**
-     * 删除广告类型管理信息
+     * 删除广告场景信息
      * 
-     * @param id 广告类型管理主键
+     * @param id 广告场景主键
      * @return 结果
      */
     @Override
