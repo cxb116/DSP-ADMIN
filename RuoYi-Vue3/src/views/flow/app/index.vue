@@ -1,29 +1,37 @@
 <template>
     <div class="app-container">
         <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-            <el-form-item label="媒体Id" prop="mediaId">
-                <el-input
+            <el-form-item label="媒体名称" prop="mediaId">
+                <el-select
                         v-model="queryParams.mediaId"
-                        placeholder="请输入媒体Id"
+                        placeholder="请选择媒体"
                         clearable
-                        @keyup.enter="handleQuery"
-                />
+                        filterable
+                        style="width: 200px"
+                >
+                    <el-option
+                            v-for="item in mediaOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item label="应用名称" prop="name">
-                <el-input
+                <el-select
                         v-model="queryParams.name"
-                        placeholder="请输入应用名称"
+                        placeholder="请选择应用"
                         clearable
-                        @keyup.enter="handleQuery"
-                />
-            </el-form-item>
-            <el-form-item label="包名" prop="pkg">
-                <el-input
-                        v-model="queryParams.pkg"
-                        placeholder="请输入包名"
-                        clearable
-                        @keyup.enter="handleQuery"
-                />
+                        filterable
+                        style="width: 200px"
+                >
+                    <el-option
+                            v-for="item in appOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item label="下载地址" prop="downloadUrl">
                 <el-input
@@ -47,6 +55,17 @@
                             :value="dict.value"
                     />
                 </el-select>
+            </el-form-item>
+            <el-form-item label="创建时间" prop="createTimeRange">
+                <el-date-picker
+                        v-model="createTimeRange"
+                        type="daterange"
+                        range-separator="-"
+                        start-placeholder="开始日期"
+                        end-placeholder="结束日期"
+                        value-format="YYYY-MM-DD"
+                        style="width: 240px"
+                />
             </el-form-item>
             <el-form-item>
                 <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -98,12 +117,18 @@
 
         <el-table v-loading="loading" :data="appList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="媒体Id" align="center" prop="mediaId">
+          <el-table-column label="应用名称" align="center" prop="name">
+            <template #default="scope">
+              {{ getMediaAppName(scope.row) }}
+            </template>
+          </el-table-column>
+
+            <el-table-column label="媒体名称" align="center" prop="mediaId">
                 <template #default="scope">
                     {{ getMediaCompanyName(scope.row.mediaId) }}({{ scope.row.mediaId }})
                 </template>
             </el-table-column>
-            <el-table-column label="应用名称" align="center" prop="name" />
+
             <el-table-column label="操作系统类型" align="center" prop="osType">
               <template #default="scope">
                 <dict-tag :options="os_type" :value="scope.row.osType" />
@@ -123,7 +148,7 @@
                     <dict-tag :options="media_status" :value="scope.row.enable" />
                 </template>
             </el-table-column>
-            <el-table-column label="备注" align="center" prop="remark" />
+            <el-table-column label="创建时间" align="center" prop="createTime" />
             <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                 <template #default="scope">
                     <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['flow:app:edit']">修改</el-button>
@@ -143,9 +168,22 @@
         <!-- 添加或修改应用管理对话框 -->
         <el-dialog :title="title" v-model="open" width="500px" append-to-body>
             <el-form ref="appRef" :model="form" :rules="rules" label-width="100px">
-                <el-form-item label="媒体Id" prop="mediaId">
-                    <el-input v-model="form.mediaId" placeholder="请输入媒体Id" />
+                <el-form-item label="媒体公司" prop="mediaId">
+                    <el-select
+                        v-model="form.mediaId"
+                        placeholder="请选择媒体公司"
+                        filterable
+                        style="width: 100%"
+                    >
+                        <el-option
+                            v-for="item in mediaOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
                 </el-form-item>
+
                 <el-form-item label="应用名称" prop="name">
                     <el-input v-model="form.name" placeholder="请输入应用名称" />
                 </el-form-item>
@@ -202,7 +240,6 @@
 <script setup name="App">
 import { listApp, getApp, delApp, addApp, updateApp } from "@/api/flow/app"
 import { listMedia } from "@/api/flow/media"
-
 const { proxy } = getCurrentInstance()
 
 // 获取字典数据
@@ -220,6 +257,12 @@ const title = ref("")
 
 // 创建媒体ID到公司名称的映射
 const mediaCompanyNameMap = ref(new Map())
+// 媒体选项列表
+const mediaOptions = ref([])
+// 应用选项列表
+const appOptions = ref([])
+// 创建时间范围
+const createTimeRange = ref([])
 
 const data = reactive({
     form: {},
@@ -227,12 +270,17 @@ const data = reactive({
         pageNum: 1,
         pageSize: 10,
         mediaId: null,
+        mediaName: null,
         name: null,
         osType: null,
         accessType: null,
         pkg: null,
         downloadUrl: null,
         enable: null,
+        params: {
+            startTime: null,
+            endTime: null
+        }
     },
     rules: {
         mediaId: [
@@ -259,8 +307,27 @@ const { queryParams, form, rules } = toRefs(data)
 function loadMediaList() {
     listMedia({ pageNum: 1, pageSize: 1000 }).then(response => {
         mediaCompanyNameMap.value.clear()
+        mediaOptions.value = []
         response.rows.forEach(media => {
             mediaCompanyNameMap.value.set(media.id, media.mediaCompanyName)
+            // 添加到选项列表，用于下拉选择
+            mediaOptions.value.push({
+                value: media.id,
+                label: `${media.mediaCompanyName}(${media.id})`
+            })
+        })
+    })
+}
+
+/** 加载应用选项列表 */
+function loadAppOptions() {
+    listApp({ pageNum: 1, pageSize: 1000 }).then(response => {
+        appOptions.value = []
+        response.rows.forEach(app => {
+            appOptions.value.push({
+                value: app.name,
+                label: `${app.name}(${app.id})`
+            })
         })
     })
 }
@@ -268,6 +335,10 @@ function loadMediaList() {
 /** 根据媒体ID获取公司名称 */
 function getMediaCompanyName(mediaId) {
     return mediaCompanyNameMap.value.get(mediaId) || mediaId
+}
+
+function getMediaAppName(row) {
+  return `${row.name}:(${row.id})`
 }
 
 /** 查询应用管理列表 */
@@ -308,12 +379,23 @@ function reset() {
 
 /** 搜索按钮操作 */
 function handleQuery() {
+    // 处理时间范围
+    if (createTimeRange.value && createTimeRange.value.length === 2) {
+        queryParams.value.params.startTime = createTimeRange.value[0]
+        queryParams.value.params.endTime = createTimeRange.value[1]
+    } else {
+        queryParams.value.params.startTime = null
+        queryParams.value.params.endTime = null
+    }
     queryParams.value.pageNum = 1
     getList()
 }
 
 /** 重置按钮操作 */
 function resetQuery() {
+    createTimeRange.value = []
+    queryParams.value.params.startTime = null
+    queryParams.value.params.endTime = null
     proxy.resetForm("queryRef")
     handleQuery()
 }
@@ -393,7 +475,8 @@ function handleExport() {
     }, `app_${new Date().getTime()}.xlsx`)
 }
 
-// 页面加载时获取媒体列表
+// 页面加载时获取媒体列表和应用选项
 loadMediaList()
+loadAppOptions()
 getList()
 </script>

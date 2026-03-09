@@ -37,7 +37,23 @@ public class SspSlotInfo extends BaseEntity
 
     /** 广告类型 */
     @Excel(name = "广告类型")
-    private Long adScene;
+    private Long adTypeId;
+
+    /** 广告场景ID */
+    @Excel(name = "广告场景ID")
+    private Long adSceneId;
+
+    /** 样式尺寸ID */
+    @Excel(name = "样式尺寸ID")
+    private Long adSizeId;
+
+    /** 操作系统类型（从关联的app表获取） */
+    @Excel(name = "操作系统类型")
+    private Long osType;
+
+    /** 接入方式（从关联的app表获取） */
+    @Excel(name = "接入方式")
+    private Long accessType;
 
     /** 下游媒体结算方式，1=分成，2=RTB */
     @Excel(name = "下游媒体结算方式，1=分成，2=RTB")
@@ -123,16 +139,7 @@ public class SspSlotInfo extends BaseEntity
         return nameAlise;
     }
 
-    public void setAdScene(Long adScene)
-    {
-        this.adScene = adScene;
-    }
 
-    @JSONField(name = "scene_id")
-    public Long getAdScene()
-    {
-        return adScene;
-    }
 
     public void setSspPayType(Long sspPayType)
     {
@@ -219,7 +226,11 @@ public class SspSlotInfo extends BaseEntity
             .append("appId", getAppId())
             .append("name", getName())
             .append("nameAlise", getNameAlise())
-            .append("adScene", getAdScene())
+            .append("adTypeId", getAdTypeId())
+            .append("adSceneId", getAdSceneId())
+            .append("adSizeId", getAdSizeId())
+            .append("osType", getOsType())
+            .append("accessType", getAccessType())
             .append("sspPayType", getSspPayType())
             .append("sspDealRatio", getSspDealRatio())
             .append("width", getWidth())
@@ -233,5 +244,48 @@ public class SspSlotInfo extends BaseEntity
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
             .toString();
+    }
+
+    public void setAdTypeId(Long adTypeId) {
+        this.adTypeId = adTypeId;
+    }
+
+    @JSONField(name = "ad_type_id")
+    public Long getAdTypeId() {
+        return adTypeId;
+    }
+
+    public void setAdSceneId(Long adSceneId) {
+        this.adSceneId = adSceneId;
+    }
+
+    @JSONField(name = "ad_scene_id")
+    public Long getAdSceneId() {
+        return adSceneId;
+    }
+
+    public Long getAdSizeId() {
+        return adSizeId;
+    }
+
+    public void setAdSizeId(Long adSizeId) {
+        this.adSizeId = adSizeId;
+    }
+
+    public void setOsType(Long osType) {
+        this.osType = osType;
+    }
+
+    @JSONField(name = "os_type")
+    public Long getOsType() {
+        return osType;
+    }
+
+    public Long getAccessType() {
+        return accessType;
+    }
+
+    public void setAccessType(Long accessType) {
+        this.accessType = accessType;
     }
 }

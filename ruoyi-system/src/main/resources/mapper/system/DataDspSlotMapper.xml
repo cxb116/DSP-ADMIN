@@ -3,7 +3,7 @@
 PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ruoyi.system.mapper.DataDspSlotMapper">
-    
+
     <resultMap type="DataDspSlot" id="DataDspSlotResult">
         <result property="id"    column="id"    />
         <result property="dspSlotId"    column="dsp_slot_id"    />
@@ -30,106 +30,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectDataDspSlotVo">
-        select id, dsp_slot_id, dsp_slot_code, show_pv, show_uv, click_pv, click_uv, req_pv, req_uv, discard, ret_pv, ret_uv, spend, income, discount_click_pv, discount_show_pv, dplsucc_pv, complete_pv, install_pv, activate_pv, date, created_at from data_dsp_slot
+        select id, dsp_slot_id, dsp_slot_code, show_pv, show_uv, click_pv, click_uv, req_pv, req_uv, discard, ret_pv, ret_uv, spend, income, discount_click_pv, discount_show_pv, dplsucc_pv, complete_pv, install_pv, activate_pv, date, created_at
+        from ${tableName}
     </sql>
 
     <select id="selectDataDspSlotList" parameterType="DataDspSlot" resultMap="DataDspSlotResult">
         <include refid="selectDataDspSlotVo"/>
-        <where>  
+        <where>
         </where>
     </select>
-    
-    <select id="selectDataDspSlotById" parameterType="Long" resultMap="DataDspSlotResult">
+
+    <select id="selectDataDspSlotById" parameterType="DataDspSlot" resultMap="DataDspSlotResult">
         <include refid="selectDataDspSlotVo"/>
         where id = #{id}
     </select>
-
-    <insert id="insertDataDspSlot" parameterType="DataDspSlot" useGeneratedKeys="true" keyProperty="id">
-        insert into data_dsp_slot
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="dspSlotId != null">dsp_slot_id,</if>
-            <if test="dspSlotCode != null and dspSlotCode != ''">dsp_slot_code,</if>
-            <if test="showPv != null">show_pv,</if>
-            <if test="showUv != null">show_uv,</if>
-            <if test="clickPv != null">click_pv,</if>
-            <if test="clickUv != null">click_uv,</if>
-            <if test="reqPv != null">req_pv,</if>
-            <if test="reqUv != null">req_uv,</if>
-            <if test="discard != null">discard,</if>
-            <if test="retPv != null">ret_pv,</if>
-            <if test="retUv != null">ret_uv,</if>
-            <if test="spend != null">spend,</if>
-            <if test="income != null">income,</if>
-            <if test="discountClickPv != null">discount_click_pv,</if>
-            <if test="discountShowPv != null">discount_show_pv,</if>
-            <if test="dplsuccPv != null">dplsucc_pv,</if>
-            <if test="completePv != null">complete_pv,</if>
-            <if test="installPv != null">install_pv,</if>
-            <if test="activatePv != null">activate_pv,</if>
-            <if test="date != null">date,</if>
-            <if test="createdAt != null">created_at,</if>
-         </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="dspSlotId != null">#{dspSlotId},</if>
-            <if test="dspSlotCode != null and dspSlotCode != ''">#{dspSlotCode},</if>
-            <if test="showPv != null">#{showPv},</if>
-            <if test="showUv != null">#{showUv},</if>
-            <if test="clickPv != null">#{clickPv},</if>
-            <if test="clickUv != null">#{clickUv},</if>
-            <if test="reqPv != null">#{reqPv},</if>
-            <if test="reqUv != null">#{reqUv},</if>
-            <if test="discard != null">#{discard},</if>
-            <if test="retPv != null">#{retPv},</if>
-            <if test="retUv != null">#{retUv},</if>
-            <if test="spend != null">#{spend},</if>
-            <if test="income != null">#{income},</if>
-            <if test="discountClickPv != null">#{discountClickPv},</if>
-            <if test="discountShowPv != null">#{discountShowPv},</if>
-            <if test="dplsuccPv != null">#{dplsuccPv},</if>
-            <if test="completePv != null">#{completePv},</if>
-            <if test="installPv != null">#{installPv},</if>
-            <if test="activatePv != null">#{activatePv},</if>
-            <if test="date != null">#{date},</if>
-            <if test="createdAt != null">#{createdAt},</if>
-         </trim>
-    </insert>
-
-    <update id="updateDataDspSlot" parameterType="DataDspSlot">
-        update data_dsp_slot
-        <trim prefix="SET" suffixOverrides=",">
-            <if test="dspSlotId != null">dsp_slot_id = #{dspSlotId},</if>
-            <if test="dspSlotCode != null and dspSlotCode != ''">dsp_slot_code = #{dspSlotCode},</if>
-            <if test="showPv != null">show_pv = #{showPv},</if>
-            <if test="showUv != null">show_uv = #{showUv},</if>
-            <if test="clickPv != null">click_pv = #{clickPv},</if>
-            <if test="clickUv != null">click_uv = #{clickUv},</if>
-            <if test="reqPv != null">req_pv = #{reqPv},</if>
-            <if test="reqUv != null">req_uv = #{reqUv},</if>
-            <if test="discard != null">discard = #{discard},</if>
-            <if test="retPv != null">ret_pv = #{retPv},</if>
-            <if test="retUv != null">ret_uv = #{retUv},</if>
-            <if test="spend != null">spend = #{spend},</if>
-            <if test="income != null">income = #{income},</if>
-            <if test="discountClickPv != null">discount_click_pv = #{discountClickPv},</if>
-            <if test="discountShowPv != null">discount_show_pv = #{discountShowPv},</if>
-            <if test="dplsuccPv != null">dplsucc_pv = #{dplsuccPv},</if>
-            <if test="completePv != null">complete_pv = #{completePv},</if>
-            <if test="installPv != null">install_pv = #{installPv},</if>
-            <if test="activatePv != null">activate_pv = #{activatePv},</if>
-            <if test="date != null">date = #{date},</if>
-            <if test="createdAt != null">created_at = #{createdAt},</if>
-        </trim>
-        where id = #{id}
-    </update>
-
-    <delete id="deleteDataDspSlotById" parameterType="Long">
-        delete from data_dsp_slot where id = #{id}
-    </delete>
-
-    <delete id="deleteDataDspSlotByIds" parameterType="String">
-        delete from data_dsp_slot where id in 
-        <foreach item="id" collection="array" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </delete>
 </mapper>

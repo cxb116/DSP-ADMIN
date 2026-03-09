@@ -7,6 +7,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <resultMap type="SspApp" id="SspAppResult">
         <result property="id"    column="id"    />
         <result property="mediaId"    column="media_id"    />
+        <result property="mediaName"    column="media_name"    />
         <result property="name"    column="name"    />
         <result property="osType"    column="os_type"    />
         <result property="accessType"    column="access_type"    />
@@ -21,25 +22,31 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectSspAppVo">
-        select id, media_id, name, os_type, access_type, pkg, download_url, enable, create_by, create_time, update_by, update_time, remark from ssp_app
+        select a.id, a.media_id, a.name, a.os_type, a.access_type, a.pkg, a.download_url, a.enable, a.create_by, a.create_time, a.update_by, a.update_time, a.remark,
+               m.name as media_name
+        from ssp_app a
+        left join ssp_media m on a.media_id = m.id
     </sql>
 
     <select id="selectSspAppList" parameterType="SspApp" resultMap="SspAppResult">
         <include refid="selectSspAppVo"/>
-        <where>  
-            <if test="mediaId != null "> and media_id = #{mediaId}</if>
-            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
-            <if test="osType != null "> and os_type = #{osType}</if>
-            <if test="accessType != null "> and access_type = #{accessType}</if>
-            <if test="pkg != null  and pkg != ''"> and pkg = #{pkg}</if>
-            <if test="downloadUrl != null  and downloadUrl != ''"> and download_url = #{downloadUrl}</if>
-            <if test="enable != null "> and enable = #{enable}</if>
+        <where>
+            <if test="mediaId != null "> and a.media_id = #{mediaId}</if>
+            <if test="mediaName != null  and mediaName != ''"> and m.name like concat('%', #{mediaName}, '%')</if>
+            <if test="name != null  and name != ''"> and a.name like concat('%', #{name}, '%')</if>
+            <if test="osType != null "> and a.os_type = #{osType}</if>
+            <if test="accessType != null "> and a.access_type = #{accessType}</if>
+            <if test="pkg != null  and pkg != ''"> and a.pkg = #{pkg}</if>
+            <if test="downloadUrl != null  and downloadUrl != ''"> and a.download_url = #{downloadUrl}</if>
+            <if test="enable != null "> and a.enable = #{enable}</if>
+            <if test="params.startTime != null and params.startTime != ''"> and a.create_time &gt;= #{params.startTime}</if>
+            <if test="params.endTime != null and params.endTime != ''"> and a.create_time &lt;= #{params.endTime}</if>
         </where>
     </select>
     
     <select id="selectSspAppById" parameterType="Long" resultMap="SspAppResult">
         <include refid="selectSspAppVo"/>
-        where id = #{id}
+        where a.id = #{id}
     </select>
 
     <insert id="insertSspApp" parameterType="SspApp" useGeneratedKeys="true" keyProperty="id">

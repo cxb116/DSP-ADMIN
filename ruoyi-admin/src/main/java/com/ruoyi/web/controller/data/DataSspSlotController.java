@@ -5,11 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.ruoyi.common.annotation.Log;
@@ -23,7 +19,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
 
 /**
  * 媒体数据报表Controller
- * 
+ *
  * @author ruoyi
  * @date 2026-03-01
  */
@@ -51,7 +47,7 @@ public class DataSspSlotController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('data:data_ssp_slot:export')")
     @Log(title = "媒体数据报表", businessType = BusinessType.EXPORT)
-    @PostMapping("/export")
+    @GetMapping("/export")
     public void export(HttpServletResponse response, DataSspSlot dataSspSlot)
     {
         List<DataSspSlot> list = dataSspSlotService.selectDataSspSlotList(dataSspSlot);
@@ -64,41 +60,9 @@ public class DataSspSlotController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('data:data_ssp_slot:query')")
     @GetMapping(value = "/{id}")
-    public AjaxResult getInfo(@PathVariable("id") Long id)
+    public AjaxResult getInfo(@PathVariable("id") Long id, DataSspSlot dataSspSlot)
     {
-        return success(dataSspSlotService.selectDataSspSlotById(id));
-    }
-
-    /**
-     * 新增媒体数据报表
-     */
-    @PreAuthorize("@ss.hasPermi('data:data_ssp_slot:add')")
-    @Log(title = "媒体数据报表", businessType = BusinessType.INSERT)
-    @PostMapping
-    public AjaxResult add(@RequestBody DataSspSlot dataSspSlot)
-    {
-        return toAjax(dataSspSlotService.insertDataSspSlot(dataSspSlot));
-    }
-
-    /**
-     * 修改媒体数据报表
-     */
-    @PreAuthorize("@ss.hasPermi('data:data_ssp_slot:edit')")
-    @Log(title = "媒体数据报表", businessType = BusinessType.UPDATE)
-    @PutMapping
-    public AjaxResult edit(@RequestBody DataSspSlot dataSspSlot)
-    {
-        return toAjax(dataSspSlotService.updateDataSspSlot(dataSspSlot));
-    }
-
-    /**
-     * 删除媒体数据报表
-     */
-    @PreAuthorize("@ss.hasPermi('data:data_ssp_slot:remove')")
-    @Log(title = "媒体数据报表", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{ids}")
-    public AjaxResult remove(@PathVariable Long[] ids)
-    {
-        return toAjax(dataSspSlotService.deleteDataSspSlotByIds(ids));
+        dataSspSlot.setId(id);
+        return success(dataSspSlotService.selectDataSspSlotById(dataSspSlot));
     }
 }

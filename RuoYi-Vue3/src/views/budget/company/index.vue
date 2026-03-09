@@ -98,21 +98,20 @@
 
         <el-table v-loading="loading" :data="companyList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="ID" align="center" prop="id" />
-            <el-table-column label="公司名称" align="center" prop="name" />
-            <el-table-column label="预算映射值" align="center" prop="dspCode" />
-            <el-table-column label="请求地址" align="center" prop="url" />
-            <el-table-column label="请求方法" align="center" prop="method">
+            <el-table-column label="公司名称" align="center" width="120" prop="name">
+              <template #default="scope">
+                {{ formatCompanyName(scope.row) }}
+              </template>
+            </el-table-column>
+            <el-table-column label="映射" align="center" width="60" prop="dspCode" />
+            <el-table-column label="请求地址" align="center" width="320"  prop="url" />
+            <el-table-column label="请求方法" align="center" width="80" prop="method">
                 <template #default="scope">
                     <dict-tag :options="request_method" :value="scope.row.method" />
                 </template>
             </el-table-column>
-            <el-table-column label="超时时间" align="center" prop="timeout">
-                <template #default="scope">
-                    <span v-if="scope.row.timeout">{{ scope.row.timeout }}ms</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+          <el-table-column label="创建时间" width="180" align="center" prop="createTime"/>
+            <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
                 <template #default="scope">
                     <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:company:edit']">修改</el-button>
                     <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['budget:company:remove']">删除</el-button>
@@ -213,6 +212,10 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+function formatCompanyName(row) {
+  return `${row.name}:(${row.id})`
+}
 
 /** 查询公司管理列表 */
 function getList() {

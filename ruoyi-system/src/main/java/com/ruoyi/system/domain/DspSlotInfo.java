@@ -28,9 +28,17 @@ public class DspSlotInfo extends BaseEntity
     @Excel(name = "操作系统类型，1=Android，2=iOS")
     private Long osType;
 
-    /** 广告类型 */
-    @Excel(name = "广告类型")
-    private Long adScene;
+    /** 广告类型ID */
+    @Excel(name = "广告类型ID")
+    private Long adTypeId;
+
+    /** 广告场景ID */
+    @Excel(name = "广告场景ID")
+    private Long adSceneId;
+
+    /** 样式尺寸ID */
+    @Excel(name = "样式尺寸ID")
+    private Long adSizeId;
 
     /** 预算方广告位 */
     @Excel(name = "预算方广告位")
@@ -73,7 +81,7 @@ public class DspSlotInfo extends BaseEntity
     private String dspPayType;
 
     /** 成交系数，0到100，单位%，给上游预算出价打折扣  （rtb 时有这个） */
-    @Excel(name = "成交系数，0到100，单位%，给上游预算出价打折扣  ", readConverterExp = "r=tb,时=有这个")
+    @Excel(name = "成交系数，0到100，单位%，给上游预算出价打折扣  ", readConverterExp = "rtb,时有这个")
     private Long dspDealRatio;
 
     /** 公司ID */
@@ -95,34 +103,58 @@ public class DspSlotInfo extends BaseEntity
         return id;
     }
 
-    public void setName(String name) 
+    public void setName(String name)
     {
         this.name = name;
     }
 
-    public String getName() 
+    @JSONField(name = "name")
+    public String getName()
     {
         return name;
     }
 
-    public void setOsType(Long osType) 
+    public void setOsType(Long osType)
     {
         this.osType = osType;
     }
 
+    @JSONField(name = "os_type")
     public Long getOsType()
     {
         return osType;
     }
 
-    public void setAdScene(Long adScene)
+    public void setAdTypeId(Long adTypeId)
     {
-        this.adScene = adScene;
+        this.adTypeId = adTypeId;
     }
 
-    public Long getAdScene()
+    @JSONField(name = "ad_type_id")
+    public Long getAdTypeId()
     {
-        return adScene;
+        return adTypeId;
+    }
+
+    public void setAdSceneId(Long adSceneId)
+    {
+        this.adSceneId = adSceneId;
+    }
+
+    @JSONField(name = "ad_scene_id")
+    public Long getAdSceneId()
+    {
+        return adSceneId;
+    }
+
+    public void setAdSizeId(Long adSizeId)
+    {
+        this.adSizeId = adSizeId;
+    }
+
+    public Long getAdSizeId()
+    {
+        return adSizeId;
     }
 
     public void setDspSlotCode(String dspSlotCode)
@@ -274,6 +306,9 @@ public class DspSlotInfo extends BaseEntity
             .append("id", getId())
             .append("name", getName())
             .append("osType", getOsType())
+            .append("adTypeId", getAdTypeId())
+            .append("adSceneId", getAdSceneId())
+            .append("adSizeId", getAdSizeId())
             .append("dspSlotCode", getDspSlotCode())
             .append("dspAppKey", getDspAppKey())
             .append("dspAppSecret", getDspAppSecret())

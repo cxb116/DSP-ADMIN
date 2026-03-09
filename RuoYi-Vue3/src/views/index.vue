@@ -79,9 +79,9 @@
                 数据趋势分析
               </span>
               <el-radio-group v-model="trendPeriod" size="small" @change="updateTrendChart">
-                <el-radio-button label="week">近7天</el-radio-button>
-                <el-radio-button label="month">近30天</el-radio-button>
-                <el-radio-button label="quarter">近90天</el-radio-button>
+                <el-radio-button value="week">近7天</el-radio-button>
+                <el-radio-button value="month">近30天</el-radio-button>
+                <el-radio-button value="quarter">近90天</el-radio-button>
               </el-radio-group>
             </div>
           </template>

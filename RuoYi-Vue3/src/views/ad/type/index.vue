@@ -1,13 +1,14 @@
 <template>
   <div class="app-container">
-    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="创建时间" prop="createTime">
-        <el-date-picker clearable
-          v-model="queryParams.createTime"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="请选择创建时间">
-        </el-date-picker>
+    <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="100px">
+      <el-form-item label="广告类型名称" prop="name">
+        <el-input
+          v-model="queryParams.name"
+          placeholder="请输入广告类型名称"
+          clearable
+          @keyup.enter="handleQuery"
+          style="width: 200px"
+        />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -59,9 +60,10 @@
 
     <el-table v-loading="loading" :data="typeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label=" ID" align="center" prop="id" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label=" ID"  align="center"  width="55" prop="id" />
+      <el-table-column label="广告类型" align="center" width="100"  prop="name" />
+      <el-table-column label="创建时间" align="center" width="200"  prop="createTime" />
+      <el-table-column label="操作" align="center" width="155" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['ad:type:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['ad:type:remove']">删除</el-button>
@@ -80,8 +82,8 @@
     <!-- 添加或修改广告类型对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="typeRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
+        <el-form-item label="广告类型" prop="name">
+          <el-input v-model="form.name" type="text" placeholder="请输入广告类型" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -114,6 +116,7 @@ const data = reactive({
   queryParams: {
     pageNum: 1,
     pageSize: 10,
+    name: null,
     createTime: null,
   },
   rules: {
@@ -142,6 +145,7 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
+    name: null,
     createBy: null,
     createTime: null,
     updateBy: null,

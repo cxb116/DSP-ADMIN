@@ -1,6 +1,17 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
+      <el-form-item label="创建时间" label-width="90">
+        <el-date-picker
+          v-model="dateRange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          :default-time="[new Date(2026, 1, 1, 0, 0, 0), new Date(2026, 1, 1, 23, 59, 59)]"
+        />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -51,9 +62,8 @@
 
     <el-table v-loading="loading" :data="dataDspSlotList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="预算位ID" align="center" prop="dspSlotId" />
-      <el-table-column label="预算广告位" align="center" prop="dspSlotCode" />
+      <el-table-column label="预算位名称" align="center" width="155" prop="dspSlotId" />
+      <el-table-column label="预算广告位" align="center" width="200" prop="dspSlotCode" />
       <el-table-column label="展示PV" align="center" prop="showPv" />
       <el-table-column label="展示UV" align="center" prop="showUv" />
       <el-table-column label="点击PV" align="center" prop="clickPv" />
@@ -71,14 +81,14 @@
       <el-table-column label="完成量" align="center" prop="completePv" />
       <el-table-column label="安装量" align="center" prop="installPv" />
       <el-table-column label="激活量" align="center" prop="activatePv" />
-      <el-table-column label="时间(yyyyMMdd / yyyyMMddHH)" align="center" prop="date" />
-      <el-table-column label="创建时间戳" align="center" prop="createdAt" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
-        <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:dataDspSlot:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:dataDspSlot:remove']">删除</el-button>
-        </template>
-      </el-table-column>
+<!--      <el-table-column label="时间(yyyyMMdd / yyyyMMddHH)" align="center" prop="date" />-->
+      <el-table-column label="创建时间" align="center" width="270" prop="createdAt" :formatter="formatTimestamp" />
+<!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
+<!--        <template #default="scope">-->
+<!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:dataDspSlot:edit']">修改</el-button>-->
+<!--          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['system:dataDspSlot:remove']">删除</el-button>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
     </el-table>
     
     <pagination
@@ -149,25 +159,25 @@
         <el-form-item label="激活量" prop="activatePv">
           <el-input v-model="form.activatePv" placeholder="请输入激活量" />
         </el-form-item>
-        <el-form-item label="时间(yyyyMMdd / yyyyMMddHH)" prop="date">
-          <el-input v-model="form.date" placeholder="请输入时间(yyyyMMdd / yyyyMMddHH)" />
-        </el-form-item>
+<!--        <el-form-item label="时间(yyyyMMdd / yyyyMMddHH)" prop="date">-->
+<!--          <el-input v-model="form.date" placeholder="请输入时间(yyyyMMdd / yyyyMMddHH)" />-->
+<!--        </el-form-item>-->
         <el-form-item label="创建时间戳" prop="createdAt">
           <el-input v-model="form.createdAt" placeholder="请输入创建时间戳" />
         </el-form-item>
       </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
+<!--      <template #footer>-->
+<!--        <div class="dialog-footer">-->
+<!--          <el-button type="primary" @click="submitForm">确 定</el-button>-->
+<!--          <el-button @click="cancel">取 消</el-button>-->
+<!--        </div>-->
+<!--      </template>-->
     </el-dialog>
   </div>
 </template>
 
 <script setup name="DataDspSlot">
-import { listDataDspSlot, getDataDspSlot, delDataDspSlot, addDataDspSlot, updateDataDspSlot } from "@/api/system/dataDspSlot"
+import { listDataDspSlot, getDataDspSlot, delDataDspSlot, addDataDspSlot, updateDataDspSlot } from "@/api/data/dataDspSlot"
 
 const { proxy } = getCurrentInstance()
 
@@ -180,6 +190,7 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+const dateRange = ref([])
 
 const data = reactive({
   form: {},
@@ -196,10 +207,28 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data)
 
+/** 格式化时间戳 */
+function formatTimestamp(row, column, cellValue) {
+  if (!cellValue) return ''
+  const timestamp = parseInt(cellValue)
+  // 如果时间戳是秒级的，转换为毫秒
+  const date = new Date(timestamp.toString().length === 10 ? timestamp * 1000 : timestamp)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+}
+
 /** 查询预算报表列表 */
 function getList() {
   loading.value = true
-  listDataDspSlot(queryParams.value).then(response => {
+  const params = proxy.addDateRange(queryParams.value, dateRange.value, 'createdAt')
+  listDataDspSlot(params).then(response => {
     dataDspSlotList.value = response.rows
     total.value = response.total
     loading.value = false
@@ -250,6 +279,7 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   proxy.resetForm("queryRef")
+  dateRange.value = []
   handleQuery()
 }
 

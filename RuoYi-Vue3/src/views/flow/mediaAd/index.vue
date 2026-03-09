@@ -557,21 +557,10 @@
           <el-card class="config-card" style="margin-top: 20px;">
             <template #header>
               <div class="card-header">
-                <span>流量分配（DSP广告位绑定）</span>
-                <el-button type="primary" size="small" icon="Plus" @click="handleAddSlot">添加DSP广告位</el-button>
-              </div>
-            </template>
-
-            <!-- 流量权重配置区域 -->
-            <div v-if="slotList.length > 0" class="traffic-weight-config">
-              <div class="weight-header">
-                <span class="weight-title">
-                  <el-icon color="#409eff"><Link /></el-icon>
-                  已绑定 {{ slotList.length }} 个 DSP 广告位，流量权重总和: {{ totalTrafficWeight }} / 100
-                </span>
-                <div class="weight-actions">
+                <span>流量拆分配置</span>
+                <div class="header-actions">
                   <el-tag :type="totalTrafficWeight === 100 ? 'success' : 'warning'" size="small">
-                    {{ totalTrafficWeight === 100 ? '✓ 权重配置正确' : '⚠ 权重总和不为100' }}
+                    权重总和: {{ totalTrafficWeight }} / 100
                   </el-tag>
                   <el-divider direction="vertical" />
                   <el-button-group size="small">
@@ -585,35 +574,17 @@
                       重置
                     </el-button>
                   </el-button-group>
+                  <el-divider direction="vertical" />
+                  <el-button type="primary" size="small" icon="Plus" @click="handleAddSlot">流量拆分</el-button>
                 </div>
               </div>
-              <div class="weight-items">
-                <div
-                  v-for="(slot, index) in slotList"
-                  :key="slot.id || index"
-                  class="weight-item"
-                >
-                  <span class="weight-label">
-                    <el-tag size="small" type="info">{{ index + 1 }}</el-tag>
-                    {{ slot.name }}
-                    <el-text size="small" type="info">(ID: {{ slot.dspSlotInfoId }})</el-text>
-                  </span>
-                  <el-input-number
-                    v-model="slot.trafficWeight"
-                    :min="0"
-                    :max="100"
-                    size="small"
-                    style="width: 120px"
-                  />
-                </div>
-              </div>
-            </div>
+            </template>
 
             <div v-if="slotList.length === 0" class="empty-slots">
-              <el-empty description="暂未绑定任何 DSP 广告位">
-                <el-text type="info" size="small">点击上方按钮添加 DSP 广告位绑定</el-text>
+              <el-empty description="暂未配置流量拆分">
+                <el-text type="info" size="small">点击"流量拆分"按钮添加 DSP 广告位</el-text>
                 <template #image>
-                  <el-icon :size="60" color="#909399"><Link /></el-icon>
+                  <el-icon :size="60" color="#909399"><Operation /></el-icon>
                 </template>
               </el-empty>
             </div>
@@ -622,180 +593,151 @@
               <el-card shadow="hover">
                 <template #header>
                   <div class="slot-card-header">
-                    <div class="header-title">
-                      <el-icon color="#409eff" :size="18"><Link /></el-icon>
-                      <span class="title-text">{{ slot.name || 'DSP广告位' }}</span>
-                      <el-tag size="small" type="info">ID: {{ slot.dspSlotInfoId }}</el-tag>
+                    <div class="header-left">
+                      <el-tag size="small" type="info" style="margin-right: 8px;">{{ index + 1 }}</el-tag>
+                      <span class="title-text">
+                        {{ slot.name || 'DSP广告位' }}（ID: {{ slot.dspSlotInfoId }} 操作系统：{{ slot.osType == 1 ? 'Android' : slot.osType == 2 ? 'iOS' : '未知' }}）
+                      </span>
+                      <el-tag size="small" type="primary" style="margin-left: 8px;">
+                        {{ slot.dspPayType == 1 || slot.dspPayType == '1' ? '分成' : 'RTB' }}
+                      </el-tag>
                     </div>
-                    <div class="header-actions">
-                      <el-button type="primary" size="small" icon="Document">捕获日志</el-button>
-                      <el-button type="danger" size="small" icon="Delete" @click="handleDeleteSlot(index)">解绑</el-button>
+                    <div class="header-right">
+                      <div class="weight-input-wrapper">
+                        <span class="weight-label">流量权重:</span>
+                        <el-input-number
+                          v-model="slot.trafficWeight"
+                          :min="0"
+                          :max="100"
+                          size="small"
+                          :precision="0"
+                          style="width: 100px"
+                        />
+                      </div>
+                      <el-button type="warning" size="small" icon="Document" @click="handleCaptureLog(slot)">捕获日志</el-button>
+                      <el-button type="danger" size="small" icon="Delete" @click="handleDeleteSlot(index)">删除</el-button>
                     </div>
                   </div>
                 </template>
 
-                <!-- DSP广告位基础信息（从 dsp_slot_info 获取，不可编辑） -->
-                <div class="slot-info-section">
-                  <el-divider content-position="left">
-                    <el-icon><InfoFilled /></el-icon>
-                    DSP 广告位基础信息
-                    <el-text size="small" type="info">(来源: dsp_slot_info 表，只读)</el-text>
-                  </el-divider>
-                  <el-descriptions :column="2" border size="small">
-                    <el-descriptions-item label="预算方名称">
-                      <span class="info-highlight">{{ slot.name }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="操作系统">
-                      <span v-if="appInfo">
-                        <el-tag v-if="slot.osType === 1" type="success">Android</el-tag>
-                        <el-tag v-else-if="slot.osType === 2" type="primary">iOS</el-tag>
-                        <el-tag v-else type="info">未知</el-tag>
-                      </span>
-                      <span v-else>未知</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="广告类型">
-                      <el-tag type="primary">{{ getAdTypeName(slot.adTypeId) }}</el-tag>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="广告位编码">
-                      <span class="info-code">{{ slot.dspSlotCode }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="DSP AppKey">
-                      <span class="info-code">{{ slot.dspAppKey }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="DSP AppSecret">
-                      <span>{{ slot.dspAppSecret ? '******' : '-' }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="DSP AppId">
-                      <span>{{ slot.dspAppId }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="应用包名">
-                      <span>{{ slot.dspAppPkg }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="应用版本号">
-                      <span>{{ slot.dspAppVer }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="商店版本号">
-                      <span>{{ slot.dspAppStoreVer }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="价格加密Key">
-                      <span class="info-code">{{ slot.priceEncryptKey }}</span>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="结算方式">
-                      <el-tag v-if="slot.dspPayType == 1 || slot.dspPayType == '1'" type="success">分成</el-tag>
-                      <el-tag v-else-if="slot.dspPayType == 2 || slot.dspPayType == '2'" type="primary">RTB</el-tag>
-                      <el-tag v-else type="info">未知</el-tag>
-                    </el-descriptions-item>
-                    <el-descriptions-item label="应用商店地址" :span="2">
-                      <span class="info-link">{{ slot.dspAppStoreLink || '-' }}</span>
-                    </el-descriptions-item>
-                  </el-descriptions>
-                </div>
-
-                <!-- 投放配置（来源于 dsp_launch 表，可编辑） -->
+                <!-- 投放配置（可编辑） -->
                 <el-collapse v-model="slot.activeCollapse" class="slot-collapse">
                   <el-collapse-item name="launch">
                     <template #title>
                       <div class="collapse-title">
                         <el-icon color="#409eff"><Setting /></el-icon>
                         <span>投放配置</span>
-                        <el-text size="small" type="info">(来源: dsp_launch 表，可编辑)</el-text>
                       </div>
                     </template>
-                    <el-form :model="slot" label-width="140px" size="small">
-                      <!-- 投放策略 -->
-                      <el-divider content-position="left">投放配置</el-divider>
-                      <el-row :gutter="20">
-                        <el-col :span="24">
+                    <el-form :model="slot" label-width="120px" size="small" class="launch-config-form">
+                      <!-- 第一行：投放策略、捕获日志时长、IP限流 -->
+                      <el-row :gutter="16">
+                        <el-col :span="8">
                           <el-form-item label="投放策略" required>
-                            <el-select v-model="slot.launchStrategy" placeholder="请选择投放策略" style="width: 100%">
+                            <el-select v-model="slot.launchStrategy" placeholder="请选择" style="width: 100%">
                               <el-option label="对接第三方" :value="1" />
                               <el-option label="自主投放" :value="2" />
                             </el-select>
                           </el-form-item>
                         </el-col>
-                      </el-row>
-
-                      <!-- 底价配置 -->
-                      <el-divider content-position="left" v-if="slot.dspPayType == 2 || slot.dspPayType == '2'">底价配置</el-divider>
-                      <el-row :gutter="20" v-if="slot.dspPayType == 2 || slot.dspPayType == '2'">
-                        <el-col :span="24">
-                          <el-form-item label="底价(分)" required>
+                        <el-col :span="8">
+                          <el-form-item label="日志时长(秒)" required>
                             <el-input-number
-                              v-model="slot.floorPrice"
+                              v-model="slot.logCaptureAt"
                               :min="0"
-                              placeholder="请输入底价，单位：分"
+                              placeholder="请输入"
+                              :controls="false"
                               style="width: 100%"
                             />
-                            <div class="form-tip">给上游媒体底价，单位：分</div>
                           </el-form-item>
                         </el-col>
-                      </el-row>
-
-                      <!-- 限流配置 -->
-                      <el-divider content-position="left">限流配置</el-divider>
-                      <el-row :gutter="20">
-                        <el-col :span="12">
+                        <el-col :span="8">
                           <el-form-item label="IP限流次数">
                             <el-input-number
                               v-model="slot.ipLimit"
                               :min="0"
-                              placeholder="不限制则留空"
-                              style="width: 100%"
-                            />
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                          <el-form-item label="捕获日志时长(秒)" required>
-                            <el-input-number
-                              v-model="slot.logCaptureAt"
-                              :min="0"
-                              placeholder="请输入时长"
+                              placeholder="不限制留空"
+                              :controls="false"
                               style="width: 100%"
                             />
                           </el-form-item>
                         </el-col>
                       </el-row>
-                      <el-form-item label="上报黑名单">
-                        <el-input
-                          v-model="slot.trackSchwarz"
-                          placeholder="请输入上报黑名单，多个用逗号分隔"
-                        />
-                      </el-form-item>
 
-                      <!-- 曝光控制 -->
-                      <el-divider content-position="left">曝光控制</el-divider>
-                      <el-row :gutter="20">
+                      <!-- 第二行：底价（仅RTB模式显示） -->
+                      <el-row :gutter="16" v-if="slot.dspPayType == 2 || slot.dspPayType == '2'">
+                        <el-col :span="8">
+                          <el-form-item label="底价(分)" required>
+                            <el-input-number
+                              v-model="slot.floorPrice"
+                              :min="0"
+                              placeholder="请输入"
+                              :controls="false"
+                              style="width: 100%"
+                            />
+                          </el-form-item>
+                        </el-col>
+                      </el-row>
+
+                      <!-- 第三行：请求、展现、点击 -->
+                      <el-row :gutter="16">
                         <el-col :span="8">
                           <el-form-item label="请求次数">
-                            <el-input-number v-model="slot.req" :min="0" style="width: 100%" />
+                            <el-input-number
+                              v-model="slot.req"
+                              :min="0"
+                              placeholder="请输入"
+                              :controls="false"
+                              style="width: 100%"
+                            />
                           </el-form-item>
                         </el-col>
                         <el-col :span="8">
                           <el-form-item label="展现次数">
-                            <el-input-number v-model="slot.ims" :min="0" style="width: 100%" />
+                            <el-input-number
+                              v-model="slot.ims"
+                              :min="0"
+                              placeholder="请输入"
+                              :controls="false"
+                              style="width: 100%"
+                            />
                           </el-form-item>
                         </el-col>
                         <el-col :span="8">
                           <el-form-item label="点击次数">
-                            <el-input-number v-model="slot.clk" :min="0" style="width: 100%" />
+                            <el-input-number
+                              v-model="slot.clk"
+                              :min="0"
+                              placeholder="请输入"
+                              :controls="false"
+                              style="width: 100%"
+                            />
                           </el-form-item>
                         </el-col>
                       </el-row>
 
-                      <!-- 定向配置 -->
-                      <el-divider content-position="left">定向配置</el-divider>
-                      <el-row :gutter="20">
-                        <el-col :span="12">
+                      <!-- 第四行：投放时段、地域定向、品牌定向 -->
+                      <el-row :gutter="16">
+                        <el-col :span="8">
                           <el-form-item label="投放时段" required>
-                            <el-select v-model="slot.launchTime" placeholder="请选择投放时段" style="width: 100%">
+                            <el-select v-model="slot.launchTime" placeholder="请选择" style="width: 100%">
                               <el-option label="全时段" :value="1" />
                               <el-option label="自定义" :value="2" />
                             </el-select>
                           </el-form-item>
                         </el-col>
-                        <el-col :span="12">
+                        <el-col :span="8">
                           <el-form-item label="地域定向" required>
-                            <el-select v-model="slot.regionDirection" placeholder="请选择地域定向" style="width: 100%">
+                            <el-select v-model="slot.regionDirection" placeholder="请选择" style="width: 100%">
+                              <el-option label="不限制" :value="1" />
+                              <el-option label="定向" :value="2" />
+                              <el-option label="排除" :value="3" />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                          <el-form-item label="品牌定向" required>
+                            <el-select v-model="slot.brandDirection" placeholder="请选择" style="width: 100%">
                               <el-option label="不限制" :value="1" />
                               <el-option label="定向" :value="2" />
                               <el-option label="排除" :value="3" />
@@ -803,14 +745,15 @@
                           </el-form-item>
                         </el-col>
                       </el-row>
-                      <el-row :gutter="20">
-                        <el-col :span="12">
-                          <el-form-item label="品牌定向" required>
-                            <el-select v-model="slot.brandDirection" placeholder="请选择品牌定向" style="width: 100%">
-                              <el-option label="不限制" :value="1" />
-                              <el-option label="定向" :value="2" />
-                              <el-option label="排除" :value="3" />
-                            </el-select>
+
+                      <!-- 第五行：上报黑名单 -->
+                      <el-row :gutter="16">
+                        <el-col :span="24">
+                          <el-form-item label="上报黑名单">
+                            <el-input
+                              v-model="slot.trackSchwarz"
+                              placeholder="多个用逗号分隔"
+                            />
                           </el-form-item>
                         </el-col>
                       </el-row>
@@ -830,16 +773,10 @@
     <!-- 选择DSP广告位对话框 -->
     <el-dialog
       v-model="selectSlotDialogVisible"
-      title="绑定 DSP 广告位"
+      title="流量拆分 - 选择 DSP 广告位"
       width="900px"
       append-to-body
     >
-      <template #header>
-        <div class="dialog-header-content">
-          <span>绑定 DSP 广告位</span>
-          <el-text size="small" type="info">从匹配的 DSP 广告位中选择，创建与 dsp_launch 表的关联</el-text>
-        </div>
-      </template>
       <el-table
         :data="matchedDspSlots"
         @selection-change="handleSlotSelectionChange"
@@ -873,7 +810,7 @@
         <div class="dialog-footer">
           <el-button @click="handleCancelSelectSlot">取 消</el-button>
           <el-button type="primary" @click="handleConfirmSelectSlot">
-            确定绑定 ({{ selectedDspSlotIds.length }})
+            确定添加 ({{ selectedDspSlotIds.length }})
           </el-button>
         </div>
       </template>
@@ -890,7 +827,7 @@ import { listScene } from "@/api/ad/scene"
 import { listSize } from "@/api/ad/size"
 import { useDict } from "@/utils/dict"
 import { ref, reactive, toRefs, computed, getCurrentInstance, watch } from "vue"
-import { InfoFilled, Link, Setting } from '@element-plus/icons-vue'
+import { InfoFilled, Link, Setting, Operation } from '@element-plus/icons-vue'
 
 const { proxy } = getCurrentInstance()
 const { audit_status, ssp_pay_type, ad_scene, os_type, access_type } = useDict('audit_status', 'ssp_pay_type', 'ad_scene', 'os_type', 'access_type')
@@ -1133,21 +1070,21 @@ function loadMediaList() {
 
 /** 加载广告类型列表 */
 function loadAdTypeList() {
-  listType().then(response => {
+  listType({ pageNum: 1, pageSize: 100 }).then(response => {
     adTypeList.value = response.rows
   })
 }
 
 /** 加载广告场景列表 */
 function loadAdSceneList() {
-  listScene().then(response => {
+  listScene({ pageNum: 1, pageSize: 100 }).then(response => {
     adSceneList.value = response.rows
   })
 }
 
 /** 加载样式尺寸列表 */
 function loadAdSizeList() {
-  listSize().then(response => {
+  listSize({ pageNum: 1, pageSize: 100 }).then(response => {
     adSizeList.value = response.rows
   })
 }
@@ -1589,7 +1526,6 @@ function loadSlotList(mediaAdId) {
 /** 添加DSP广告位绑定 */
 async function handleAddSlot() {
   // 从数据库查询匹配的 DSP 广告位数据
-  // 传入当前 ssp_slot_info 的 id，通过关联查询获取匹配的 dsp_slot_info 数据
   const sspSlotId = configMediaAd.value?.id
 
   if (!sspSlotId) {
@@ -1602,38 +1538,45 @@ async function handleAddSlot() {
     const response = await getMatchedDspSlots(sspSlotId)
     let matchedSlots = response.data || []
 
-    console.log('查询到的 DSP 广告位数量:', matchedSlots.length)
-    console.log('已绑定的 DSP 广告位列表:', slotList.value)
+    console.log('========== 流量拆分调试信息 ==========')
+    console.log('SSP广告位ID:', sspSlotId)
+    console.log('当前SSP广告位信息:', configMediaAd.value)
+    console.log('后端返回的原始数据:', response.data)
+    console.log('matchedSlots 数量:', matchedSlots.length)
+    console.log('已绑定的DSP广告位数量:', slotList.value.length)
 
     // 过滤掉已经绑定的 DSP 广告位
     const addedSlotIds = slotList.value.map(slot => slot.dspSlotInfoId).filter(id => id)
-
-    console.log('已绑定的 dspSlotInfoId:', addedSlotIds)
+    console.log('已绑定的DSP广告位ID列表:', addedSlotIds)
 
     // 过滤：排除掉已经绑定的 DSP 广告位（通过 dsp_slot_info 的 id 判断）
     matchedSlots = matchedSlots.filter(slot => {
-      // 如果当前 DSP 广告位的 id 已存在于列表中，则排除
       if (addedSlotIds.includes(slot.id)) {
-        console.log('过滤掉已绑定的 DSP 广告位 (id):', slot.id, slot.name)
         return false
       }
       return true
     })
 
-    console.log('过滤后的 DSP 广告位数量:', matchedSlots.length)
+    console.log('过滤后的 matchedSlots 数量:', matchedSlots.length)
 
     if (matchedSlots.length > 0) {
+      console.log('打开选择对话框，可选DSP广告位:', matchedSlots)
       // 如果有匹配的数据，打开选择对话框
       matchedDspSlots.value = matchedSlots
       selectedDspSlotIds.value = []
       selectSlotDialogVisible.value = true
     } else {
+      console.warn('没有可用的DSP广告位')
       // 所有匹配的数据都已绑定，提示用户
-      proxy.$modal.msgWarning('所有匹配的 DSP 广告位都已被绑定')
+      if (response.data && response.data.length > 0) {
+        proxy.$modal.msgWarning('所有匹配的 DSP 广告位都已被添加')
+      } else {
+        proxy.$modal.msgWarning('未找到匹配的 DSP 广告位，请检查：\n1. 是否存在相同广告类型的预算方广告位\n2. 广告场景、操作系统等配置是否匹配')
+      }
     }
   } catch (error) {
     console.error('查询 DSP 广告位数据失败:', error)
-    proxy.$modal.msgError('查询 DSP 广告位数据失败')
+    proxy.$modal.msgError('查询 DSP 广告位数据失败: ' + (error.message || '未知错误'))
   }
 }
 
@@ -1649,8 +1592,8 @@ function handleConfirmSelectSlot() {
     const matchedSlot = matchedDspSlots.value.find(slot => slot.id === slotId)
     if (matchedSlot) {
       const newSlot = {
-        id: null, // dsp_launch 表的 ID（保存时生成）
-        dspSlotInfoId: matchedSlot.id, // dsp_slot_info 表的 ID
+        id: null,
+        dspSlotInfoId: matchedSlot.id,
         name: matchedSlot.name || 'DSP广告位',
         osType: matchedSlot.osType,
         adTypeId: matchedSlot.adTypeId,
@@ -1667,20 +1610,20 @@ function handleConfirmSelectSlot() {
         dspAppStoreLink: matchedSlot.dspAppStoreLink || '',
         dspPayType: matchedSlot.dspPayType || null,
         dspDealRatio: matchedSlot.dspDealRatio || null,
-        // 投放配置字段（保存到 dsp_launch 表）
-        trafficWeight: null, // 流量权重
-        launchStrategy: 1, // 投放策略：1对接第三方，2：自主投放
-        floorPrice: null, // 底价
-        ipLimit: null, // IP限流次数
-        logCaptureAt: 300, // 捕获日志时长（默认300秒）
-        trackSchwarz: '', // 上报黑名单
-        req: 0, // 请求次数
-        ims: 0, // 展现次数
-        clk: 0, // 点击次数
-        launchTime: 1, // 投放时段：1全时段，2自定义
-        regionDirection: 1, // 地域定向：1不限制，2定向，3排除
-        brandDirection: 1, // 品牌定向：1不限制，2定向，3排除
-        activeCollapse: ['launch'] // 默认展开投放配置
+        // 投放配置字段
+        trafficWeight: null,
+        launchStrategy: 1,
+        floorPrice: null,
+        ipLimit: null,
+        logCaptureAt: 300,
+        trackSchwarz: '',
+        req: 0,
+        ims: 0,
+        clk: 0,
+        launchTime: 1,
+        regionDirection: 1,
+        brandDirection: 1,
+        activeCollapse: ['launch']
       }
       slotList.value.push(newSlot)
     }
@@ -1688,7 +1631,7 @@ function handleConfirmSelectSlot() {
 
   // 关闭对话框
   selectSlotDialogVisible.value = false
-  proxy.$modal.msgSuccess(`成功绑定 ${selectedDspSlotIds.value.length} 个 DSP 广告位`)
+  proxy.$modal.msgSuccess(`成功添加 ${selectedDspSlotIds.value.length} 个 DSP 广告位`)
 }
 
 /** 取消选择DSP广告位 */
@@ -1706,20 +1649,44 @@ function handleCopySlot(index) {
   const originalSlot = slotList.value[index]
   const copiedSlot = {
     ...originalSlot,
-    id: null, // 清空 dsp_launch ID，表示新建
+    id: null,
     name: originalSlot.name + ' (副本)',
-    activeCollapse: ['launch'] // 默认展开投放配置
+    activeCollapse: ['launch']
   }
   slotList.value.splice(index + 1, 0, copiedSlot)
   proxy.$modal.msgSuccess('复制成功')
 }
 
-/** 解绑DSP广告位 */
+/** 删除DSP广告位 */
 function handleDeleteSlot(index) {
-  proxy.$modal.confirm('确认解绑该 DSP 广告位吗？这将删除与 dsp_launch 表的关联记录。').then(() => {
+  proxy.$modal.confirm('确认删除该 DSP 广告位吗？').then(() => {
     slotList.value.splice(index, 1)
-    proxy.$modal.msgSuccess('解绑成功')
+    proxy.$modal.msgSuccess('删除成功')
   }).catch(() => {})
+}
+
+/** 捕获日志 */
+function handleCaptureLog(slot) {
+  // 获取当前时间的秒级时间戳
+  const now = Math.floor(Date.now() / 1000)
+  // 加上3分钟（180秒）
+  const captureTime = now + 180
+  // 设置到 slot
+  slot.logCaptureAt = captureTime
+
+  // 显示提示
+  const date = new Date(captureTime * 1000)
+  const timeStr = date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+
+  proxy.$modal.msgSuccess(`已设置捕获日志时长至: ${timeStr} (${captureTime}秒)`)
 }
 
 /** 返回列表 */
@@ -1791,11 +1758,10 @@ function handleEditSave() {
 /** 首个DSP广告位设置为100% */
 function handleSetFirstTo100() {
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请先绑定 DSP 广告位')
+    proxy.$modal.msgWarning('请先添加 DSP 广告位')
     return
   }
 
-  // 将第一个 DSP 广告位设置为100，其他设置为0
   slotList.value.forEach((slot, index) => {
     if (index === 0) {
       slot.trafficWeight = 100
@@ -1804,13 +1770,13 @@ function handleSetFirstTo100() {
     }
   })
 
-  proxy.$modal.msgSuccess('已将首个 DSP 广告位设置为100%')
+  proxy.$modal.msgSuccess('已将首个设置为 100%')
 }
 
 /** 平均分配权重 */
 function handleAverageWeight() {
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请先绑定 DSP 广告位')
+    proxy.$modal.msgWarning('请先添加 DSP 广告位')
     return
   }
 
@@ -1818,7 +1784,6 @@ function handleAverageWeight() {
   const averageWeight = Math.floor(100 / count)
   const remainder = 100 % count
 
-  // 平均分配权重，余数加到第一个 DSP 广告位
   slotList.value.forEach((slot, index) => {
     if (index === 0) {
       slot.trafficWeight = averageWeight + remainder
@@ -1827,17 +1792,17 @@ function handleAverageWeight() {
     }
   })
 
-  proxy.$modal.msgSuccess(`已平均分配权重（每个 DSP 广告位 ${averageWeight}%，首个 +${remainder}%）`)
+  proxy.$modal.msgSuccess(`已平均分配权重（每个 ${averageWeight}%，首个 +${remainder}%）`)
 }
 
 /** 重置所有权重 */
 function handleResetWeight() {
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请先绑定 DSP 广告位')
+    proxy.$modal.msgWarning('请先添加 DSP 广告位')
     return
   }
 
-  proxy.$modal.confirm('确认重置所有 DSP 广告位的流量权重为0吗？').then(() => {
+  proxy.$modal.confirm('确认重置所有流量权重为 0 吗？').then(() => {
     slotList.value.forEach(slot => {
       slot.trafficWeight = 0
     })
@@ -1849,14 +1814,14 @@ function handleResetWeight() {
 function handleSaveConfig() {
   // 验证DSP广告位配置
   if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请至少绑定一个 DSP 广告位')
+    proxy.$modal.msgWarning('请至少添加一个 DSP 广告位')
     return
   }
 
   // 验证流量权重总和必须等于100
   const totalWeight = totalTrafficWeight.value
   if (totalWeight !== 100) {
-    proxy.$modal.msgWarning(`所有 DSP 广告位的流量权重总和必须等于100，当前总权重为：${totalWeight}`)
+    proxy.$modal.msgWarning(`流量权重总和必须为 100，当前为：${totalWeight}`)
     return
   }
 
@@ -1866,7 +1831,7 @@ function handleSaveConfig() {
 
     // 验证流量权重
     if (!slot.trafficWeight || slot.trafficWeight <= 0) {
-      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的流量权重不能为空且必须大于0`)
+      proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的流量权重必须大于 0`)
       return
     }
 
@@ -1902,11 +1867,10 @@ function handleSaveConfig() {
   }
 
   // 构建保存数据
-  // 数据结构：将保存到 dsp_launch 表，通过 ssp_slot_id 和 dsp_slot_id 关联
   const saveData = {
-    mediaAdId: configMediaAd.value.id, // ssp_slot_info 表的 ID
+    mediaAdId: configMediaAd.value.id,
     slotList: slotList.value.map(slot => ({
-      dspSlotId: slot.dspSlotInfoId, // dsp_slot_info 表的 ID
+      dspSlotId: slot.dspSlotInfoId,
       trafficWeight: slot.trafficWeight,
       launchStrategy: slot.launchStrategy,
       floorPrice: slot.floorPrice,
@@ -1924,11 +1888,11 @@ function handleSaveConfig() {
 
   console.log('保存配置数据:', saveData)
 
-  // 调用 API 保存投放配置到 dsp_launch 表
+  // 调用 API 保存投放配置
   saveLaunchConfig(saveData).then(() => {
-    proxy.$modal.msgSuccess('投放配置保存成功')
+    proxy.$modal.msgSuccess('配置保存成功')
   }).catch(() => {
-    proxy.$modal.msgError('投放配置保存失败')
+    proxy.$modal.msgError('配置保存失败')
   })
 }
 
@@ -2089,16 +2053,39 @@ getList()
   align-items: center;
 }
 
-.header-title {
+.header-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.weight-input-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  padding: 6px 12px;
+  background: #f5f7fa;
+  border-radius: 6px;
+  border: 1px solid #e4e7ed;
+}
+
+.weight-label {
+  font-size: 13px;
+  color: #606266;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .title-text {
   font-size: 15px;
   color: #303133;
+  font-weight: 600;
 }
 
 .info-highlight {
@@ -2131,14 +2118,11 @@ getList()
 .header-actions {
   display: flex;
   gap: 8px;
-}
-
-.slot-info-section {
-  margin-bottom: 16px;
+  align-items: center;
 }
 
 .slot-collapse {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .slot-collapse :deep(.el-collapse-item__header) {
@@ -2168,63 +2152,6 @@ getList()
   font-size: 12px;
   margin-top: 4px;
   line-height: 1.4;
-}
-
-.traffic-weight-config {
-  background-color: #f5f7fa;
-  border: 1px solid #dcdfe6;
-  border-radius: 4px;
-  padding: 16px;
-  margin-bottom: 20px;
-}
-
-.weight-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.weight-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.weight-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: #303133;
-}
-
-.weight-items {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.weight-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  background-color: #fff;
-  border: 1px solid #e4e7ed;
-  border-radius: 4px;
-  transition: all 0.3s;
-}
-
-.weight-item:hover {
-  border-color: #409eff;
-  box-shadow: 0 2px 4px rgba(64, 158, 255, 0.1);
-}
-
-.weight-label {
-  flex: 1;
-  font-size: 14px;
-  color: #606266;
-  margin-right: 12px;
 }
 
 /* 基础信息容器样式 */
@@ -2339,14 +2266,29 @@ getList()
   border-color: #dcdfe6;
 }
 
-/* 对话框样式 */
-.dialog-header-content {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+/* 投放配置表单样式 */
+.launch-config-form {
+  margin-top: 8px;
 }
 
-.dialog-header-content .el-text {
-  font-weight: normal;
+.launch-config-form :deep(.el-form-item) {
+  margin-bottom: 16px;
+}
+
+.launch-config-form :deep(.el-form-item__label) {
+  font-weight: 500;
+  color: #606266;
+}
+
+.launch-config-form :deep(.el-input-number) {
+  width: 100%;
+}
+
+.launch-config-form :deep(.el-input-number .el-input__inner) {
+  text-align: left;
+}
+
+.launch-config-form :deep(.el-select) {
+  width: 100%;
 }
 </style>

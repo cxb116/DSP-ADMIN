@@ -9,13 +9,20 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="广告类型Id" prop="typeId">
-        <el-input
+      <el-form-item label="广告类型" prop="typeId">
+        <el-select
           v-model="queryParams.typeId"
-          placeholder="请输入广告类型Id"
+          placeholder="请选择广告类型"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 200px"
+        >
+          <el-option
+            v-for="item in typeList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="创建时间" prop="createTime">
         <el-date-picker clearable
@@ -75,11 +82,16 @@
 
     <el-table v-loading="loading" :data="sceneList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="广告场景" align="center" prop="name" />
-      <el-table-column label="广告类型Id" align="center" prop="typeId" />
-      <el-table-column label="备注" align="center" prop="remark" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="ID" align="center" width="40"  prop="id" />
+      <el-table-column label="广告类型" align="center" width="120" prop="typeId">
+        <template #default="scope">
+          {{ getTypeName(scope.row.typeId) }}
+        </template>
+      </el-table-column>
+      <el-table-column label="广告场景" align="center" width="120" prop="name" />
+
+      <el-table-column label="创建时间" align="center" width="200" prop="createTime" />
+      <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['ad:scene:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['ad:scene:remove']">删除</el-button>
@@ -98,15 +110,20 @@
     <!-- 添加或修改广告场景对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="sceneRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="广告类型" prop="typeId">
+          <el-select v-model="form.typeId" placeholder="请选择广告类型" style="width: 100%">
+            <el-option
+              v-for="item in typeList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
         <el-form-item label="广告场景" prop="name">
           <el-input v-model="form.name" placeholder="请输入广告场景" />
         </el-form-item>
-        <el-form-item label="广告类型Id" prop="typeId">
-          <el-input v-model="form.typeId" placeholder="请输入广告类型Id" />
-        </el-form-item>
-        <el-form-item label="备注" prop="remark">
-          <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
-        </el-form-item>
+
       </el-form>
       <template #footer>
         <div class="dialog-footer">
@@ -120,7 +137,7 @@
 
 <script setup name="Scene">
 import { listScene, getScene, delScene, addScene, updateScene } from "@/api/ad/scene"
-
+import { listType, getType, delType, addType, updateType } from "@/api/ad/type"
 const { proxy } = getCurrentInstance()
 
 const sceneList = ref([])
@@ -132,6 +149,15 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+
+// 广告类型列表
+const typeList = ref([])
+
+// 根据 typeId 获取广告类型名称
+function getTypeName(typeId) {
+  const type = typeList.value.find(item => item.id === typeId)
+  return type ? type.name : typeId
+}
 
 const data = reactive({
   form: {},
@@ -153,6 +179,13 @@ const data = reactive({
 })
 
 const { queryParams, form, rules } = toRefs(data)
+
+/** 加载广告类型列表 */
+function loadTypeList() {
+  listType().then(response => {
+    typeList.value = response.rows
+  })
+}
 
 /** 查询广告场景列表 */
 function getList() {
@@ -261,5 +294,7 @@ function handleExport() {
   }, `scene_${new Date().getTime()}.xlsx`)
 }
 
+// 页面加载时获取广告类型列表
+loadTypeList()
 getList()
 </script>

@@ -22,6 +22,9 @@ public class SspApp extends BaseEntity
     @Excel(name = "媒体Id")
     private Long mediaId;
 
+    /** 媒体名称（用于查询，不属于ssp_app表字段） */
+    @Excel(name = "媒体名称")
+    private String mediaName;
 
 
     /** 应用名称 */
@@ -145,5 +148,13 @@ public class SspApp extends BaseEntity
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
             .toString();
+    }
+
+    public String getMediaName() {
+        return mediaName;
+    }
+
+    public void setMediaName(String mediaName) {
+        this.mediaName = mediaName;
     }
 }

@@ -34,7 +34,7 @@ public class DspCompany extends BaseEntity
 
     /** 请求方法 1 post 2 get */
     @Excel(name = "请求方法 1 post 2 get")
-    private String method;
+    private String  method;
 
     /** 超时时间 (例如650ms) */
     @Excel(name = "超时时间 (例如650ms)")
@@ -84,16 +84,7 @@ public class DspCompany extends BaseEntity
         return url;
     }
 
-    public void setMethod(String method)
-    {
-        this.method = method;
-    }
 
-    @JSONField(name = "method")
-    public String getMethod()
-    {
-        return method;
-    }
 
     public void setTimeout(Long timeout)
     {
@@ -121,5 +112,14 @@ public class DspCompany extends BaseEntity
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
             .toString();
+    }
+
+
+    public String getMethod() {
+        return method;
+    }
+
+    public void setMethod(String method) {
+        this.method = method;
     }
 }

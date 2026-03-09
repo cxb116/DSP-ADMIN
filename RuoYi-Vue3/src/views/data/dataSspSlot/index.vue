@@ -1,39 +1,39 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="媒体用户Id" prop="meidaId">
+      <el-form-item label="媒体用户" prop="meidaId">
         <el-input
           v-model="queryParams.meidaId"
-          placeholder="请输入媒体用户Id"
+          placeholder="请输入媒体用户"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="应用ID" prop="appId">
+      <el-form-item label="应用" prop="appId">
         <el-input
           v-model="queryParams.appId"
-          placeholder="请输入应用ID"
+          placeholder="请输入应用"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="SSP广告位ID" prop="sspSlotId">
+      <el-form-item label="媒体广告位" label-width="90" prop="sspSlotId">
         <el-input
           v-model="queryParams.sspSlotId"
-          placeholder="请输入SSP广告位ID"
+          placeholder="请输入媒体广告位"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="DSP广告位ID" prop="dspSlotId">
+      <el-form-item label="预算广告位" label-width="90" prop="dspSlotId">
         <el-input
           v-model="queryParams.dspSlotId"
-          placeholder="请输入DSP广告位ID"
+          placeholder="请输入预算广告位"
           clearable
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="预算广告位编号" prop="dspSlotCode">
+      <el-form-item label="预算广告位编号" label-width="110" prop="dspSlotCode">
         <el-input
           v-model="queryParams.dspSlotCode"
           placeholder="请输入预算广告位编号"
@@ -41,156 +41,15 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="展示PV" prop="showPv">
-        <el-input
-          v-model="queryParams.showPv"
-          placeholder="请输入展示PV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="展示UV" prop="showUv">
-        <el-input
-          v-model="queryParams.showUv"
-          placeholder="请输入展示UV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="点击PV" prop="clickPv">
-        <el-input
-          v-model="queryParams.clickPv"
-          placeholder="请输入点击PV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="点击UV" prop="clickUv">
-        <el-input
-          v-model="queryParams.clickUv"
-          placeholder="请输入点击UV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="请求PV" prop="reqPv">
-        <el-input
-          v-model="queryParams.reqPv"
-          placeholder="请输入请求PV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="请求UV" prop="reqUv">
-        <el-input
-          v-model="queryParams.reqUv"
-          placeholder="请输入请求UV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="丢弃请求" prop="discard">
-        <el-input
-          v-model="queryParams.discard"
-          placeholder="请输入丢弃请求"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="返回PV" prop="retPv">
-        <el-input
-          v-model="queryParams.retPv"
-          placeholder="请输入返回PV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="返回UV" prop="retUv">
-        <el-input
-          v-model="queryParams.retUv"
-          placeholder="请输入返回UV"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="成本(分)" prop="spend">
-        <el-input
-          v-model="queryParams.spend"
-          placeholder="请输入成本(分)"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="收入(分)" prop="income">
-        <el-input
-          v-model="queryParams.income"
-          placeholder="请输入收入(分)"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="折后点击" prop="discountClickPv">
-        <el-input
-          v-model="queryParams.discountClickPv"
-          placeholder="请输入折后点击"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="折后展示" prop="discountShowPv">
-        <el-input
-          v-model="queryParams.discountShowPv"
-          placeholder="请输入折后展示"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="调起成功" prop="dplsuccPv">
-        <el-input
-          v-model="queryParams.dplsuccPv"
-          placeholder="请输入调起成功"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="完成量" prop="completePv">
-        <el-input
-          v-model="queryParams.completePv"
-          placeholder="请输入完成量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="安装量" prop="installPv">
-        <el-input
-          v-model="queryParams.installPv"
-          placeholder="请输入安装量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="激活量" prop="activatePv">
-        <el-input
-          v-model="queryParams.activatePv"
-          placeholder="请输入激活量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="日期 yyyyMMdd" prop="date">
-        <el-input
-          v-model="queryParams.date"
-          placeholder="请输入日期 yyyyMMdd"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="创建时间戳" prop="createdAt">
-        <el-input
-          v-model="queryParams.createdAt"
-          placeholder="请输入创建时间戳"
-          clearable
-          @keyup.enter="handleQuery"
+      <el-form-item label="创建时间" label-width="90">
+        <el-date-picker
+          v-model="dateRange"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          :default-time="[new Date(2026, 1, 1, 0, 0, 0), new Date(2026, 1, 1, 23, 59, 59)]"
         />
       </el-form-item>
       <el-form-item>
@@ -242,38 +101,57 @@
     </el-row>
 
     <el-table v-loading="loading" :data="data_ssp_slotList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
-      <el-table-column label="媒体用户Id" align="center" prop="meidaId" />
-      <el-table-column label="应用ID" align="center" prop="appId" />
-      <el-table-column label="SSP广告位ID" align="center" prop="sspSlotId" />
-      <el-table-column label="DSP广告位ID" align="center" prop="dspSlotId" />
-      <el-table-column label="预算广告位编号" align="center" prop="dspSlotCode" />
-      <el-table-column label="展示PV" align="center" prop="showPv" />
-      <el-table-column label="展示UV" align="center" prop="showUv" />
-      <el-table-column label="点击PV" align="center" prop="clickPv" />
-      <el-table-column label="点击UV" align="center" prop="clickUv" />
-      <el-table-column label="请求PV" align="center" prop="reqPv" />
-      <el-table-column label="请求UV" align="center" prop="reqUv" />
-      <el-table-column label="丢弃请求" align="center" prop="discard" />
-      <el-table-column label="返回PV" align="center" prop="retPv" />
-      <el-table-column label="返回UV" align="center" prop="retUv" />
-      <el-table-column label="成本(分)" align="center" prop="spend" />
-      <el-table-column label="收入(分)" align="center" prop="income" />
-      <el-table-column label="折后点击" align="center" prop="discountClickPv" />
-      <el-table-column label="折后展示" align="center" prop="discountShowPv" />
-      <el-table-column label="调起成功" align="center" prop="dplsuccPv" />
-      <el-table-column label="完成量" align="center" prop="completePv" />
-      <el-table-column label="安装量" align="center" prop="installPv" />
-      <el-table-column label="激活量" align="center" prop="activatePv" />
-      <el-table-column label="日期 yyyyMMdd" align="center" prop="date" />
-      <el-table-column label="创建时间戳" align="center" prop="createdAt" />
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="日期" align="center" width="120" prop="date">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['data:data_ssp_slot:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['data:data_ssp_slot:remove']">删除</el-button>
+          <span v-if="scope.row.date">{{ formatDate(scope.row.date) }}</span>
+          <span v-else>-</span>
         </template>
       </el-table-column>
+<!--      <el-table-column label="主键" align="center" prop="id" />-->
+<!--      <el-table-column label="媒体用户" align="center" width="55" prop="meidaId" />-->
+      <el-table-column label="应用" align="center" width="200" prop="appName">
+        <template #default="scope">
+          <span v-if="scope.row.appName">{{ scope.row.appName }}（{{ scope.row.appId }}）</span>
+          <span v-else>{{ scope.row.appId }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="媒体广告位" align="center" width="200" prop="sspSlotName">
+        <template #default="scope">
+          <span v-if="scope.row.sspSlotName">{{ scope.row.sspSlotName }}（{{ scope.row.sspSlotId }}）</span>
+          <span v-else>{{ scope.row.sspSlotId }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预算广告位" align="center" width="200" prop="dspSlotName">
+        <template #default="scope">
+          <span v-if="scope.row.dspSlotName">{{ scope.row.dspSlotName }}（{{ scope.row.dspSlotId }}）</span>
+          <span v-else>{{ scope.row.dspSlotId }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预算广告位编号" align="center" width="270" prop="dspSlotCode" />
+      <el-table-column label="展示PV" align="center" width="100" prop="showPv" />
+      <el-table-column label="点击PV" align="center" width="100" prop="clickPv" />
+      <el-table-column label="请求PV" align="center" width="100" prop="reqPv" />
+      <el-table-column label="丢弃请求" align="center" width="100" prop="discard" />
+      <el-table-column label="返回PV" align="center" width="100" prop="retPv" />
+      <el-table-column label="成本(分)" align="center" width="100" prop="spend" />
+      <el-table-column label="收入(分)" align="center" width="100" prop="income" />
+      <el-table-column label="eCPM" align="center" width="100" prop="activatePv" />
+      <el-table-column label="CPC" align="center" width="100" prop="activatePv" />
+<!--      <el-table-column label="折后点击" align="center" width="100"  prop="discountClickPv" />-->
+<!--      <el-table-column label="折后展示" align="center" width="100" prop="discountShowPv" />-->
+<!--      <el-table-column label="调起成功" align="center" width="100" prop="dplsuccPv" />-->
+<!--      <el-table-column label="完成量" align="center" width="100" prop="completePv" />-->
+<!--      <el-table-column label="安装量" align="center" width="100" prop="installPv" />-->
+<!--      <el-table-column label="激活量" align="center" width="100" prop="activatePv" />-->
+
+<!--      <el-table-column label="日期 yyyyMMdd" align="center" prop="date" />-->
+      <el-table-column label="创建时间" align="center" width="230" prop="createdAt" :formatter="formatTimestamp" />
+<!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
+<!--        <template #default="scope">-->
+<!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['data:data_ssp_slot:edit']">修改</el-button>-->
+<!--          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['data:data_ssp_slot:remove']">删除</el-button>-->
+<!--        </template>-->
+<!--      </el-table-column>-->
     </el-table>
     
     <pagination
@@ -371,7 +249,7 @@
 </template>
 
 <script setup name="Data_ssp_slot">
-import { listData_ssp_slot, getData_ssp_slot, delData_ssp_slot, addData_ssp_slot, updateData_ssp_slot } from "@/api/data/data_ssp_slot"
+import { listData_ssp_slot, getData_ssp_slot, delData_ssp_slot, addData_ssp_slot, updateData_ssp_slot } from "@/api/data/dataSspSlot.js"
 
 const { proxy } = getCurrentInstance()
 
@@ -384,6 +262,7 @@ const single = ref(true)
 const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
+const dateRange = ref([])
 
 const data = reactive({
   form: {},
@@ -421,10 +300,43 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data)
 
+/** 格式化时间戳 */
+function formatTimestamp(row, column, cellValue) {
+  if (!cellValue) return ''
+  const timestamp = parseInt(cellValue)
+  // 如果时间戳是秒级的，转换为毫秒
+  const date = new Date(timestamp.toString().length === 10 ? timestamp * 1000 : timestamp)
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  })
+}
+
+/** 格式化日期 yyyyMMddHH */
+function formatDate(dateValue) {
+  if (!dateValue) return ''
+  const dateStr = dateValue.toString()
+  // yyyyMMddHH -> yyyy-MM-dd-HH
+  if (dateStr.length === 10) {
+    return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}-${dateStr.substring(8, 10)}`
+  }
+  // yyyyMMdd -> yyyy-MM-dd
+  if (dateStr.length === 8) {
+    return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`
+  }
+  return dateStr
+}
+
 /** 查询媒体数据报表列表 */
 function getList() {
   loading.value = true
-  listData_ssp_slot(queryParams.value).then(response => {
+  const params = proxy.addDateRange(queryParams.value, dateRange.value, 'createdAt')
+  listData_ssp_slot(params).then(response => {
     data_ssp_slotList.value = response.rows
     total.value = response.total
     loading.value = false
@@ -478,6 +390,7 @@ function handleQuery() {
 /** 重置按钮操作 */
 function resetQuery() {
   proxy.resetForm("queryRef")
+  dateRange.value = []
   handleQuery()
 }
 

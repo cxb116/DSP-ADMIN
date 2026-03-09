@@ -2,7 +2,6 @@ package com.ruoyi.system.domain;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
@@ -17,8 +16,8 @@ public class DspAdType extends BaseEntity
 
     /**  ID */
     private Long id;
-
-    public void setId(Long id) 
+    private String name;
+    public void setId(Long id)
     {
         this.id = id;
     }
@@ -26,6 +25,15 @@ public class DspAdType extends BaseEntity
     public Long getId() 
     {
         return id;
+    }
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -39,4 +47,6 @@ public class DspAdType extends BaseEntity
             .append("remark", getRemark())
             .toString();
     }
+
+
 }

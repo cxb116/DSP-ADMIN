@@ -6,14 +6,18 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 媒体数据报表对象 data_ssp_slot
- * 
+ * 媒体数据报表对象 data_ssp_slot_hour_YYYYMM
+ * 支持按月动态分表，表名格式：data_ssp_slot_hour_YYYYMM
+ *
  * @author ruoyi
  * @date 2026-03-01
  */
 public class DataSspSlot extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
+
+    /** 动态表名（格式：data_ssp_slot_hour_YYYYMM，如 data_ssp_slot_hour_202603） */
+    private String tableName;
 
     /** 主键 */
     private Long id;
@@ -113,6 +117,15 @@ public class DataSspSlot extends BaseEntity
     /** 创建时间戳 */
     @Excel(name = "创建时间戳")
     private Long createdAt;
+
+    /** 应用名称（关联查询，不属于表字段） */
+    private String appName;
+
+    /** 媒体广告位名称（关联查询，不属于表字段） */
+    private String sspSlotName;
+
+    /** 预算广告位名称（关联查询，不属于表字段） */
+    private String dspSlotName;
 
     public void setId(Long id) 
     {
@@ -359,9 +372,49 @@ public class DataSspSlot extends BaseEntity
         this.createdAt = createdAt;
     }
 
-    public Long getCreatedAt() 
+    public Long getCreatedAt()
     {
         return createdAt;
+    }
+
+    public void setTableName(String tableName)
+    {
+        this.tableName = tableName;
+    }
+
+    public String getTableName()
+    {
+        return tableName;
+    }
+
+    public void setAppName(String appName)
+    {
+        this.appName = appName;
+    }
+
+    public String getAppName()
+    {
+        return appName;
+    }
+
+    public void setSspSlotName(String sspSlotName)
+    {
+        this.sspSlotName = sspSlotName;
+    }
+
+    public String getSspSlotName()
+    {
+        return sspSlotName;
+    }
+
+    public void setDspSlotName(String dspSlotName)
+    {
+        this.dspSlotName = dspSlotName;
+    }
+
+    public String getDspSlotName()
+    {
+        return dspSlotName;
     }
 
     @Override

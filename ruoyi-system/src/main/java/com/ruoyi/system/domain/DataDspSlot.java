@@ -6,14 +6,18 @@ import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 
 /**
- * 预算报表对象 data_dsp_slot
- * 
+ * 预算报表对象 data_dsp_slot_day_YYYYMM
+ * 支持按月动态分表，表名格式：data_dsp_slot_day_YYYYMM
+ *
  * @author ruoyi
  * @date 2026-03-01
  */
 public class DataDspSlot extends BaseEntity
 {
     private static final long serialVersionUID = 1L;
+
+    /** 动态表名（格式：data_dsp_slot_day_YYYYMM，如 data_dsp_slot_day_202603） */
+    private String tableName;
 
     /** 主键 */
     private Long id;
@@ -317,9 +321,19 @@ public class DataDspSlot extends BaseEntity
         this.createdAt = createdAt;
     }
 
-    public Long getCreatedAt() 
+    public Long getCreatedAt()
     {
         return createdAt;
+    }
+
+    public void setTableName(String tableName)
+    {
+        this.tableName = tableName;
+    }
+
+    public String getTableName()
+    {
+        return tableName;
     }
 
     @Override

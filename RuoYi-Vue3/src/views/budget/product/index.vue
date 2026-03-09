@@ -73,14 +73,19 @@
 
     <el-table v-loading="loading" :data="productList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="产品名称" align="center" prop="name" />
-      <el-table-column label="公司" align="center" prop="companyId">
+      <el-table-column label="预算公司" align="center" width="150" prop="companyId">
         <template #default="scope">
           {{ getCompanyName(scope.row.companyId) }}
         </template>
       </el-table-column>
-      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
+      <el-table-column label="产品名称" width="150" align="center" prop="name">
+        <template #default="scope">
+          {{ formatProductName(scope.row) }}
+        </template>
+      </el-table-column>
+
+      <el-table-column label="创建时间" width="200" align="center" prop="createTime"/>
+      <el-table-column label="操作" align="center" width="150" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['budget:product:edit']">修改</el-button>
           <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['budget:product:remove']">删除</el-button>
@@ -99,18 +104,18 @@
     <!-- 添加或修改产品管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="productRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="产品名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入产品名称" />
-        </el-form-item>
-        <el-form-item label="公司" prop="companyId">
+        <el-form-item label="预算公司" prop="companyId">
           <el-select v-model="form.companyId" placeholder="请选择公司">
             <el-option
-              v-for="company in companyList"
-              :key="company.id"
-              :label="company.name"
-              :value="company.id"
+                v-for="company in companyList"
+                :key="company.id"
+                :label="company.name"
+                :value="company.id"
             />
           </el-select>
+        </el-form-item>
+        <el-form-item label="产品名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入产品名称" />
         </el-form-item>
         <el-form-item label="备注" prop="remark">
           <el-input v-model="form.remark" type="textarea" placeholder="请输入内容" />
@@ -163,6 +168,11 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data)
 
+
+/** 格式化媒体名称：name(公司ID) */
+function formatProductName(row) {
+  return `${row.name}:(${row.id})`
+}
 /** 查询公司列表 */
 function getCompanyList() {
   listCompany().then(response => {

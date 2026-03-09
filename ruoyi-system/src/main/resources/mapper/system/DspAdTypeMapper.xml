@@ -6,6 +6,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     
     <resultMap type="DspAdType" id="DspAdTypeResult">
         <result property="id"    column="id"    />
+        <result property="name"    column="name"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
@@ -14,12 +15,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectDspAdTypeVo">
-        select id, create_by, create_time, update_by, update_time, remark from dsp_ad_type
+        select id, name,create_by, create_time, update_by, update_time, remark from dsp_ad_type
     </sql>
 
     <select id="selectDspAdTypeList" parameterType="DspAdType" resultMap="DspAdTypeResult">
         <include refid="selectDspAdTypeVo"/>
-        <where>  
+        <where>
+            <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="createTime != null "> and create_time = #{createTime}</if>
         </where>
     </select>
@@ -32,6 +34,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="insertDspAdType" parameterType="DspAdType" useGeneratedKeys="true" keyProperty="id">
         insert into dsp_ad_type
         <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="name">name,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateBy != null">update_by,</if>
@@ -39,6 +42,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="remark != null">remark,</if>
          </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="name != null">#{name},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateBy != null">#{updateBy},</if>
@@ -50,6 +54,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <update id="updateDspAdType" parameterType="DspAdType">
         update dsp_ad_type
         <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">name = #{name},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>

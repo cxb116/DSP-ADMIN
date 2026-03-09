@@ -90,18 +90,25 @@
 
         <el-table v-loading="loading" :data="mediaList" @selection-change="handleSelectionChange">
             <el-table-column type="selection" width="55" align="center" />
-            <el-table-column label="媒体名称" align="center" prop="name">
+            <el-table-column label="媒体名称" align="center" width="260" prop="name">
                 <template #default="scope">
                     {{ formatMediaName(scope.row) }}
                 </template>
             </el-table-column>
-            <el-table-column label="公司名称" align="center" prop="mediaCompanyName" />
+            <el-table-column label="公司名称" align="center" show-overflow-tooltip prop="mediaCompanyName" />
             <el-table-column label="公司简称" align="center" prop="mediaCompanyShort" />
+          <el-table-column label="法人姓名" align="center" prop="mediaOwnerName" />
+          <el-table-column label="联系人" align="center" prop="contactName" />
+          <el-table-column label="联系电话" align="center" show-overflow-tooltip prop="contactPhone" />
+          <el-table-column label="联系邮箱" align="center" show-overflow-tooltip prop="contactEmail" />
             <el-table-column label="状态" align="center" prop="enable">
                 <template #default="scope">
                     <dict-tag :options="media_status" :value="scope.row.enable"/>
                 </template>
             </el-table-column>
+
+            <el-table-column label="创建时间" align="center" prop="createTime" />
+
             <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
                 <template #default="scope">
                     <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['flow:media:edit']">修改</el-button>
@@ -228,9 +235,9 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data)
 
-/** 格式化媒体名称：name(公司名称) */
+/** 格式化媒体名称：name(公司ID) */
 function formatMediaName(row) {
-    return `${row.name}(${row.mediaCompanyName})`
+    return `${row.name}:(${row.id})`
 }
 
 /** 查询媒体管理列表 */

@@ -20,6 +20,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="launchTime"    column="launch_time"    />
         <result property="regionDirection"    column="region_direction"    />
         <result property="brandDirection"    column="brand_direction"    />
+        <result property="crowdDirection"    column="crowd_direction"    />
         <result property="createBy"    column="create_by"    />
         <result property="createTime"    column="create_time"    />
         <result property="updateBy"    column="update_by"    />
@@ -47,7 +48,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <result property="id"    column="dsp_info_id"    />
             <result property="name"    column="dsp_info_name"    />
             <result property="osType"    column="dsp_info_os_type"    />
-            <result property="adScene"    column="dsp_info_ad_scene"    />
+            <result property="adSceneId"    column="dsp_info_ad_scene"    />
             <result property="dspSlotCode"    column="dsp_info_dsp_slot_code"    />
             <result property="dspAppKey"    column="dsp_info_dsp_app_key"    />
             <result property="dspAppSecret"    column="dsp_info_dsp_app_secret"    />
@@ -65,7 +66,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectDspLaunchVo">
-        select id, ssp_slot_id, dsp_slot_id, traffic_weight, launch_strategy, floor_price, ip_limit, log_capture_at, track_schwarz, req, ims, clk, launch_time, region_direction, brand_direction, create_by, create_time, update_by, update_time, remark from dsp_launch
+        select id, ssp_slot_id, dsp_slot_id, traffic_weight, launch_strategy, floor_price, ip_limit, log_capture_at, track_schwarz, req, ims, clk, launch_time, region_direction, brand_direction, crowd_direction, create_by, create_time, update_by, update_time, remark from dsp_launch
     </sql>
 
     <select id="selectDspLaunchList" parameterType="DspLaunch" resultMap="DspLaunchResult">
@@ -85,6 +86,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="launchTime != null "> and launch_time = #{launchTime}</if>
             <if test="regionDirection != null "> and region_direction = #{regionDirection}</if>
             <if test="brandDirection != null "> and brand_direction = #{brandDirection}</if>
+            <if test="crowdDirection != null "> and crowd_direction = #{crowdDirection}</if>
         </where>
     </select>
     
@@ -110,6 +112,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="launchTime != null">launch_time,</if>
             <if test="regionDirection != null">region_direction,</if>
             <if test="brandDirection != null">brand_direction,</if>
+            <if test="crowdDirection != null">crowd_direction,</if>
             <if test="createBy != null">create_by,</if>
             <if test="createTime != null">create_time,</if>
             <if test="updateBy != null">update_by,</if>
@@ -131,6 +134,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="launchTime != null">#{launchTime},</if>
             <if test="regionDirection != null">#{regionDirection},</if>
             <if test="brandDirection != null">#{brandDirection},</if>
+            <if test="crowdDirection != null">#{crowdDirection},</if>
             <if test="createBy != null">#{createBy},</if>
             <if test="createTime != null">#{createTime},</if>
             <if test="updateBy != null">#{updateBy},</if>
@@ -156,6 +160,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="launchTime != null">launch_time = #{launchTime},</if>
             <if test="regionDirection != null">region_direction = #{regionDirection},</if>
             <if test="brandDirection != null">brand_direction = #{brandDirection},</if>
+            <if test="crowdDirection != null">crowd_direction = #{crowdDirection},</if>
             <if test="createBy != null">create_by = #{createBy},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
@@ -179,13 +184,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <insert id="batchInsertDspLaunch" parameterType="java.util.List">
         insert into dsp_launch (ssp_slot_id, dsp_slot_id, traffic_weight, launch_strategy, floor_price,
                                 ip_limit, log_capture_at, track_schwarz,
-                                req, ims, clk, launch_time, region_direction, brand_direction,
+                                req, ims, clk, launch_time, region_direction, brand_direction, crowd_direction,
                                 create_by, create_time, update_by, update_time, remark)
         values
         <foreach collection="list" item="item" separator=",">
             (#{item.sspSlotId}, #{item.dspSlotId}, #{item.trafficWeight}, #{item.launchStrategy}, #{item.floorPrice},
              #{item.ipLimit}, #{item.logCaptureAt}, #{item.trackSchwarz},
-             #{item.req}, #{item.ims}, #{item.clk}, #{item.launchTime}, #{item.regionDirection}, #{item.brandDirection},
+             #{item.req}, #{item.ims}, #{item.clk}, #{item.launchTime}, #{item.regionDirection}, #{item.brandDirection}, #{item.crowdDirection},
              #{item.createBy}, #{item.createTime}, #{item.updateBy}, #{item.updateTime}, #{item.remark})
         </foreach>
     </insert>
@@ -221,7 +226,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             dsi.id as dsp_info_id,
             dsi.name as dsp_info_name,
             dsi.os_type as dsp_info_os_type,
-            dsi.ad_scene as dsp_info_ad_scene,
+            dsi.ad_scene_id as dsp_info_ad_scene,
             dsi.dsp_slot_code as dsp_info_dsp_slot_code,
             dsi.dsp_app_key as dsp_info_dsp_app_key,
             dsi.dsp_app_secret as dsp_info_dsp_app_secret,

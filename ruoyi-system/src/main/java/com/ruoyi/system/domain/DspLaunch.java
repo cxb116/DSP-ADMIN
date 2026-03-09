@@ -76,6 +76,10 @@ public class DspLaunch extends BaseEntity
     @Excel(name = "品牌定向", readConverterExp = "1=不限制,2=定向,3=排除")
     private Integer brandDirection;
 
+    /** 人群定向：1不限制，2定向，3排除 */
+    @Excel(name = "人群定向", readConverterExp = "1=不限制,2=定向,3=排除")
+    private Integer crowdDirection;
+
     public void setId(Long id)
     {
         this.id = id;
@@ -180,7 +184,7 @@ public class DspLaunch extends BaseEntity
         this.req = req;
     }
 
-    @JSONField(name = "req")
+    @JSONField(serialize = false)
     public Long getReq()
     {
         return req;
@@ -191,7 +195,7 @@ public class DspLaunch extends BaseEntity
         this.ims = ims;
     }
 
-    @JSONField(name = "ims")
+    @JSONField(serialize = false)
     public Long getIms()
     {
         return ims;
@@ -202,7 +206,7 @@ public class DspLaunch extends BaseEntity
         this.clk = clk;
     }
 
-    @JSONField(name = "clk")
+    @JSONField(serialize = false)
     public Long getClk()
     {
         return clk;
@@ -239,6 +243,17 @@ public class DspLaunch extends BaseEntity
     public Integer getBrandDirection()
     {
         return brandDirection;
+    }
+
+    public void setCrowdDirection(Integer crowdDirection)
+    {
+        this.crowdDirection = crowdDirection;
+    }
+
+    @JSONField(name = "crowd_direction")
+    public Integer getCrowdDirection()
+    {
+        return crowdDirection;
     }
 
     @Override
