@@ -35,8 +35,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  */
 @RestController
 @RequestMapping("/flow/mediaAd")
-public class SspSlotInfoController extends BaseController
-{
+public class SspSlotInfoController extends BaseController {
     @Autowired
     private ISspSlotInfoService sspSlotInfoService;
 
@@ -48,8 +47,7 @@ public class SspSlotInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:list')")
     @GetMapping("/list")
-    public TableDataInfo list(SspSlotInfo sspSlotInfo)
-    {
+    public TableDataInfo list(SspSlotInfo sspSlotInfo) {
         startPage();
         List<SspSlotInfo> list = sspSlotInfoService.selectSspSlotInfoList(sspSlotInfo);
         return getDataTable(list);
@@ -61,8 +59,7 @@ public class SspSlotInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:export')")
     @Log(title = "媒体广告位", businessType = BusinessType.EXPORT)
     @PostMapping("/export")
-    public void export(HttpServletResponse response, SspSlotInfo sspSlotInfo)
-    {
+    public void export(HttpServletResponse response, SspSlotInfo sspSlotInfo) {
         List<SspSlotInfo> list = sspSlotInfoService.selectSspSlotInfoList(sspSlotInfo);
         ExcelUtil<SspSlotInfo> util = new ExcelUtil<SspSlotInfo>(SspSlotInfo.class);
         util.exportExcel(response, list, "媒体广告位数据");
@@ -73,8 +70,7 @@ public class SspSlotInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:query')")
     @GetMapping(value = "/{id}")
-    public AjaxResult getInfo(@PathVariable("id") Long id)
-    {
+    public AjaxResult getInfo(@PathVariable("id") Long id) {
         return success(sspSlotInfoService.selectSspSlotInfoById(id));
     }
 
@@ -84,8 +80,7 @@ public class SspSlotInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:add')")
     @Log(title = "媒体广告位", businessType = BusinessType.INSERT)
     @PostMapping
-    public AjaxResult add(@RequestBody SspSlotInfo sspSlotInfo)
-    {
+    public AjaxResult add(@RequestBody SspSlotInfo sspSlotInfo) {
         return toAjax(sspSlotInfoService.insertSspSlotInfo(sspSlotInfo));
     }
 
@@ -95,8 +90,7 @@ public class SspSlotInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:edit')")
     @Log(title = "媒体广告位", businessType = BusinessType.UPDATE)
     @PutMapping
-    public AjaxResult edit(@RequestBody SspSlotInfo sspSlotInfo)
-    {
+    public AjaxResult edit(@RequestBody SspSlotInfo sspSlotInfo) {
         return toAjax(sspSlotInfoService.updateSspSlotInfo(sspSlotInfo));
     }
 
@@ -105,9 +99,8 @@ public class SspSlotInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:remove')")
     @Log(title = "媒体广告位", businessType = BusinessType.DELETE)
-	@DeleteMapping("/{ids}")
-    public AjaxResult remove(@PathVariable Long[] ids)
-    {
+    @DeleteMapping("/{ids}")
+    public AjaxResult remove(@PathVariable Long[] ids) {
         return toAjax(sspSlotInfoService.deleteSspSlotInfoByIds(ids));
     }
 
@@ -115,8 +108,7 @@ public class SspSlotInfoController extends BaseController
      * 根据ssp广告位id查询匹配的预算方广告位列表
      */
     @GetMapping("/matchedDspSlots/{sspSlotId}")
-    public AjaxResult getMatchedDspSlots(@PathVariable("sspSlotId") Long sspSlotId)
-    {
+    public AjaxResult getMatchedDspSlots(@PathVariable("sspSlotId") Long sspSlotId) {
         List<DspSlotInfo> list = sspSlotInfoService.selectMatchedDspSlotInfo(sspSlotId);
         return success(list);
     }
@@ -125,8 +117,7 @@ public class SspSlotInfoController extends BaseController
      * 根据媒体广告位ID查询投放配置列表
      */
     @GetMapping("/launchConfig/{sspSlotId}")
-    public AjaxResult getLaunchConfig(@PathVariable("sspSlotId") Long sspSlotId)
-    {
+    public AjaxResult getLaunchConfig(@PathVariable("sspSlotId") Long sspSlotId) {
         List<com.ruoyi.system.domain.DspLaunchDTO> list = dspLaunchService.selectDspLaunchDTOBySspSlotId(sspSlotId);
         return success(list);
     }
@@ -137,8 +128,7 @@ public class SspSlotInfoController extends BaseController
     @PreAuthorize("@ss.hasPermi('flow:mediaAd:config')")
     @Log(title = "媒体广告位", businessType = BusinessType.UPDATE)
     @PostMapping("/saveLaunchConfig")
-    public AjaxResult saveLaunchConfig(@RequestBody Map<String, Object> params)
-    {
+    public AjaxResult saveLaunchConfig(@RequestBody Map<String, Object> params) {
         Long sspSlotId = Long.valueOf(params.get("mediaAdId").toString());
 
         if (sspSlotId == null) {
@@ -164,11 +154,9 @@ public class SspSlotInfoController extends BaseController
                 slotList.add(launch);
             }
 
-            if (slotList.isEmpty()) {
-                return error("投放配置列表不能为空");
-            }
-
             int result = dspLaunchService.batchSaveDspLaunch(sspSlotId, slotList);
+            // result 在删除下，为 0 ，不符合 toAjax 的要求
+            result = result == 0 ? 1 : result;
             return toAjax(result);
         } catch (Exception e) {
             logger.error("保存投放配置失败", e);
