@@ -106,6 +106,9 @@ public class DataDspSlot extends BaseEntity
     @Excel(name = "创建时间戳")
     private Long createdAt;
 
+    /** 预算广告位名称（关联查询，不属于表字段） */
+    private String dspSlotName;
+
     public void setId(Long id) 
     {
         this.id = id;
@@ -334,6 +337,16 @@ public class DataDspSlot extends BaseEntity
     public String getTableName()
     {
         return tableName;
+    }
+
+    public void setDspSlotName(String dspSlotName)
+    {
+        this.dspSlotName = dspSlotName;
+    }
+
+    public String getDspSlotName()
+    {
+        return dspSlotName;
     }
 
     @Override

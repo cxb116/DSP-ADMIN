@@ -60,6 +60,12 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
+        <el-radio-group v-model="tableType" @change="handleTableTypeChange">
+          <el-radio-button label="day">天表</el-radio-button>
+          <el-radio-button label="hour">小时表</el-radio-button>
+        </el-radio-group>
+      </el-col>
+      <el-col :span="1.5">
         <el-button
           type="primary"
           plain
@@ -263,6 +269,7 @@ const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
 const dateRange = ref([])
+const tableType = ref('day') // 表类型: 'day' 或 'hour'
 
 const data = reactive({
   form: {},
@@ -332,10 +339,33 @@ function formatDate(dateValue) {
   return dateStr
 }
 
+/** 生成表名 */
+function generateTableName() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+
+  if (tableType.value === 'day') {
+    // 天表: data_ssp_slot_day_YYYYMM
+    return `data_ssp_slot_day_${year}${month}`
+  } else {
+    // 小时表: data_ssp_slot_hour_YYYYMM
+    return `data_ssp_slot_hour_${year}${month}`
+  }
+}
+
+/** 表类型切换处理 */
+function handleTableTypeChange() {
+  queryParams.value.pageNum = 1
+  getList()
+}
+
 /** 查询媒体数据报表列表 */
 function getList() {
   loading.value = true
   const params = proxy.addDateRange(queryParams.value, dateRange.value, 'createdAt')
+  // 添加动态表名参数
+  params.tableName = generateTableName()
   listData_ssp_slot(params).then(response => {
     data_ssp_slotList.value = response.rows
     total.value = response.total
@@ -454,7 +484,8 @@ function handleDelete(row) {
 /** 导出按钮操作 */
 function handleExport() {
   proxy.download('data/data_ssp_slot/export', {
-    ...queryParams.value
+    ...queryParams.value,
+    tableName: generateTableName()
   }, `data_ssp_slot_${new Date().getTime()}.xlsx`)
 }
 

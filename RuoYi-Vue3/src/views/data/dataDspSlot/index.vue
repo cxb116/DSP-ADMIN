@@ -20,6 +20,12 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
+        <el-radio-group v-model="tableType" @change="handleTableTypeChange">
+          <el-radio-button label="day">天表</el-radio-button>
+          <el-radio-button label="hour">小时表</el-radio-button>
+        </el-radio-group>
+      </el-col>
+      <el-col :span="1.5">
         <el-button
           type="primary"
           plain
@@ -62,8 +68,13 @@
 
     <el-table v-loading="loading" :data="dataDspSlotList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="预算位名称" align="center" width="155" prop="dspSlotId" />
-      <el-table-column label="预算广告位" align="center" width="200" prop="dspSlotCode" />
+      <el-table-column label="预算广告位" align="center" width="300" prop="dspSlotName">
+        <template #default="scope">
+          <span v-if="scope.row.dspSlotName">{{ scope.row.dspSlotName }}（{{ scope.row.dspSlotId }}）</span>
+          <span v-else>{{ scope.row.dspSlotId }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预算广告位编号" align="center" width="270" prop="dspSlotCode" />
       <el-table-column label="展示PV" align="center" prop="showPv" />
       <el-table-column label="展示UV" align="center" prop="showUv" />
       <el-table-column label="点击PV" align="center" prop="clickPv" />
@@ -191,6 +202,7 @@ const multiple = ref(true)
 const total = ref(0)
 const title = ref("")
 const dateRange = ref([])
+const tableType = ref('day') // 表类型: 'day' 或 'hour'
 
 const data = reactive({
   form: {},
@@ -224,10 +236,33 @@ function formatTimestamp(row, column, cellValue) {
   })
 }
 
+/** 生成表名 */
+function generateTableName() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+
+  if (tableType.value === 'day') {
+    // 天表: data_dsp_slot_day_YYYYMM
+    return `data_dsp_slot_day_${year}${month}`
+  } else {
+    // 小时表: data_dsp_slot_hour_YYYYMM
+    return `data_dsp_slot_hour_${year}${month}`
+  }
+}
+
+/** 表类型切换处理 */
+function handleTableTypeChange() {
+  queryParams.value.pageNum = 1
+  getList()
+}
+
 /** 查询预算报表列表 */
 function getList() {
   loading.value = true
   const params = proxy.addDateRange(queryParams.value, dateRange.value, 'createdAt')
+  // 添加动态表名参数
+  params.tableName = generateTableName()
   listDataDspSlot(params).then(response => {
     dataDspSlotList.value = response.rows
     total.value = response.total
@@ -343,7 +378,8 @@ function handleDelete(row) {
 /** 导出按钮操作 */
 function handleExport() {
   proxy.download('system/dataDspSlot/export', {
-    ...queryParams.value
+    ...queryParams.value,
+    tableName: generateTableName()
   }, `dataDspSlot_${new Date().getTime()}.xlsx`)
 }
 

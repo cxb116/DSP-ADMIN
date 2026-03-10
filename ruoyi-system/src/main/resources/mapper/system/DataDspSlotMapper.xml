@@ -8,6 +8,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <result property="id"    column="id"    />
         <result property="dspSlotId"    column="dsp_slot_id"    />
         <result property="dspSlotCode"    column="dsp_slot_code"    />
+        <result property="dspSlotName"    column="dsp_slot_name"    />
         <result property="showPv"    column="show_pv"    />
         <result property="showUv"    column="show_uv"    />
         <result property="clickPv"    column="click_pv"    />
@@ -30,8 +31,10 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectDataDspSlotVo">
-        select id, dsp_slot_id, dsp_slot_code, show_pv, show_uv, click_pv, click_uv, req_pv, req_uv, discard, ret_pv, ret_uv, spend, income, discount_click_pv, discount_show_pv, dplsucc_pv, complete_pv, install_pv, activate_pv, date, created_at
-        from ${tableName}
+        select t.id, t.dsp_slot_id, t.dsp_slot_code, t.show_pv, t.show_uv, t.click_pv, t.click_uv, t.req_pv, t.req_uv, t.discard, t.ret_pv, t.ret_uv, t.spend, t.income, t.discount_click_pv, t.discount_show_pv, t.dplsucc_pv, t.complete_pv, t.install_pv, t.activate_pv, t.date, t.created_at,
+        dsp_slot.name as dsp_slot_name
+        from ${tableName} t
+        left join dsp_slot_info dsp_slot on t.dsp_slot_id = dsp_slot.id
     </sql>
 
     <select id="selectDataDspSlotList" parameterType="DataDspSlot" resultMap="DataDspSlotResult">
