@@ -165,6 +165,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             FROM dsp_launch dl
             WHERE dl.ssp_slot_id = #{sspSlotId}
         )
+        AND dsi.os_type = (SELECT sa.os_type FROM ssp_slot_info ssi LEFT JOIN ssp_app sa ON ssi.app_id = sa.id WHERE ssi.id = #{sspSlotId})
+        AND dsi.ad_type_id = (SELECT ad_type_id FROM ssp_slot_info WHERE id = #{sspSlotId})
+        AND dsi.ad_scene_id = (SELECT ad_scene_id FROM ssp_slot_info WHERE id = #{sspSlotId})
         ORDER BY dsi.id
     </select>
 </mapper>

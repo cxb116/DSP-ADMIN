@@ -589,7 +589,7 @@
               </el-empty>
             </div>
 
-            <div v-for="(slot, index) in slotList" :key="slot.id || index" class="slot-card">
+            <div v-for="(slot, index) in slotList" :key="slot.id || index" :class="['slot-card', slot.deleted ? 'slot-card-deleted' : '']">
               <el-card shadow="hover">
                 <template #header>
                   <div class="slot-card-header">
@@ -601,6 +601,7 @@
                       <el-tag size="small" type="primary" style="margin-left: 8px;">
                         {{ slot.dspPayType == 1 || slot.dspPayType == '1' ? '分成' : 'RTB' }}
                       </el-tag>
+                      <el-tag v-if="slot.deleted" size="small" type="danger" style="margin-left: 8px;">已删除（未保存）</el-tag>
                     </div>
                     <div class="header-right">
                       <div class="weight-input-wrapper">
@@ -611,11 +612,13 @@
                           :max="100"
                           size="small"
                           :precision="0"
+                          :disabled="slot.deleted"
                           style="width: 100px"
                         />
                       </div>
-                      <el-button type="warning" size="small" icon="Document" @click="handleCaptureLog(slot)">捕获日志</el-button>
-                      <el-button type="danger" size="small" icon="Delete" @click="handleDeleteSlot(index)">删除</el-button>
+                      <el-button type="warning" size="small" icon="Document" :disabled="slot.deleted" @click="handleCaptureLog(slot)">捕获日志</el-button>
+                      <el-button v-if="slot.deleted" type="success" size="small" icon="Refresh" @click="handleRestoreSlot(index)">恢复</el-button>
+                      <el-button v-else type="danger" size="small" icon="Delete" @click="handleDeleteSlot(index)">删除</el-button>
                     </div>
                   </div>
                 </template>
@@ -664,16 +667,17 @@
                         </el-col>
                       </el-row>
 
-                      <!-- 第二行：底价（仅RTB模式显示） -->
-                      <el-row :gutter="16" v-if="slot.dspPayType == 2 || slot.dspPayType == '2'">
+                      <!-- 第二行：底价 -->
+                      <el-row :gutter="16">
                         <el-col :span="8">
-                          <el-form-item label="底价(分)" required>
+                          <el-form-item label="底价(分)" :required="slot.dspPayType == 2 || slot.dspPayType == '2'">
                             <el-input-number
                               v-model="slot.floorPrice"
                               :min="0"
                               placeholder="请输入"
                               :controls="false"
                               style="width: 100%"
+                              :disabled="slot.dspPayType != 1 && slot.dspPayType != '1'"
                             />
                           </el-form-item>
                         </el-col>
@@ -936,11 +940,13 @@ const matchedDspSlots = ref([])
 // 选中的DSP广告位ID列表
 const selectedDspSlotIds = ref([])
 
-// 计算总流量权重（所有已绑定的DSP广告位的权重之和）
+// 计算总流量权重（所有已绑定的DSP广告位的权重之和，排除已删除的）
 const totalTrafficWeight = computed(() => {
-  return slotList.value.reduce((sum, slot) => {
-    return sum + (slot.trafficWeight || 0)
-  }, 0)
+  return slotList.value
+    .filter(slot => !slot.deleted)  // 排除已删除的项
+    .reduce((sum, slot) => {
+      return sum + (slot.trafficWeight || 0)
+    }, 0)
 })
 
 const data = reactive({
@@ -1299,6 +1305,15 @@ watch(() => editForm.value.mediaAppCascade, async (newCascade) => {
   }
 })
 
+/** 监听 dspPayType 变化，非分成模式时自动将底价设为 0 */
+watch(() => slotList.value, (newSlotList) => {
+  newSlotList.forEach(slot => {
+    if (slot.dspPayType != 1 && slot.dspPayType != '1') {
+      slot.floorPrice = 0
+    }
+  })
+}, { deep: true })
+
 /** 新增按钮操作 */
 function handleAdd() {
   // 重置编辑表单
@@ -1545,8 +1560,11 @@ async function handleAddSlot() {
     console.log('matchedSlots 数量:', matchedSlots.length)
     console.log('已绑定的DSP广告位数量:', slotList.value.length)
 
-    // 过滤掉已经绑定的 DSP 广告位
-    const addedSlotIds = slotList.value.map(slot => slot.dspSlotInfoId).filter(id => id)
+    // 过滤掉已经绑定的 DSP 广告位（排除已删除未保存的）
+    const addedSlotIds = slotList.value
+      .filter(slot => !slot.deleted)  // 排除已删除的
+      .map(slot => slot.dspSlotInfoId)
+      .filter(id => id)
     console.log('已绑定的DSP广告位ID列表:', addedSlotIds)
 
     // 过滤：排除掉已经绑定的 DSP 广告位（通过 dsp_slot_info 的 id 判断）
@@ -1657,11 +1675,20 @@ function handleCopySlot(index) {
   proxy.$modal.msgSuccess('复制成功')
 }
 
-/** 删除DSP广告位 */
+/** 删除DSP广告位（软删除） */
 function handleDeleteSlot(index) {
   proxy.$modal.confirm('确认删除该 DSP 广告位吗？').then(() => {
-    slotList.value.splice(index, 1)
-    proxy.$modal.msgSuccess('删除成功')
+    // 软删除：标记 deleted 为 true，而不是直接从数组移除
+    slotList.value[index].deleted = true
+    proxy.$modal.msgSuccess('删除成功（未保存）')
+  }).catch(() => {})
+}
+
+/** 恢复DSP广告位（撤销删除） */
+function handleRestoreSlot(index) {
+  proxy.$modal.confirm('确认恢复该 DSP 广告位吗？').then(() => {
+    slotList.value[index].deleted = false
+    proxy.$modal.msgSuccess('已恢复')
   }).catch(() => {})
 }
 
@@ -1812,9 +1839,14 @@ function handleResetWeight() {
 
 /** 保存投放配置 */
 function handleSaveConfig() {
-  // 验证DSP广告位配置
-  if (slotList.value.length === 0) {
-    proxy.$modal.msgWarning('请至少添加一个 DSP 广告位')
+  // 统计未删除的项
+  const activeSlots = slotList.value.filter(slot => !slot.deleted)
+
+  // 空列表时，提示确认是否清空配置
+  if (activeSlots.length === 0) {
+    proxy.$modal.confirm('DSP 广告位为空，将清空所有投放配置，是否继续？').then(() => {
+      doSaveConfig([])
+    }).catch(() => {})
     return
   }
 
@@ -1825,9 +1857,14 @@ function handleSaveConfig() {
     return
   }
 
-  // 验证每个DSP广告位的必填字段
+  // 验证每个DSP广告位的必填字段（跳过已删除的项）
   for (let i = 0; i < slotList.value.length; i++) {
     const slot = slotList.value[i]
+
+    // 跳过已删除的项
+    if (slot.deleted) {
+      continue
+    }
 
     // 验证流量权重
     if (!slot.trafficWeight || slot.trafficWeight <= 0) {
@@ -1835,8 +1872,8 @@ function handleSaveConfig() {
       return
     }
 
-    // 验证底价必填（仅 RTB 模式）
-    if (slot.dspPayType == 2 || slot.dspPayType == '2') {
+    // 验证底价必填（仅分成模式，RTB 模式底价为 0 不需要验证）
+    if (slot.dspPayType == 1 || slot.dspPayType == '1') {
       if (!slot.floorPrice || slot.floorPrice <= 0) {
         proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的底价不能为空且必须大于0`)
         return
@@ -1866,10 +1903,19 @@ function handleSaveConfig() {
     }
   }
 
+  // 执行保存
+  doSaveConfig(slotList.value)
+}
+
+/** 执行保存配置 */
+function doSaveConfig(slotList) {
+  // 过滤掉已删除的项，只保存未删除的配置
+  const activeSlotList = slotList.filter(slot => !slot.deleted)
+
   // 构建保存数据
   const saveData = {
     mediaAdId: configMediaAd.value.id,
-    slotList: slotList.value.map(slot => ({
+    slotList: activeSlotList.map(slot => ({
       dspSlotId: slot.dspSlotInfoId,
       trafficWeight: slot.trafficWeight,
       launchStrategy: slot.launchStrategy,
@@ -1891,6 +1937,10 @@ function handleSaveConfig() {
   // 调用 API 保存投放配置
   saveLaunchConfig(saveData).then(() => {
     proxy.$modal.msgSuccess('配置保存成功')
+    // 保存成功后重新加载配置数据
+    if (configMediaAd.value?.id) {
+      loadSlotList(configMediaAd.value.id)
+    }
   }).catch(() => {
     proxy.$modal.msgError('配置保存失败')
   })
@@ -2041,6 +2091,15 @@ getList()
 
 .slot-card {
   margin-bottom: 20px;
+}
+
+.slot-card-deleted {
+  opacity: 0.6;
+}
+
+.slot-card-deleted .el-card {
+  background-color: #fef0f0;
+  border-color: #fbc4c4;
 }
 
 .slot-card:last-child {
