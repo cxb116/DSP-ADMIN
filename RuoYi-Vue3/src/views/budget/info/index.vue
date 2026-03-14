@@ -121,14 +121,14 @@
           {{ scope.row.name }}({{ scope.row.id }})
         </template>
       </el-table-column>
-      <el-table-column label="产品" align="center" prop="productId" width="200">
+      <el-table-column label="产品" align="center" prop="product_id" width="200">
         <template #default="scope">
-          {{ getProductName(scope.row.productId) }}
+          {{ getProductName(scope.row.product_id) }}
         </template>
       </el-table-column>
-      <el-table-column label="公司" align="center" prop="companyId" width="150">
+      <el-table-column label="公司" align="center" prop="company_id" width="150">
         <template #default="scope">
-          {{ getCompanyName(scope.row.companyId) }}
+          {{ getCompanyName(scope.row.company_id) }}
         </template>
       </el-table-column>
       <el-table-column label="操作系统" align="center" prop="osType" width="100">
@@ -154,12 +154,12 @@
       <el-table-column label="预算方广告位" align="center" prop="dspSlotCode" width="150" />
       <el-table-column label="预算方APPKEY" align="center" prop="dspAppKey" width="150" />
       <el-table-column label="预算方AppId" align="center" prop="dspAppId" width="150" />
-      <el-table-column label="结算方式" align="center" prop="dspPayType" width="100">
+      <el-table-column label="结算方式" align="center" prop="dsp_pay_type" width="100">
         <template #default="scope">
-          <dict-tag :options="ssp_pay_type" :value="String(scope.row.dspPayType)" />
+          <dict-tag :options="ssp_pay_type" :value="String(scope.row.dsp_pay_type)" />
         </template>
       </el-table-column>
-      <el-table-column label="成交系数" align="center" prop="dspDealRatio" width="100" />
+      <el-table-column label="成交系数" align="center" prop="dsp_deal_ratio" width="100" />
       <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
       <el-table-column label="操作" align="center" width="150" fixed="right" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -533,13 +533,13 @@ function getProductList() {
 
 /** 根据公司ID获取公司名称 */
 function getCompanyName(companyId) {
-  const company = companyList.value.find(item => item.id === companyId)
+  const company = companyList.value.find(item => item.id === companyId || item.company_id === companyId)
   return company ? company.name : '-'
 }
 
 /** 根据产品ID获取产品名称 */
 function getProductName(productId) {
-  const product = productList.value.find(item => item.id === productId)
+  const product = productList.value.find(item => item.id === productId || item.product_id === productId)
   return product ? product.name : '-'
 }
 
@@ -720,6 +720,10 @@ function handleUpdate(row) {
     const data = response.data
     editInfo.value = data
 
+    // 调试：打印后端返回的完整数据
+    console.log('后端返回的完整数据:', data)
+    console.log('dsp_pay_type:', data.dsp_pay_type, 'dspPayType:', data.dspPayType)
+
     editForm.value = {
       id: data.id,
       companyProductId: data.companyId && data.productId ? [Number(data.companyId), Number(data.productId)] : [],
@@ -737,10 +741,10 @@ function handleUpdate(row) {
       dspAppStoreVer: data.dspAppStoreVer,
       priceEncryptKey: data.priceEncryptKey,
       dspAppStoreLink: data.dspAppStoreLink,
-      dspPayType: data.dspPayType !== null ? String(data.dspPayType) : null,
-      dspDealRatio: data.dspDealRatio,
-      companyId: data.companyId,
-      productId: data.productId,
+      dspPayType: data.dsp_pay_type !== null && data.dsp_pay_type !== undefined ? String(data.dsp_pay_type) : null,
+      dspDealRatio: data.dsp_deal_ratio !== null ? data.dsp_deal_ratio : null,
+      companyId: data.company_id,
+      productId: data.product_id,
       remark: data.remark
     }
 
@@ -759,6 +763,11 @@ function handleEditSave() {
       if (editForm.value.companyProductId && editForm.value.companyProductId.length === 2) {
         editForm.value.companyId = editForm.value.companyProductId[0]
         editForm.value.productId = editForm.value.companyProductId[1]
+      }
+
+      // 确保 dspPayType 不为 null，默认为分成模式（'1'）
+      if (!editForm.value.dspPayType) {
+        editForm.value.dspPayType = '1'
       }
 
       // 分成模式（'1'）不需要成交系数，清空后再保存

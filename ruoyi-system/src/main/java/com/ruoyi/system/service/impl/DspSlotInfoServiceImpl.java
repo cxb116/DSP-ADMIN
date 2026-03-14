@@ -58,6 +58,13 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
     public int insertDspSlotInfo(DspSlotInfo dspSlotInfo)
     {
         dspSlotInfo.setCreateTime(DateUtils.getNowDate());
+
+        // 设置默认值：如果结算方式为空，默认为分成模式（1）
+        if (dspSlotInfo.getDspPayType() == null)
+        {
+            dspSlotInfo.setDspPayType(1L);
+        }
+
         int rows = dspSlotInfoMapper.insertDspSlotInfo(dspSlotInfo);
 
         // 数据库插入成功后同步到 etcd

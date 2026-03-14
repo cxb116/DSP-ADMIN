@@ -1,8 +1,11 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.ArrayList;
 import com.ruoyi.common.core.etcd.EtcdTemplate;
 import com.ruoyi.common.utils.DateUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +23,8 @@ import com.ruoyi.system.service.IDspLaunchService;
 @Service
 public class DspLaunchServiceImpl implements IDspLaunchService
 {
+    private static final Logger logger = LoggerFactory.getLogger(DspLaunchServiceImpl.class);
+
     @Autowired
     private DspLaunchMapper dspLaunchMapper;
 
@@ -113,60 +118,132 @@ public class DspLaunchServiceImpl implements IDspLaunchService
     @Transactional
     public int batchSaveDspLaunch(Long sspSlotId, List<DspLaunch> dspLaunchList)
     {
-        // 1. 先查询该媒体广告位的所有旧配置，获取 ID 用于 etcd 删除
+        logger.info("========== 批量保存投放配置开始 ==========");
+        logger.info("媒体广告位ID: {}", sspSlotId);
+        logger.info("前端传来的配置数量: {}", dspLaunchList != null ? dspLaunchList.size() : 0);
+
+        // 1. 先查询该媒体广告位的所有旧配置
         List<DspLaunch> oldLaunchList = dspLaunchMapper.selectDspLaunchBySspSlotId(sspSlotId);
+        logger.info("数据库中已存在的配置数量: {}", oldLaunchList != null ? oldLaunchList.size() : 0);
 
-        // 2. 删除数据库中的旧配置
-        dspLaunchMapper.deleteDspLaunchBySspSlotId(sspSlotId);
+        int rows = 0;
+        java.util.Date nowDate = DateUtils.getNowDate();
+        List<Long> processedDspSlotIds = new java.util.ArrayList<>();
 
-        // 3. 同步删除 etcd 中的旧数据
-        if (etcdTemplate != null && oldLaunchList != null && !oldLaunchList.isEmpty())
+        // 2. 遍历前端传来的配置列表，逐个处理（更新或插入）
+        if (dspLaunchList != null && !dspLaunchList.isEmpty())
+        {
+            for (DspLaunch dspLaunch : dspLaunchList)
+            {
+                dspLaunch.setSspSlotId(sspSlotId);
+                dspLaunch.setUpdateTime(nowDate);
+
+                // 查找是否已存在该配置（通过 ssp_slot_id 和 dsp_slot_id 判断）
+                DspLaunch existingLaunch = null;
+                if (oldLaunchList != null)
+                {
+                    for (DspLaunch old : oldLaunchList)
+                    {
+                        if (old.getDspSlotId().equals(dspLaunch.getDspSlotId()))
+                        {
+                            existingLaunch = old;
+                            break;
+                        }
+                    }
+                }
+
+                if (existingLaunch != null)
+                {
+                    // 存在则更新
+                    logger.info("更新配置 - dspSlotId: {}, ID: {}", dspLaunch.getDspSlotId(), existingLaunch.getId());
+                    dspLaunch.setId(existingLaunch.getId());
+                    dspLaunch.setCreateTime(existingLaunch.getCreateTime()); // 保持原创建时间
+                    dspLaunchMapper.updateDspLaunch(dspLaunch);
+
+                    // 同步更新 etcd
+                    if (etcdTemplate != null)
+                    {
+                        try
+                        {
+                            etcdTemplate.syncUpdate("launch", dspLaunch.getId(), dspLaunch);
+                            logger.info("✅ etcd 更新成功 - ID: {}", dspLaunch.getId());
+                        }
+                        catch (Exception e)
+                        {
+                            logger.error("❌ etcd 更新失败 - ID: {}, 错误: {}", dspLaunch.getId(), e.getMessage());
+                        }
+                    }
+                    else
+                    {
+                        logger.warn("⚠️ etcdTemplate 为 null，跳过 etcd 同步");
+                    }
+                }
+                else
+                {
+                    // 不存在则插入
+                    logger.info("新增配置 - dspSlotId: {}", dspLaunch.getDspSlotId());
+                    dspLaunch.setCreateTime(nowDate);
+                    dspLaunchMapper.insertDspLaunch(dspLaunch);
+
+                    // 重新查询获取数据库生成的自增 ID
+                    List<DspLaunch> newList = dspLaunchMapper.selectDspLaunchBySspSlotId(sspSlotId);
+                    for (DspLaunch newLaunch : newList)
+                    {
+                        if (newLaunch.getDspSlotId().equals(dspLaunch.getDspSlotId()))
+                        {
+                            // 同步新增到 etcd
+                            if (etcdTemplate != null && newLaunch.getId() != null)
+                            {
+                                try
+                                {
+                                    etcdTemplate.syncAdd("launch", newLaunch.getId(), newLaunch);
+                                    logger.info("✅ etcd 新增成功 - ID: {}", newLaunch.getId());
+                                }
+                                catch (Exception e)
+                                {
+                                    logger.error("❌ etcd 新增失败 - ID: {}, 错误: {}", newLaunch.getId(), e.getMessage());
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                processedDspSlotIds.add(dspLaunch.getDspSlotId());
+                rows++;
+            }
+        }
+
+        // 3. 删除前端没有传的配置（用户删除的配置）
+        if (oldLaunchList != null && !oldLaunchList.isEmpty())
         {
             for (DspLaunch oldLaunch : oldLaunchList)
             {
-                try
+                // 如果旧配置不在前端传来的列表中，说明被用户删除了
+                if (!processedDspSlotIds.contains(oldLaunch.getDspSlotId()))
                 {
-                    etcdTemplate.syncDelete("launch", oldLaunch.getId());
-                }
-                catch (Exception e)
-                {
-                    // 仅记录日志
-                }
-            }
-        }
+                    logger.info("删除配置 - dspSlotId: {}, ID: {}", oldLaunch.getDspSlotId(), oldLaunch.getId());
+                    // 删除数据库记录
+                    dspLaunchMapper.deleteDspLaunchById(oldLaunch.getId());
 
-        int rows = 0;
-        // 4. 批量插入新配置
-        if (dspLaunchList != null && !dspLaunchList.isEmpty())
-        {
-            // 设置创建时间和更新时间
-            java.util.Date nowDate = DateUtils.getNowDate();
-            for (DspLaunch dspLaunch : dspLaunchList)
-            {
-                dspLaunch.setCreateTime(nowDate);
-                dspLaunch.setUpdateTime(nowDate);
-            }
-            rows = dspLaunchMapper.batchInsertDspLaunch(dspLaunchList);
-
-            // 5. 重新查询获取插入后的完整数据（包含自增 ID）
-            List<DspLaunch> newLaunchList = dspLaunchMapper.selectDspLaunchBySspSlotId(sspSlotId);
-
-            // 6. 批量同步到 etcd
-            if (rows > 0 && etcdTemplate != null && newLaunchList != null && !newLaunchList.isEmpty())
-            {
-                for (DspLaunch newLaunch : newLaunchList)
-                {
-                    try
+                    // 同步删除 etcd
+                    if (etcdTemplate != null)
                     {
-                        etcdTemplate.syncAdd("launch", newLaunch.getId(), newLaunch);
-                    }
-                    catch (Exception e)
-                    {
-                        // 仅记录日志
+                        try
+                        {
+                            etcdTemplate.syncDelete("launch", oldLaunch.getId());
+                            logger.info("✅ etcd 删除成功 - ID: {}", oldLaunch.getId());
+                        }
+                        catch (Exception e)
+                        {
+                            logger.error("❌ etcd 删除失败 - ID: {}, 错误: {}", oldLaunch.getId(), e.getMessage());
+                        }
                     }
                 }
             }
         }
+
+        logger.info("========== 批量保存投放配置完成 - 总数: {} ==========", rows);
         return rows;
     }
 

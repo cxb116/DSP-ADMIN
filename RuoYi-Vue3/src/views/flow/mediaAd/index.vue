@@ -680,6 +680,10 @@
                             />
                           </el-form-item>
                         </el-col>
+                        <!-- 调试信息：显示结算方式 -->
+                        <el-col :span="8" v-if="false">
+                          <el-tag>结算方式: {{ slot.dspPayType }} ({{ typeof slot.dspPayType }})</el-tag>
+                        </el-col>
                       </el-row>
 
                       <!-- 第三行：请求、展现、点击 -->
@@ -1487,7 +1491,7 @@ function loadSlotList(mediaAdId) {
     // dsp_launch 通过 ssp_slot_id 和 dsp_slot_id 关联三张表
     slotList.value = launchConfigList.map(launch => {
       const slotInfo = launch.dspSlotInfo || {}
-      return {
+      const slot = {
         id: launch.id, // dsp_launch 表的 ID
         dspSlotInfoId: launch.dspSlotId, // dsp_slot_info 表的 ID
         trafficWeight: launch.trafficWeight ?? 0,
@@ -1517,10 +1521,13 @@ function loadSlotList(mediaAdId) {
         dspAppStoreVer: slotInfo.dspAppStoreVer || '',
         priceEncryptKey: slotInfo.priceEncryptKey || '',
         dspAppStoreLink: slotInfo.dspAppStoreLink || '',
-        dspPayType: slotInfo.dspPayType || null,
-        dspDealRatio: slotInfo.dspDealRatio || null,
+        dspPayType: slotInfo.dsp_pay_type,  // 使用下划线命名匹配后端返回
+        dspDealRatio: slotInfo.dsp_deal_ratio,
         activeCollapse: ['launch'] // 默认展开投放配置
       }
+      // 调试：输出 dspPayType 信息
+      console.log(`加载配置 [${slot.name}]: dspPayType=${slot.dspPayType}, 类型=${typeof slot.dspPayType}, 是否RTB=${Number(slot.dspPayType) === 2}`)
+      return slot
     })
   }).catch(() => {
     proxy.$modal.msgError('获取投放配置失败')
@@ -1603,21 +1610,21 @@ function handleConfirmSelectSlot() {
         id: null,
         dspSlotInfoId: matchedSlot.id,
         name: matchedSlot.name || 'DSP广告位',
-        osType: matchedSlot.osType,
-        adTypeId: matchedSlot.adTypeId,
-        adSceneId: matchedSlot.adSceneId,
-        adSizeId: matchedSlot.adSizeId,
-        dspSlotCode: matchedSlot.dspSlotCode || '',
-        dspAppKey: matchedSlot.dspAppKey || '',
-        dspAppSecret: matchedSlot.dspAppSecret || '',
-        dspAppId: matchedSlot.dspAppId || '',
-        dspAppPkg: matchedSlot.dspAppPkg || '',
-        dspAppVer: matchedSlot.dspAppVer || '',
-        dspAppStoreVer: matchedSlot.dspAppStoreVer || '',
-        priceEncryptKey: matchedSlot.priceEncryptKey || '',
-        dspAppStoreLink: matchedSlot.dspAppStoreLink || '',
-        dspPayType: matchedSlot.dspPayType || null,
-        dspDealRatio: matchedSlot.dspDealRatio || null,
+        osType: matchedSlot.os_type,
+        adTypeId: matchedSlot.ad_type_id,
+        adSceneId: matchedSlot.ad_scene_id,
+        adSizeId: matchedSlot.ad_size_id,
+        dspSlotCode: matchedSlot.dsp_slot_code || '',
+        dspAppKey: matchedSlot.dsp_app_key || '',
+        dspAppSecret: matchedSlot.dsp_app_secret || '',
+        dspAppId: matchedSlot.dsp_app_id || '',
+        dspAppPkg: matchedSlot.dsp_app_pkg || '',
+        dspAppVer: matchedSlot.dsp_app_ver || '',
+        dspAppStoreVer: matchedSlot.dsp_app_store_ver || '',
+        priceEncryptKey: matchedSlot.price_encrypt_key || '',
+        dspAppStoreLink: matchedSlot.dsp_app_store_link || '',
+        dspPayType: matchedSlot.dsp_pay_type,  // 使用下划线命名
+        dspDealRatio: matchedSlot.dsp_deal_ratio,
         // 投放配置字段
         trafficWeight: 0,
         launchStrategy: 1,
@@ -1633,6 +1640,7 @@ function handleConfirmSelectSlot() {
         brandDirection: 1,
         activeCollapse: ['launch']
       }
+      console.log(`添加 DSP 广告位 [${newSlot.name}]: dspPayType=${newSlot.dspPayType}, 类型=${typeof newSlot.dspPayType}`)
       slotList.value.push(newSlot)
     }
   })

@@ -1,11 +1,14 @@
 package com.ruoyi.system.domain;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
 import java.util.Date;
+import java.util.Map;
 
 /**
  * 预算广告位对象 dsp_slot_info
@@ -78,7 +81,7 @@ public class DspSlotInfo extends BaseEntity
 
     /** 上游预算结算方式，1=分成，2=RTB */
     @Excel(name = "上游预算结算方式，1=分成，2=RTB")
-    private String dspPayType;
+    private Long dspPayType;
 
     /** 成交系数，0到100，单位%，给上游预算出价打折扣  （rtb 时有这个） */
     @Excel(name = "成交系数，0到100，单位%，给上游预算出价打折扣  ", readConverterExp = "rtb,时有这个")
@@ -202,7 +205,9 @@ public class DspSlotInfo extends BaseEntity
         this.dspAppStoreLink = dspAppStoreLink;
     }
 
-    public void setDspPayType(String dspPayType)
+    @JSONField(name = "dsp_pay_type")
+    @JsonProperty("dsp_pay_type")
+    public void setDspPayType(Long dspPayType)
     {
         this.dspPayType = dspPayType;
     }
@@ -289,7 +294,8 @@ public class DspSlotInfo extends BaseEntity
     }
 
     @JSONField(name = "dsp_pay_type")
-    public String getDspPayType()
+    @JsonProperty("dsp_pay_type")
+    public Long getDspPayType()
     {
         return dspPayType;
     }
@@ -328,5 +334,16 @@ public class DspSlotInfo extends BaseEntity
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
             .toString();
+    }
+
+    /**
+     * 重写 getParams，序列化到 etcd 时忽略 params 字段
+     */
+    @JSONField(serialize = false)
+    @JsonIgnore
+    @Override
+    public Map<String, Object> getParams()
+    {
+        return super.getParams();
     }
 }
