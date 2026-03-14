@@ -27,35 +27,6 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['system:dataDspSlot:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['system:dataDspSlot:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['system:dataDspSlot:remove']"
-        >删除</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
           type="warning"
           plain
           icon="Download"
@@ -67,8 +38,13 @@
     </el-row>
 
     <el-table v-loading="loading" :data="dataDspSlotList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="预算广告位" align="center" width="300" prop="dspSlotName">
+      <el-table-column label="日期" align="center" width="150" prop="date">
+        <template #default="scope">
+          <span v-if="scope.row.date">{{ formatDate(scope.row.date) }}</span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预算广告位" align="center" width="200" prop="dspSlotName">
         <template #default="scope">
           <span v-if="scope.row.dspSlotName">{{ scope.row.dspSlotName }}（{{ scope.row.dspSlotId }}）</span>
           <span v-else>{{ scope.row.dspSlotId }}</span>
@@ -76,24 +52,22 @@
       </el-table-column>
       <el-table-column label="预算广告位编号" align="center" width="270" prop="dspSlotCode" />
       <el-table-column label="展示PV" align="center" prop="showPv" />
-      <el-table-column label="展示UV" align="center" prop="showUv" />
       <el-table-column label="点击PV" align="center" prop="clickPv" />
-      <el-table-column label="点击UV" align="center" prop="clickUv" />
       <el-table-column label="请求PV" align="center" prop="reqPv" />
-      <el-table-column label="请求UV" align="center" prop="reqUv" />
       <el-table-column label="丢弃请求" align="center" prop="discard" />
       <el-table-column label="返回PV" align="center" prop="retPv" />
-      <el-table-column label="返回UV" align="center" prop="retUv" />
       <el-table-column label="成本(分)" align="center" prop="spend" />
       <el-table-column label="收入(分)" align="center" prop="income" />
       <el-table-column label="折后点击" align="center" prop="discountClickPv" />
       <el-table-column label="折后展示" align="center" prop="discountShowPv" />
-      <el-table-column label="调起成功" align="center" prop="dplsuccPv" />
-      <el-table-column label="完成量" align="center" prop="completePv" />
-      <el-table-column label="安装量" align="center" prop="installPv" />
-      <el-table-column label="激活量" align="center" prop="activatePv" />
+<!--      <el-table-column label="调起成功" align="center" prop="dplsuccPv" />-->
+<!--      <el-table-column label="完成量" align="center" prop="completePv" />-->
+<!--      <el-table-column label="安装量" align="center" prop="installPv" />-->
+<!--      <el-table-column label="激活量" align="center" prop="activatePv" />-->
+      <el-table-column label="eCPM" align="center" prop="ecpm" />
+      <el-table-column label="CPC" align="center" prop="cpc" />
 <!--      <el-table-column label="时间(yyyyMMdd / yyyyMMddHH)" align="center" prop="date" />-->
-      <el-table-column label="创建时间" align="center" width="270" prop="createdAt" :formatter="formatTimestamp" />
+<!--      <el-table-column label="创建时间" align="center" width="270" prop="createdAt" :formatter="formatTimestamp" />-->
 <!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
 <!--        <template #default="scope">-->
 <!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['system:dataDspSlot:edit']">修改</el-button>-->
@@ -109,81 +83,6 @@
       v-model:limit="queryParams.pageSize"
       @pagination="getList"
     />
-
-    <!-- 添加或修改预算报表对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="dataDspSlotRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="预算位ID" prop="dspSlotId">
-          <el-input v-model="form.dspSlotId" placeholder="请输入预算位ID" />
-        </el-form-item>
-        <el-form-item label="预算广告位" prop="dspSlotCode">
-          <el-input v-model="form.dspSlotCode" placeholder="请输入预算广告位" />
-        </el-form-item>
-        <el-form-item label="展示PV" prop="showPv">
-          <el-input v-model="form.showPv" placeholder="请输入展示PV" />
-        </el-form-item>
-        <el-form-item label="展示UV" prop="showUv">
-          <el-input v-model="form.showUv" placeholder="请输入展示UV" />
-        </el-form-item>
-        <el-form-item label="点击PV" prop="clickPv">
-          <el-input v-model="form.clickPv" placeholder="请输入点击PV" />
-        </el-form-item>
-        <el-form-item label="点击UV" prop="clickUv">
-          <el-input v-model="form.clickUv" placeholder="请输入点击UV" />
-        </el-form-item>
-        <el-form-item label="请求PV" prop="reqPv">
-          <el-input v-model="form.reqPv" placeholder="请输入请求PV" />
-        </el-form-item>
-        <el-form-item label="请求UV" prop="reqUv">
-          <el-input v-model="form.reqUv" placeholder="请输入请求UV" />
-        </el-form-item>
-        <el-form-item label="丢弃请求" prop="discard">
-          <el-input v-model="form.discard" placeholder="请输入丢弃请求" />
-        </el-form-item>
-        <el-form-item label="返回PV" prop="retPv">
-          <el-input v-model="form.retPv" placeholder="请输入返回PV" />
-        </el-form-item>
-        <el-form-item label="返回UV" prop="retUv">
-          <el-input v-model="form.retUv" placeholder="请输入返回UV" />
-        </el-form-item>
-        <el-form-item label="成本(分)" prop="spend">
-          <el-input v-model="form.spend" placeholder="请输入成本(分)" />
-        </el-form-item>
-        <el-form-item label="收入(分)" prop="income">
-          <el-input v-model="form.income" placeholder="请输入收入(分)" />
-        </el-form-item>
-        <el-form-item label="折后点击" prop="discountClickPv">
-          <el-input v-model="form.discountClickPv" placeholder="请输入折后点击" />
-        </el-form-item>
-        <el-form-item label="折后展示" prop="discountShowPv">
-          <el-input v-model="form.discountShowPv" placeholder="请输入折后展示" />
-        </el-form-item>
-        <el-form-item label="调起成功" prop="dplsuccPv">
-          <el-input v-model="form.dplsuccPv" placeholder="请输入调起成功" />
-        </el-form-item>
-        <el-form-item label="完成量" prop="completePv">
-          <el-input v-model="form.completePv" placeholder="请输入完成量" />
-        </el-form-item>
-        <el-form-item label="安装量" prop="installPv">
-          <el-input v-model="form.installPv" placeholder="请输入安装量" />
-        </el-form-item>
-        <el-form-item label="激活量" prop="activatePv">
-          <el-input v-model="form.activatePv" placeholder="请输入激活量" />
-        </el-form-item>
-<!--        <el-form-item label="时间(yyyyMMdd / yyyyMMddHH)" prop="date">-->
-<!--          <el-input v-model="form.date" placeholder="请输入时间(yyyyMMdd / yyyyMMddHH)" />-->
-<!--        </el-form-item>-->
-        <el-form-item label="创建时间戳" prop="createdAt">
-          <el-input v-model="form.createdAt" placeholder="请输入创建时间戳" />
-        </el-form-item>
-      </el-form>
-<!--      <template #footer>-->
-<!--        <div class="dialog-footer">-->
-<!--          <el-button type="primary" @click="submitForm">确 定</el-button>-->
-<!--          <el-button @click="cancel">取 消</el-button>-->
-<!--        </div>-->
-<!--      </template>-->
-    </el-dialog>
   </div>
 </template>
 
@@ -234,6 +133,21 @@ function formatTimestamp(row, column, cellValue) {
     second: '2-digit',
     hour12: false
   })
+}
+
+/** 格式化日期 yyyyMMdd / yyyyMMddHH */
+function formatDate(dateValue) {
+  if (!dateValue) return ''
+  const dateStr = dateValue.toString()
+  // yyyyMMddHH -> yyyy-MM-dd HH:00
+  if (dateStr.length === 10) {
+    return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)} ${dateStr.substring(8, 10)}:00`
+  }
+  // yyyyMMdd -> yyyy-MM-dd
+  if (dateStr.length === 8) {
+    return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`
+  }
+  return dateStr
 }
 
 /** 生成表名 */

@@ -134,9 +134,9 @@
                 <el-form-item label="账号名" prop="account">
                     <el-input v-model="form.account" placeholder="请输入账号名" />
                 </el-form-item>
-                <el-form-item label="密码" prop="password">
-                    <el-input v-model="form.password" placeholder="请输入密码" />
-                </el-form-item>
+<!--                <el-form-item label="密码" prop="password">-->
+<!--                    <el-input v-model="form.password" placeholder="请输入密码" />-->
+<!--                </el-form-item>-->
                 <el-form-item label="公司名称" prop="mediaCompanyName">
                     <el-input v-model="form.mediaCompanyName" placeholder="请输入公司名称" />
                 </el-form-item>
@@ -314,6 +314,10 @@ function handleUpdate(row) {
     const _id = row.id || ids.value
     getMedia(_id).then(response => {
         form.value = response.data
+        // 将 enable 从 int 转换为 string，适配 el-select
+        if (form.value.enable !== null && form.value.enable !== undefined) {
+            form.value.enable = String(form.value.enable)
+        }
         open.value = true
         title.value = "修改媒体管理"
     })

@@ -767,6 +767,7 @@ function handleEditSave() {
       }
 
       if (editForm.value.id) {
+        // 修改操作
         updateInfo(editForm.value).then(() => {
           proxy.$modal.msgSuccess("修改成功")
           activeTab.value = 'list'
@@ -774,14 +775,36 @@ function handleEditSave() {
           getList()
         })
       } else {
-        addInfo(editForm.value).then(() => {
-          proxy.$modal.msgSuccess("新增成功")
-          activeTab.value = 'list'
-          editInfo.value = null
-          getList()
-        })
+        // 新增操作：检查预算方广告位是否已存在
+        checkDspSlotCodeExists()
       }
     }
+  })
+}
+
+/** 检查预算方广告位编码是否已存在 */
+function checkDspSlotCodeExists() {
+  const queryParams = {
+    pageNum: 1,
+    pageSize: 1,
+    dspSlotCode: editForm.value.dspSlotCode
+  }
+
+  listInfo(queryParams).then(response => {
+    if (response.total > 0) {
+      // 预算方广告位已存在
+      proxy.$modal.msgWarning(`预算方广告位编码 "${editForm.value.dspSlotCode}" 已存在，请使用其他编码`)
+    } else {
+      // 不存在，可以添加
+      addInfo(editForm.value).then(() => {
+        proxy.$modal.msgSuccess("新增成功")
+        activeTab.value = 'list'
+        editInfo.value = null
+        getList()
+      })
+    }
+  }).catch(() => {
+    proxy.$modal.msgError("检查预算方广告位编码失败")
   })
 }
 

@@ -1,6 +1,7 @@
 package com.ruoyi.system.domain;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
@@ -91,166 +92,208 @@ public class DspLaunch extends BaseEntity
         return id;
     }
 
+    @JSONField(name = "ssp_slot_id")
+    @JsonProperty("ssp_slot_id")
     public void setSspSlotId(Long sspSlotId)
     {
         this.sspSlotId = sspSlotId;
     }
 
     @JSONField(name = "ssp_slot_id")
+    @JsonProperty("ssp_slot_id")
     public Long getSspSlotId()
     {
         return sspSlotId;
     }
 
+    @JSONField(name = "dsp_slot_id")
+    @JsonProperty("dsp_slot_id")
     public void setDspSlotId(Long dspSlotId)
     {
         this.dspSlotId = dspSlotId;
     }
 
     @JSONField(name = "dsp_slot_id")
+    @JsonProperty("dsp_slot_id")
     public Long getDspSlotId()
     {
         return dspSlotId;
     }
 
+    @JSONField(name = "traffic_weight")
+    @JsonProperty("traffic_weight")
     public void setTrafficWeight(Integer trafficWeight)
     {
         this.trafficWeight = trafficWeight;
     }
 
     @JSONField(name = "traffic_weight")
+    @JsonProperty("traffic_weight")
     public Integer getTrafficWeight()
     {
         return trafficWeight;
     }
 
+    @JSONField(name = "launch_strategy")
+    @JsonProperty("launch_strategy")
     public void setLaunchStrategy(Integer launchStrategy)
     {
         this.launchStrategy = launchStrategy;
     }
 
     @JSONField(name = "launch_strategy")
+    @JsonProperty("launch_strategy")
     public Integer getLaunchStrategy()
     {
         return launchStrategy;
     }
 
+    @JSONField(name = "floor_price")
+    @JsonProperty("floor_price")
     public void setFloorPrice(Long floorPrice)
     {
         this.floorPrice = floorPrice;
     }
 
     @JSONField(name = "floor_price")
+    @JsonProperty("floor_price")
     public Long getFloorPrice()
     {
         return floorPrice;
     }
 
+    @JSONField(name = "ip_limit")
+    @JsonProperty("ip_limit")
     public void setIpLimit(Integer ipLimit)
     {
         this.ipLimit = ipLimit;
     }
 
     @JSONField(name = "ip_limit")
+    @JsonProperty("ip_limit")
     public Integer getIpLimit()
     {
         return ipLimit;
     }
 
+    @JSONField(name = "log_capture_at")
+    @JsonProperty("log_capture_at")
     public void setLogCaptureAt(Integer logCaptureAt)
     {
         this.logCaptureAt = logCaptureAt;
     }
 
     @JSONField(name = "log_capture_at")
+    @JsonProperty("log_capture_at")
     public Integer getLogCaptureAt()
     {
         return logCaptureAt;
     }
 
+    @JSONField(name = "track_schwarz")
+    @JsonProperty("track_schwarz")
     public void setTrackSchwarz(String trackSchwarz)
     {
         this.trackSchwarz = trackSchwarz;
     }
 
     @JSONField(name = "track_schwarz")
+    @JsonProperty("track_schwarz")
     public String getTrackSchwarz()
     {
         return trackSchwarz;
     }
 
+    @JsonProperty("req")
     public void setReq(Long req)
     {
         this.req = req;
     }
 
     @JSONField(serialize = false)
+    @JsonProperty("req")
     public Long getReq()
     {
         return req;
     }
 
+    @JsonProperty("ims")
     public void setIms(Long ims)
     {
         this.ims = ims;
     }
 
     @JSONField(serialize = false)
+    @JsonProperty("ims")
     public Long getIms()
     {
         return ims;
     }
 
+    @JsonProperty("clk")
     public void setClk(Long clk)
     {
         this.clk = clk;
     }
 
     @JSONField(serialize = false)
+    @JsonProperty("clk")
     public Long getClk()
     {
         return clk;
     }
 
+    @JSONField(name = "launch_time")
+    @JsonProperty("launch_time")
     public void setLaunchTime(Integer launchTime)
     {
         this.launchTime = launchTime;
     }
 
     @JSONField(name = "launch_time")
+    @JsonProperty("launch_time")
     public Integer getLaunchTime()
     {
         return launchTime;
     }
 
+    @JSONField(name = "region_direction")
+    @JsonProperty("region_direction")
     public void setRegionDirection(Integer regionDirection)
     {
         this.regionDirection = regionDirection;
     }
 
     @JSONField(name = "region_direction")
+    @JsonProperty("region_direction")
     public Integer getRegionDirection()
     {
         return regionDirection;
     }
 
+    @JSONField(name = "brand_direction")
+    @JsonProperty("brand_direction")
     public void setBrandDirection(Integer brandDirection)
     {
         this.brandDirection = brandDirection;
     }
 
     @JSONField(name = "brand_direction")
+    @JsonProperty("brand_direction")
     public Integer getBrandDirection()
     {
         return brandDirection;
     }
 
+    @JSONField(name = "crowd_direction")
+    @JsonProperty("crowd_direction")
     public void setCrowdDirection(Integer crowdDirection)
     {
         this.crowdDirection = crowdDirection;
     }
 
     @JSONField(name = "crowd_direction")
+    @JsonProperty("crowd_direction")
     public Integer getCrowdDirection()
     {
         return crowdDirection;

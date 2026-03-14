@@ -150,7 +150,7 @@ public class EtcdTemplate
         {
             return "null";
         }
-        int maxLength = 200;
+        int maxLength = 2000;
         if (value.length() <= maxLength)
         {
             return value;

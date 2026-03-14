@@ -107,7 +107,7 @@
     </el-row>
 
     <el-table v-loading="loading" :data="data_ssp_slotList" @selection-change="handleSelectionChange">
-      <el-table-column label="日期" align="center" width="120" prop="date">
+      <el-table-column label="日期" align="center" width="180" prop="date">
         <template #default="scope">
           <span v-if="scope.row.date">{{ formatDate(scope.row.date) }}</span>
           <span v-else>-</span>
@@ -115,7 +115,7 @@
       </el-table-column>
 <!--      <el-table-column label="主键" align="center" prop="id" />-->
 <!--      <el-table-column label="媒体用户" align="center" width="55" prop="meidaId" />-->
-      <el-table-column label="应用" align="center" width="200" prop="appName">
+      <el-table-column label="应用" align="center" width="150" prop="appName">
         <template #default="scope">
           <span v-if="scope.row.appName">{{ scope.row.appName }}（{{ scope.row.appId }}）</span>
           <span v-else>{{ scope.row.appId }}</span>
@@ -151,7 +151,7 @@
 <!--      <el-table-column label="激活量" align="center" width="100" prop="activatePv" />-->
 
 <!--      <el-table-column label="日期 yyyyMMdd" align="center" prop="date" />-->
-      <el-table-column label="创建时间" align="center" width="230" prop="createdAt" :formatter="formatTimestamp" />
+<!--      <el-table-column label="创建时间" align="center" width="230" prop="createdAt" :formatter="formatTimestamp" />-->
 <!--      <el-table-column label="操作" align="center" class-name="small-padding fixed-width">-->
 <!--        <template #default="scope">-->
 <!--          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['data:data_ssp_slot:edit']">修改</el-button>-->
@@ -168,89 +168,6 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改媒体数据报表对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="data_ssp_slotRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="媒体用户Id" prop="meidaId">
-          <el-input v-model="form.meidaId" placeholder="请输入媒体用户Id" />
-        </el-form-item>
-        <el-form-item label="应用ID" prop="appId">
-          <el-input v-model="form.appId" placeholder="请输入应用ID" />
-        </el-form-item>
-        <el-form-item label="SSP广告位ID" prop="sspSlotId">
-          <el-input v-model="form.sspSlotId" placeholder="请输入SSP广告位ID" />
-        </el-form-item>
-        <el-form-item label="DSP广告位ID" prop="dspSlotId">
-          <el-input v-model="form.dspSlotId" placeholder="请输入DSP广告位ID" />
-        </el-form-item>
-        <el-form-item label="预算广告位编号" prop="dspSlotCode">
-          <el-input v-model="form.dspSlotCode" placeholder="请输入预算广告位编号" />
-        </el-form-item>
-        <el-form-item label="展示PV" prop="showPv">
-          <el-input v-model="form.showPv" placeholder="请输入展示PV" />
-        </el-form-item>
-        <el-form-item label="展示UV" prop="showUv">
-          <el-input v-model="form.showUv" placeholder="请输入展示UV" />
-        </el-form-item>
-        <el-form-item label="点击PV" prop="clickPv">
-          <el-input v-model="form.clickPv" placeholder="请输入点击PV" />
-        </el-form-item>
-        <el-form-item label="点击UV" prop="clickUv">
-          <el-input v-model="form.clickUv" placeholder="请输入点击UV" />
-        </el-form-item>
-        <el-form-item label="请求PV" prop="reqPv">
-          <el-input v-model="form.reqPv" placeholder="请输入请求PV" />
-        </el-form-item>
-        <el-form-item label="请求UV" prop="reqUv">
-          <el-input v-model="form.reqUv" placeholder="请输入请求UV" />
-        </el-form-item>
-        <el-form-item label="丢弃请求" prop="discard">
-          <el-input v-model="form.discard" placeholder="请输入丢弃请求" />
-        </el-form-item>
-        <el-form-item label="返回PV" prop="retPv">
-          <el-input v-model="form.retPv" placeholder="请输入返回PV" />
-        </el-form-item>
-        <el-form-item label="返回UV" prop="retUv">
-          <el-input v-model="form.retUv" placeholder="请输入返回UV" />
-        </el-form-item>
-        <el-form-item label="成本(分)" prop="spend">
-          <el-input v-model="form.spend" placeholder="请输入成本(分)" />
-        </el-form-item>
-        <el-form-item label="收入(分)" prop="income">
-          <el-input v-model="form.income" placeholder="请输入收入(分)" />
-        </el-form-item>
-        <el-form-item label="折后点击" prop="discountClickPv">
-          <el-input v-model="form.discountClickPv" placeholder="请输入折后点击" />
-        </el-form-item>
-        <el-form-item label="折后展示" prop="discountShowPv">
-          <el-input v-model="form.discountShowPv" placeholder="请输入折后展示" />
-        </el-form-item>
-        <el-form-item label="调起成功" prop="dplsuccPv">
-          <el-input v-model="form.dplsuccPv" placeholder="请输入调起成功" />
-        </el-form-item>
-        <el-form-item label="完成量" prop="completePv">
-          <el-input v-model="form.completePv" placeholder="请输入完成量" />
-        </el-form-item>
-        <el-form-item label="安装量" prop="installPv">
-          <el-input v-model="form.installPv" placeholder="请输入安装量" />
-        </el-form-item>
-        <el-form-item label="激活量" prop="activatePv">
-          <el-input v-model="form.activatePv" placeholder="请输入激活量" />
-        </el-form-item>
-        <el-form-item label="日期 yyyyMMdd" prop="date">
-          <el-input v-model="form.date" placeholder="请输入日期 yyyyMMdd" />
-        </el-form-item>
-        <el-form-item label="创建时间戳" prop="createdAt">
-          <el-input v-model="form.createdAt" placeholder="请输入创建时间戳" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
-        </div>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -328,9 +245,9 @@ function formatTimestamp(row, column, cellValue) {
 function formatDate(dateValue) {
   if (!dateValue) return ''
   const dateStr = dateValue.toString()
-  // yyyyMMddHH -> yyyy-MM-dd-HH
+  // yyyyMMddHH -> yyyy-MM-dd HH:00
   if (dateStr.length === 10) {
-    return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}-${dateStr.substring(8, 10)}`
+    return `${dateStr.substring(0, 4)}-${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)} ${dateStr.substring(8, 10)}:00`
   }
   // yyyyMMdd -> yyyy-MM-dd
   if (dateStr.length === 8) {

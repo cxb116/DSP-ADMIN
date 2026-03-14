@@ -217,7 +217,7 @@ public class DspSlotInfo extends BaseEntity
         this.companyId = companyId;
     }
 
-    @JSONField(name = "dsp_company_id")
+    @JSONField(name = "company_id")
     public Long getCompanyId()
     {
         return companyId;

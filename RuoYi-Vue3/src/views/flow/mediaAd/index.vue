@@ -44,10 +44,10 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="操作系统类型" prop="osType">
+      <el-form-item label="操作系统" prop="osType">
         <el-select
           v-model="queryParams.osType"
-          placeholder="请选择操作系统类型"
+          placeholder="请选择操作系统"
           clearable
         >
           <el-option
@@ -166,7 +166,7 @@
           {{ getAdTypeName(scope.row.adTypeId) }}
         </template>
       </el-table-column>
-      <el-table-column label="广告场景" align="center" prop="adSceneId" width="120">
+      <el-table-column label="广告场景" align="center" prop="adSceneId" width="160">
         <template #default="scope">
           {{ scope.row.adSceneId ? getAdSceneName(scope.row.adSceneId) : '-' }}
         </template>
@@ -192,7 +192,7 @@
           <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="应用" align="center" prop="appId" width="120">
+      <el-table-column label="应用" align="center" prop="appId" width="170">
         <template #default="scope">
           {{ getAppName(scope.row.appId) }}
         </template>
@@ -329,8 +329,8 @@
               </el-row>
               <el-row :gutter="20">
                 <el-col :span="12">
-                  <el-form-item label="操作系统类型" prop="osType">
-                    <el-select v-model="editForm.osType" placeholder="请选择操作系统类型" style="width: 100%">
+                  <el-form-item label="操作系统" prop="osType">
+                    <el-select v-model="editForm.osType" placeholder="请选择操作系统" style="width: 100%" disabled>
                       <el-option
                         v-for="dict in os_type"
                         :key="dict.value"
@@ -342,7 +342,7 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="接入方式" prop="accessType">
-                    <el-select v-model="editForm.accessType" placeholder="请选择接入方式" style="width: 100%">
+                    <el-select v-model="editForm.accessType" placeholder="请选择接入方式" style="width: 100%" disabled>
                       <el-option
                         v-for="dict in access_type"
                         :key="dict.value"
@@ -669,15 +669,14 @@
 
                       <!-- 第二行：底价 -->
                       <el-row :gutter="16">
-                        <el-col :span="8">
-                          <el-form-item label="底价(分)" :required="slot.dspPayType == 2 || slot.dspPayType == '2'">
+                        <el-col :span="8" v-if="Number(slot.dspPayType) === 2">
+                          <el-form-item label="底价(分)">
                             <el-input-number
                               v-model="slot.floorPrice"
                               :min="0"
-                              placeholder="请输入"
+                              placeholder="请输入底价"
                               :controls="false"
                               style="width: 100%"
-                              :disabled="slot.dspPayType != 1 && slot.dspPayType != '1'"
                             />
                           </el-form-item>
                         </el-col>
@@ -1305,15 +1304,6 @@ watch(() => editForm.value.mediaAppCascade, async (newCascade) => {
   }
 })
 
-/** 监听 dspPayType 变化，非分成模式时自动将底价设为 0 */
-watch(() => slotList.value, (newSlotList) => {
-  newSlotList.forEach(slot => {
-    if (slot.dspPayType != 1 && slot.dspPayType != '1') {
-      slot.floorPrice = 0
-    }
-  })
-}, { deep: true })
-
 /** 新增按钮操作 */
 function handleAdd() {
   // 重置编辑表单
@@ -1500,18 +1490,18 @@ function loadSlotList(mediaAdId) {
       return {
         id: launch.id, // dsp_launch 表的 ID
         dspSlotInfoId: launch.dspSlotId, // dsp_slot_info 表的 ID
-        trafficWeight: launch.trafficWeight,
-        launchStrategy: launch.launchStrategy,
+        trafficWeight: launch.trafficWeight ?? 0,
+        launchStrategy: launch.launchStrategy ?? 1,
         floorPrice: launch.floorPrice,
         ipLimit: launch.ipLimit,
         logCaptureAt: launch.logCaptureAt,
-        trackSchwarz: launch.trackSchwarz,
-        req: launch.req,
-        ims: launch.ims,
-        clk: launch.clk,
-        launchTime: launch.launchTime,
-        regionDirection: launch.regionDirection,
-        brandDirection: launch.brandDirection,
+        trackSchwarz: launch.trackSchwarz || '',
+        req: launch.req ?? 0,
+        ims: launch.ims ?? 0,
+        clk: launch.clk ?? 0,
+        launchTime: launch.launchTime ?? 1,
+        regionDirection: launch.regionDirection ?? 1,
+        brandDirection: launch.brandDirection ?? 1,
         // DspSlotInfo 的字段（从 dsp_slot_info 表获取）
         name: slotInfo.name || '',
         osType: slotInfo.osType,
@@ -1629,7 +1619,7 @@ function handleConfirmSelectSlot() {
         dspPayType: matchedSlot.dspPayType || null,
         dspDealRatio: matchedSlot.dspDealRatio || null,
         // 投放配置字段
-        trafficWeight: null,
+        trafficWeight: 0,
         launchStrategy: 1,
         floorPrice: null,
         ipLimit: null,
@@ -1713,7 +1703,38 @@ function handleCaptureLog(slot) {
     hour12: false
   })
 
-  proxy.$modal.msgSuccess(`已设置捕获日志时长至: ${timeStr} (${captureTime}秒)`)
+  // 立即提交到后端和 etcd（使用下划线命名匹配后端 @JsonProperty）
+  const saveData = {
+    mediaAdId: configMediaAd.value.id,
+    slotList: [{
+      dsp_slot_id: slot.dspSlotInfoId,
+      traffic_weight: slot.trafficWeight ?? 0,
+      launch_strategy: slot.launchStrategy ?? 1,
+      floor_price: slot.floorPrice,
+      ip_limit: slot.ipLimit,
+      log_capture_at: slot.logCaptureAt,
+      track_schwarz: slot.trackSchwarz || '',
+      req: slot.req ?? 0,
+      ims: slot.ims ?? 0,
+      clk: slot.clk ?? 0,
+      launch_time: slot.launchTime ?? 1,
+      region_direction: slot.regionDirection ?? 1,
+      brand_direction: slot.brandDirection ?? 1
+    }]
+  }
+
+  console.log('捕获日志 - 提交配置数据:', saveData)
+
+  // 调用 API 保存投放配置
+  saveLaunchConfig(saveData).then(() => {
+    proxy.$modal.msgSuccess(`捕获日志设置成功，已同步至: ${timeStr} (${captureTime}秒)`)
+    // 保存成功后重新加载配置数据
+    if (configMediaAd.value?.id) {
+      loadSlotList(configMediaAd.value.id)
+    }
+  }).catch(() => {
+    proxy.$modal.msgError('捕获日志设置失败')
+  })
 }
 
 /** 返回列表 */
@@ -1872,14 +1893,6 @@ function handleSaveConfig() {
       return
     }
 
-    // 验证底价必填（仅分成模式，RTB 模式底价为 0 不需要验证）
-    if (slot.dspPayType == 1 || slot.dspPayType == '1') {
-      if (!slot.floorPrice || slot.floorPrice <= 0) {
-        proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的底价不能为空且必须大于0`)
-        return
-      }
-    }
-
     // 验证其他必填字段
     if (!slot.launchStrategy) {
       proxy.$modal.msgWarning(`第 ${i + 1} 个 DSP 广告位的投放策略不能为空`)
@@ -1912,23 +1925,23 @@ function doSaveConfig(slotList) {
   // 过滤掉已删除的项，只保存未删除的配置
   const activeSlotList = slotList.filter(slot => !slot.deleted)
 
-  // 构建保存数据
+  // 构建保存数据（使用下划线命名匹配后端 @JsonProperty）
   const saveData = {
     mediaAdId: configMediaAd.value.id,
     slotList: activeSlotList.map(slot => ({
-      dspSlotId: slot.dspSlotInfoId,
-      trafficWeight: slot.trafficWeight,
-      launchStrategy: slot.launchStrategy,
-      floorPrice: slot.floorPrice,
-      ipLimit: slot.ipLimit,
-      logCaptureAt: slot.logCaptureAt,
-      trackSchwarz: slot.trackSchwarz,
-      req: slot.req,
-      ims: slot.ims,
-      clk: slot.clk,
-      launchTime: slot.launchTime,
-      regionDirection: slot.regionDirection,
-      brandDirection: slot.brandDirection
+      dsp_slot_id: slot.dspSlotInfoId,
+      traffic_weight: slot.trafficWeight ?? 0,
+      launch_strategy: slot.launchStrategy ?? 1,
+      floor_price: slot.floorPrice,
+      ip_limit: slot.ipLimit,
+      log_capture_at: slot.logCaptureAt ?? 300,
+      track_schwarz: slot.trackSchwarz || '',
+      req: slot.req ?? 0,
+      ims: slot.ims ?? 0,
+      clk: slot.clk ?? 0,
+      launch_time: slot.launchTime ?? 1,
+      region_direction: slot.regionDirection ?? 1,
+      brand_direction: slot.brandDirection ?? 1
     }))
   }
 
