@@ -156,10 +156,17 @@
       <el-table-column label="预算方AppId" align="center" prop="dspAppId" width="150" />
       <el-table-column label="结算方式" align="center" prop="dsp_pay_type" width="100">
         <template #default="scope">
-          <dict-tag :options="ssp_pay_type" :value="String(scope.row.dsp_pay_type)" />
+          <span v-if="scope.row.dsp_pay_type === 2 || scope.row.dsp_pay_type === '2'">RTB</span>
+          <span v-else-if="scope.row.dsp_pay_type === 1 || scope.row.dsp_pay_type === '1'">分成</span>
+          <span v-else>-</span>
         </template>
       </el-table-column>
-      <el-table-column label="成交系数" align="center" prop="dsp_deal_ratio" width="100" />
+      <el-table-column label="成交系数" align="center" prop="dsp_deal_ratio" width="100">
+        <template #default="scope">
+          <span v-if="scope.row.dsp_deal_ratio !== null && scope.row.dsp_deal_ratio !== undefined">{{ scope.row.dsp_deal_ratio }}%</span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="创建时间" align="center" prop="createTime" width="180" />
       <el-table-column label="操作" align="center" width="150" fixed="right" class-name="small-padding fixed-width">
         <template #default="scope">
@@ -342,12 +349,8 @@
                 <el-col :span="6">
                   <el-form-item label="结算方式" prop="dspPayType">
                     <el-select v-model="editForm.dspPayType" placeholder="请选择结算方式" style="width: 100%" @change="handleDspPayTypeChange">
-                      <el-option
-                          v-for="dict in ssp_pay_type"
-                          :key="dict.value"
-                          :label="dict.label"
-                          :value="dict.value"
-                      />
+                      <el-option label="RTB" :value="2" />
+                      <el-option label="分成" :value="1" />
                     </el-select>
                   </el-form-item>
                 </el-col>
@@ -355,9 +358,11 @@
                   <el-form-item label="RTB成交系数" prop="dspDealRatio">
                     <el-input
                         v-model="editForm.dspDealRatio"
-                        placeholder="请输入RTB成交系数(单位:%)"
-                        :disabled="editForm.dspPayType === '1'"
-                    />
+                        placeholder="请输入RTB成交系数"
+                        :disabled="editForm.dspPayType !== 2 && editForm.dspPayType !== '2'"
+                    >
+                      <template #append>%</template>
+                    </el-input>
                   </el-form-item>
                 </el-col>
               </el-row>
@@ -609,8 +614,8 @@ function handleQueryCascaderChange(value) {
 
 /** 结算方式改变时触发成交系数验证 */
 function handleDspPayTypeChange() {
-  // 分成模式（'1'）不需要成交系数，清空
-  if (editForm.value.dspPayType === '1') {
+  // 分成模式（1）不需要成交系数，清空
+  if (editForm.value.dspPayType === 1 || editForm.value.dspPayType === '1') {
     editForm.value.dspDealRatio = null
   }
   proxy.$refs["editFormRef"].validateField('dspDealRatio')
@@ -741,7 +746,7 @@ function handleUpdate(row) {
       dspAppStoreVer: data.dspAppStoreVer,
       priceEncryptKey: data.priceEncryptKey,
       dspAppStoreLink: data.dspAppStoreLink,
-      dspPayType: data.dsp_pay_type !== null && data.dsp_pay_type !== undefined ? String(data.dsp_pay_type) : null,
+      dspPayType: data.dsp_pay_type !== null && data.dsp_pay_type !== undefined ? Number(data.dsp_pay_type) : null,
       dspDealRatio: data.dsp_deal_ratio !== null ? data.dsp_deal_ratio : null,
       companyId: data.company_id,
       productId: data.product_id,
@@ -765,19 +770,31 @@ function handleEditSave() {
         editForm.value.productId = editForm.value.companyProductId[1]
       }
 
-      // 确保 dspPayType 不为 null，默认为分成模式（'1'）
+      // 确保 dspPayType 不为 null，默认为分成模式（1）
       if (!editForm.value.dspPayType) {
-        editForm.value.dspPayType = '1'
+        editForm.value.dspPayType = 1
       }
 
-      // 分成模式（'1'）不需要成交系数，清空后再保存
-      if (editForm.value.dspPayType === '1') {
+      // 分成模式（1）不需要成交系数，清空后再保存
+      if (editForm.value.dspPayType === 1 || editForm.value.dspPayType === '1') {
         editForm.value.dspDealRatio = null
       }
 
+      // 转换为下划线命名以匹配后端 @JSONField 注解
+      const submitData = {
+        ...editForm.value,
+        dsp_pay_type: editForm.value.dspPayType,
+        dsp_deal_ratio: editForm.value.dspDealRatio
+      }
+      // 删除驼峰命名的字段
+      delete submitData.dspPayType
+      delete submitData.dspDealRatio
+      // 删除 companyProductId（非数据库字段）
+      delete submitData.companyProductId
+
       if (editForm.value.id) {
         // 修改操作
-        updateInfo(editForm.value).then(() => {
+        updateInfo(submitData).then(() => {
           proxy.$modal.msgSuccess("修改成功")
           activeTab.value = 'list'
           editInfo.value = null
@@ -785,14 +802,14 @@ function handleEditSave() {
         })
       } else {
         // 新增操作：检查预算方广告位是否已存在
-        checkDspSlotCodeExists()
+        checkDspSlotCodeExists(submitData)
       }
     }
   })
 }
 
 /** 检查预算方广告位编码是否已存在 */
-function checkDspSlotCodeExists() {
+function checkDspSlotCodeExists(submitData) {
   const queryParams = {
     pageNum: 1,
     pageSize: 1,
@@ -805,7 +822,7 @@ function checkDspSlotCodeExists() {
       proxy.$modal.msgWarning(`预算方广告位编码 "${editForm.value.dspSlotCode}" 已存在，请使用其他编码`)
     } else {
       // 不存在，可以添加
-      addInfo(editForm.value).then(() => {
+      addInfo(submitData).then(() => {
         proxy.$modal.msgSuccess("新增成功")
         activeTab.value = 'list'
         editInfo.value = null

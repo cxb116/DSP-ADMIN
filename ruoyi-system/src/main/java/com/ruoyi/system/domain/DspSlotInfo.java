@@ -212,6 +212,8 @@ public class DspSlotInfo extends BaseEntity
         this.dspPayType = dspPayType;
     }
 
+    @JSONField(name = "dsp_deal_ratio")
+    @JsonProperty("dsp_deal_ratio")
     public void setDspDealRatio(Long dspDealRatio)
     {
         this.dspDealRatio = dspDealRatio;
