@@ -69,9 +69,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteDspAdTypeByIds" parameterType="String">
-        delete from dsp_ad_type where id in 
+        delete from dsp_ad_type where id in
         <foreach item="id" collection="array" open="(" separator="," close=")">
             #{id}
         </foreach>
     </delete>
+
+    <!-- 查询广告类型分布统计数据 -->
+    <select id="selectAdTypeDistribution" resultType="java.util.HashMap">
+        SELECT
+            t.id,
+            t.name,
+            IFNULL(COUNT(s.id), 0) as slot_count
+        FROM dsp_ad_type t
+        LEFT JOIN dsp_slot_info s ON t.id = s.ad_type_id
+        GROUP BY t.id, t.name
+        ORDER BY slot_count DESC
+    </select>
 </mapper>

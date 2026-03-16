@@ -47,4 +47,68 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         <include refid="selectDataDspSlotVo"/>
         where id = #{id}
     </select>
+
+    <!-- 查询当月汇总统计数据 -->
+    <select id="selectMonthlySummary" parameterType="string" resultType="java.util.HashMap">
+        SELECT
+            IFNULL(SUM(show_pv), 0) as impressions,
+            IFNULL(SUM(click_pv), 0) as clicks,
+            IFNULL(SUM(spend), 0) as spend,
+            IFNULL(SUM(income), 0) as income
+        FROM ${tableName}
+    </select>
+
+    <!-- 查询日期范围内的趋势数据（跨表查询） -->
+    <select id="selectTrendData" resultType="java.util.HashMap">
+        <foreach collection="tableNames" item="tableName" separator="UNION ALL">
+            SELECT
+                date,
+                SUM(show_pv) as show_pv,
+                SUM(click_pv) as click_pv
+            FROM ${tableName}
+            WHERE date BETWEEN #{startDate} AND #{endDate}
+            GROUP BY date
+        </foreach>
+        ORDER BY date
+    </select>
+
+    <!-- 查询指定天数的收益数据（跨表查询） -->
+    <select id="selectRevenueData" resultType="java.util.HashMap">
+        <foreach collection="tableNames" item="tableName" separator="UNION ALL">
+            SELECT
+                date,
+                SUM(spend) as spend,
+                SUM(income) as income
+            FROM ${tableName}
+            WHERE date BETWEEN #{startDate} AND #{endDate}
+            GROUP BY date
+        </foreach>
+        ORDER BY date
+    </select>
+
+    <!-- 查询最近12小时填充率数据 -->
+    <select id="selectTodayFillRate" resultType="java.util.HashMap">
+        SELECT
+            FLOOR(date / 100) as hour_date,
+            SUM(ret_pv) as ret_pv,
+            SUM(show_pv) as show_pv
+        FROM ${tableName}
+        WHERE date >= CAST(DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 12 HOUR), '%Y%m%d%H') AS UNSIGNED)
+        GROUP BY FLOOR(date / 100)
+        ORDER BY hour_date
+    </select>
+
+    <!-- 查询近7天填充率数据（跨表查询） -->
+    <select id="selectFillRateData" resultType="java.util.HashMap">
+        <foreach collection="tableNames" item="tableName" separator="UNION ALL">
+            SELECT
+                date,
+                SUM(ret_pv) as ret_pv,
+                SUM(show_pv) as show_pv
+            FROM ${tableName}
+            WHERE date BETWEEN #{startDate} AND #{endDate}
+            GROUP BY date
+        </foreach>
+        ORDER BY date
+    </select>
 </mapper>

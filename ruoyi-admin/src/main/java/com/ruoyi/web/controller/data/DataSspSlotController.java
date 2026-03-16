@@ -39,6 +39,11 @@ public class DataSspSlotController extends BaseController
     {
         startPage();
         List<DataSspSlot> list = dataSspSlotService.selectDataSspSlotList(dataSspSlot);
+
+        for (DataSspSlot sspSlot : list) {
+
+        }
+
         return getDataTable(list);
     }
 

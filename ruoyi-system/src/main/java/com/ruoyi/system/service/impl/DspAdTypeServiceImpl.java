@@ -1,6 +1,7 @@
 package com.ruoyi.system.service.impl;
 
 import java.util.List;
+import java.util.Map;
 import com.ruoyi.common.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -84,7 +85,7 @@ public class DspAdTypeServiceImpl implements IDspAdTypeService
 
     /**
      * 删除广告类型信息
-     * 
+     *
      * @param id 广告类型主键
      * @return 结果
      */
@@ -92,5 +93,16 @@ public class DspAdTypeServiceImpl implements IDspAdTypeService
     public int deleteDspAdTypeById(Long id)
     {
         return dspAdTypeMapper.deleteDspAdTypeById(id);
+    }
+
+    /**
+     * 查询广告类型分布统计数据
+     *
+     * @return 广告类型分布数据
+     */
+    @Override
+    public List<Map<String, Object>> selectAdTypeDistribution()
+    {
+        return dspAdTypeMapper.selectAdTypeDistribution();
     }
 }

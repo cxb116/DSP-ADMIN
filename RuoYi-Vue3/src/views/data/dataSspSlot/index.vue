@@ -138,10 +138,63 @@
       <el-table-column label="点击PV" align="center" width="100" prop="clickPv" />
       <el-table-column label="请求PV" align="center" width="100" prop="reqPv" />
       <el-table-column label="丢弃请求" align="center" width="100" prop="discard" />
+      <el-table-column label="请求丢失率(%)" align="center" width="130" prop="requestLossRate">
+        <template #default="scope">
+          <span v-if="scope.row.requestLossRate !== null && scope.row.requestLossRate !== undefined">
+            {{ scope.row.requestLossRate.toFixed(2) }}%
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="返回PV" align="center" width="100" prop="retPv" />
-      <el-table-column label="成本(分)" align="center" width="100" prop="spend" />
-      <el-table-column label="收入(分)" align="center" width="100" prop="income" />
-      <el-table-column label="eCPM" align="center" width="100" prop="activatePv" />
+      <el-table-column label="展现率(%)" align="center" width="120" prop="showRate">
+        <template #default="scope">
+          <span v-if="scope.row.showRate !== null && scope.row.showRate !== undefined">
+            {{ scope.row.showRate.toFixed(2) }}%
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="点击率(%)" align="center" width="120" prop="clickRate">
+        <template #default="scope">
+          <span v-if="scope.row.clickRate !== null && scope.row.clickRate !== undefined">
+            {{ scope.row.clickRate.toFixed(2) }}%
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="填充率(%)" align="center" width="120" prop="fillRate">
+        <template #default="scope">
+          <span v-if="scope.row.fillRate !== null && scope.row.fillRate !== undefined">
+            {{ scope.row.fillRate.toFixed(2) }}%
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="预算流水(元)" align="center" width="120" prop="spend">
+        <template #default="scope">
+          <span v-if="scope.row.spend !== null && scope.row.spend !== undefined">
+            {{ (scope.row.spend / 100).toFixed(2) }}
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="收入(元)" align="center" width="100" prop="income">
+        <template #default="scope">
+          <span v-if="scope.row.income !== null && scope.row.income !== undefined">
+            {{ (scope.row.income / 100).toFixed(2) }}
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="eCPM(元)" align="center" width="120" prop="ecpm">
+        <template #default="scope">
+          <span v-if="scope.row.ecpm !== null && scope.row.ecpm !== undefined">
+            {{ scope.row.ecpm.toFixed(2) }}
+          </span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="CPC" align="center" width="100" prop="activatePv" />
 <!--      <el-table-column label="折后点击" align="center" width="100"  prop="discountClickPv" />-->
 <!--      <el-table-column label="折后展示" align="center" width="100" prop="discountShowPv" />-->

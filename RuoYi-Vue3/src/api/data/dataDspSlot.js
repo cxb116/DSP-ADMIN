@@ -42,3 +42,48 @@ export function delDataDspSlot(id) {
     method: 'delete'
   })
 }
+
+// 获取当月汇总统计数据
+export function getMonthlySummary(tableName) {
+  return request({
+    url: '/system/dataDspSlot/summary',
+    method: 'get',
+    params: { tableName }
+  })
+}
+
+// 获取趋势数据
+export function getTrendData(startDate, endDate) {
+  return request({
+    url: '/system/dataDspSlot/trend',
+    method: 'get',
+    params: { startDate, endDate }
+  })
+}
+
+// 获取收益数据
+export function getRevenueData(days) {
+  return request({
+    url: '/system/dataDspSlot/revenue',
+    method: 'get',
+    params: { days }
+  })
+}
+
+// 获取今日填充率数据
+export function getTodayFillRate(tableName) {
+  return request({
+    url: '/system/dataDspSlot/todayFillRate',
+    method: 'get',
+    params: { tableName }
+  })
+}
+
+// 获取近7天填充率数据
+export function getFillRateData(days) {
+  return request({
+    url: '/system/dataDspSlot/fillRate',
+    method: 'get',
+    params: { days }
+  })
+}

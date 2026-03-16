@@ -42,3 +42,11 @@ export function delType(id) {
     method: 'delete'
   })
 }
+
+// 获取广告类型分布统计
+export function getAdTypeDistribution() {
+  return request({
+    url: '/ad/type/distribution',
+    method: 'get'
+  })
+}

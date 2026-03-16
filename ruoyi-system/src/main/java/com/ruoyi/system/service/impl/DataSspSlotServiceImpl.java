@@ -64,6 +64,77 @@ public class DataSspSlotServiceImpl implements IDataSspSlotService
         {
             dataSspSlot.setTableName(generateCurrentTableName());
         }
-        return dataSspSlotMapper.selectDataSspSlotList(dataSspSlot);
+
+        // 查询数据
+        List<DataSspSlot> list = dataSspSlotMapper.selectDataSspSlotList(dataSspSlot);
+
+        // 计算填充率、请求丢失率、展现率、点击率、eCPM（只计算，不存数据库）
+        if (list != null && !list.isEmpty())
+        {
+            for (DataSspSlot data : list)
+            {
+                // 填充率 = 返回PV / 请求PV * 100%
+                if (data.getReqPv() != null && data.getReqPv() > 0)
+                {
+                    double fillRate = (data.getRetPv() != null ? data.getRetPv() : 0.0) * 100.0 / data.getReqPv();
+                    // 保留两位小数
+                    data.setFillRate(Math.round(fillRate * 100.0) / 100.0);
+                }
+                else
+                {
+                    data.setFillRate(0.0);
+                }
+
+                // 请求丢失率 = 丢弃请求 / 请求PV * 100%
+                if (data.getReqPv() != null && data.getReqPv() > 0)
+                {
+                    double requestLossRate = (data.getDiscard() != null ? data.getDiscard() : 0.0) * 100.0 / data.getReqPv();
+                    // 保留两位小数
+                    data.setRequestLossRate(Math.round(requestLossRate * 100.0) / 100.0);
+                }
+                else
+                {
+                    data.setRequestLossRate(0.0);
+                }
+
+                // 展现率 = 展示PV / 返回PV * 100%
+                if (data.getRetPv() != null && data.getRetPv() > 0)
+                {
+                    double showRate = (data.getShowPv() != null ? data.getShowPv() : 0.0) * 100.0 / data.getRetPv();
+                    // 保留两位小数
+                    data.setShowRate(Math.round(showRate * 100.0) / 100.0);
+                }
+                else
+                {
+                    data.setShowRate(0.0);
+                }
+
+                // 点击率 = 点击PV / 返回PV * 100%
+                if (data.getRetPv() != null && data.getRetPv() > 0)
+                {
+                    double clickRate = (data.getClickPv() != null ? data.getClickPv() : 0.0) * 100.0 / data.getRetPv();
+                    // 保留两位小数
+                    data.setClickRate(Math.round(clickRate * 100.0) / 100.0);
+                }
+                else
+                {
+                    data.setClickRate(0.0);
+                }
+
+                // eCPM = (收入 / 100) / 展示PV × 1000 = 收入 / 展示PV × 10
+                if (data.getShowPv() != null && data.getShowPv() > 0)
+                {
+                    double ecpm = (data.getIncome() != null ? data.getIncome() : 0.0) * 10.0 / data.getShowPv();
+                    // 保留两位小数
+                    data.setEcpm(Math.round(ecpm * 100.0) / 100.0);
+                }
+                else
+                {
+                    data.setEcpm(0.0);
+                }
+            }
+        }
+
+        return list;
     }
 }

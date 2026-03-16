@@ -79,9 +79,8 @@
                 数据趋势分析
               </span>
               <el-radio-group v-model="trendPeriod" size="small" @change="updateTrendChart">
-                <el-radio-button value="week">近7天</el-radio-button>
+                <el-radio-button value="twelve">近12天</el-radio-button>
                 <el-radio-button value="month">近30天</el-radio-button>
-                <el-radio-button value="quarter">近90天</el-radio-button>
               </el-radio-group>
             </div>
           </template>
@@ -130,7 +129,12 @@
                 <el-icon><DataLine /></el-icon>
                 实时数据监控
               </span>
-              <el-tag type="success" size="small">实时更新</el-tag>
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <el-button type="primary" size="small" @click="showFillRateDetail">
+                  填充率详细
+                </el-button>
+                <el-tag type="success" size="small">实时更新</el-tag>
+              </div>
             </div>
           </template>
           <div ref="realtimeChartRef" class="chart-container"></div>
@@ -185,6 +189,16 @@
         </el-card>
       </el-col>
     </el-row>
+
+    <!-- 填充率详情对话框 -->
+    <el-dialog
+      v-model="fillRateDialogVisible"
+      title="近7天填充率详情"
+      width="80%"
+      :close-on-click-modal="false"
+    >
+      <div ref="fillRateChartRef" style="width: 100%; height: 500px;"></div>
+    </el-dialog>
   </div>
 </template>
 
@@ -192,6 +206,8 @@
 import { ref, onMounted, onUnmounted, reactive, computed } from 'vue'
 import * as echarts from 'echarts'
 import useSettingsStore from '@/store/modules/settings'
+import { getMonthlySummary, getTrendData, getRevenueData, getTodayFillRate, getFillRateData } from '@/api/data/dataDspSlot'
+import { getAdTypeDistribution } from '@/api/ad/type'
 
 const settingsStore = useSettingsStore()
 const isDark = computed(() => settingsStore.isDark)
@@ -211,14 +227,14 @@ import {
 
 // 统计数据
 const stats = reactive({
-  impressions: 2847563,
-  clicks: 128456,
-  revenue: 45678.52,
-  profit: 23456.78
+  impressions: 0,
+  clicks: 0,
+  revenue: 0,
+  profit: 0
 })
 
 // 趋势周期
-const trendPeriod = ref('week')
+const trendPeriod = ref('twelve')
 
 // 图表引用
 const trendChartRef = ref(null)
@@ -231,16 +247,18 @@ let trendChart = null
 let pieChart = null
 let revenueChart = null
 let realtimeChart = null
+let fillRateDetailChart = null
+
+// 数据刷新定时器
+let dataRefreshTimer = null
+let realtimeRefreshTimer = null
+
+// 填充率详情对话框
+const fillRateDialogVisible = ref(false)
+const fillRateChartRef = ref(null)
 
 // 表格数据
-const tableData = ref([
-  { time: '00:00 - 04:00', impressions: 125680, clicks: 5632, ctr: 4.48, revenue: 2015.20, profit: 1032.50 },
-  { time: '04:00 - 08:00', impressions: 189430, clicks: 8921, ctr: 4.71, revenue: 3195.80, profit: 1638.20 },
-  { time: '08:00 - 12:00', impressions: 456789, clicks: 21567, ctr: 4.72, revenue: 7725.50, profit: 3956.30 },
-  { time: '12:00 - 16:00', impressions: 623456, clicks: 28123, ctr: 4.51, revenue: 10085.40, profit: 5165.20 },
-  { time: '16:00 - 20:00', impressions: 789234, clicks: 35678, ctr: 4.52, revenue: 12795.60, profit: 6555.80 },
-  { time: '20:00 - 24:00', impressions: 662974, clicks: 28535, ctr: 4.30, revenue: 9861.02, profit: 5108.78 }
-])
+const tableData = ref([])
 
 // 格式化数字
 function formatNumber(num) {
@@ -258,27 +276,80 @@ function initTrendChart() {
   updateTrendChart()
 }
 
-// 更新趋势图
-function updateTrendChart() {
-  const data = {
-    week: {
-      dates: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-      impressions: [382156, 412893, 378456, 445678, 489234, 356789, 382357],
-      clicks: [17123, 18923, 16542, 19783, 21895, 15234, 17564]
-    },
-    month: {
-      dates: Array.from({ length: 30 }, (_, i) => `${i + 1}日`),
-      impressions: Array.from({ length: 30 }, () => Math.floor(Math.random() * 300000 + 200000)),
-      clicks: Array.from({ length: 30 }, () => Math.floor(Math.random() * 15000 + 8000))
-    },
-    quarter: {
-      dates: Array.from({ length: 12 }, (_, i) => `${Math.floor(i / 3) + 1}月${(i % 3) * 10 + 1}日`),
-      impressions: Array.from({ length: 12 }, () => Math.floor(Math.random() * 800000 + 500000)),
-      clicks: Array.from({ length: 12 }, () => Math.floor(Math.random() * 35000 + 20000))
+// 加载趋势数据
+async function loadTrendData(days) {
+  try {
+    // 计算日期范围
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days + 1)
+
+    // 格式化日期为 yyyyMMdd
+    const formatDate = (date) => {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}${month}${day}`
     }
+
+    const startDateStr = formatDate(startDate)
+    const endDateStr = formatDate(endDate)
+
+    // 调用后端接口
+    const response = await getTrendData(startDateStr, endDateStr)
+    const data = response.data || []
+
+    // 格式化返回的数据
+    const dates = []
+    const impressions = []
+    const clicks = []
+
+    // 填充数据（可能有些日期没有数据）
+    const dateMap = {}
+    data.forEach(item => {
+      dateMap[item.date] = {
+        show_pv: item.show_pv || 0,
+        click_pv: item.click_pv || 0
+      }
+    })
+
+    // 生成日期序列
+    const currentDate = new Date(startDate)
+    while (currentDate <= endDate) {
+      const dateStr = formatDate(currentDate)
+      const month = String(currentDate.getMonth() + 1).padStart(2, '0')
+      const day = String(currentDate.getDate()).padStart(2, '0')
+      dates.push(`${month}-${day}`)
+
+      const dayData = dateMap[dateStr]
+      impressions.push(dayData ? dayData.show_pv : 0)
+      clicks.push(dayData ? dayData.click_pv : 0)
+
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    return { dates, impressions, clicks }
+  } catch (error) {
+    console.error('获取趋势数据失败:', error)
+    return { dates: [], impressions: [], clicks: [] }
+  }
+}
+
+// 更新趋势图
+async function updateTrendChart() {
+  let days = 12 // 默认12天
+
+  if (trendPeriod.value === 'twelve') {
+    days = 12 // 近12天
+  } else if (trendPeriod.value === 'month') {
+    days = 30 // 近30天
   }
 
-  const currentData = data[trendPeriod.value]
+  // 加载数据
+  const trendData = await loadTrendData(days)
+  const dates = trendData.dates
+  const impressions = trendData.impressions
+  const clicks = trendData.clicks
 
   const option = {
     tooltip: {
@@ -303,7 +374,7 @@ function updateTrendChart() {
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: currentData.dates,
+      data: dates,
       axisLine: { lineStyle: { color: '#ddd' } },
       axisLabel: { color: '#666' }
     },
@@ -334,7 +405,7 @@ function updateTrendChart() {
             { offset: 1, color: 'rgba(64, 158, 255, 0.05)' }
           ])
         },
-        data: currentData.impressions
+        data: impressions
       },
       {
         name: '点击量',
@@ -349,7 +420,7 @@ function updateTrendChart() {
             { offset: 1, color: 'rgba(103, 194, 58, 0.05)' }
           ])
         },
-        data: currentData.clicks
+        data: clicks
       }
     ]
   }
@@ -358,146 +429,355 @@ function updateTrendChart() {
 }
 
 // 初始化饼图
-function initPieChart() {
+async function initPieChart() {
   pieChart = echarts.init(pieChartRef.value)
 
-  const option = {
-    tooltip: {
-      trigger: 'item',
-      formatter: '{b}: {c} ({d}%)'
-    },
-    legend: {
-      orient: 'vertical',
-      left: 'left',
-      textStyle: { color: '#666' }
-    },
-    series: [
-      {
-        name: '广告位',
-        type: 'pie',
-        radius: ['40%', '70%'],
-        avoidLabelOverlap: false,
-        itemStyle: {
-          borderRadius: 10,
-          borderColor: '#fff',
-          borderWidth: 2
-        },
-        label: {
-          show: true,
-          formatter: '{b}\n{d}%'
-        },
-        emphasis: {
+  try {
+    // 调用后端接口获取广告类型分布数据
+    const response = await getAdTypeDistribution()
+    const distribution = response.data || []
+
+    // 颜色数组
+    const colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#9a60b4', '#ef6666', '#f39c12']
+
+    // 计算总数
+    const total = distribution.reduce((sum, item) => sum + (item.slot_count || 0), 0)
+
+    // 转换为 ECharts 需要的格式
+    const chartData = distribution.map((item, index) => ({
+      value: item.slot_count || 0,
+      name: item.name,
+      itemStyle: { color: colors[index % colors.length] }
+    }))
+
+    const option = {
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {c} ({d}%)'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        textStyle: { color: '#666' }
+      },
+      series: [
+        {
+          name: '广告类型',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
           label: {
             show: true,
-            fontSize: 16,
-            fontWeight: 'bold'
-          }
-        },
-        data: [
-          { value: 785432, name: 'Banner横幅', itemStyle: { color: '#5470c6' } },
-          { value: 623451, name: '信息流', itemStyle: { color: '#91cc75' } },
-          { value: 456789, name: '开屏广告', itemStyle: { color: '#fac858' } },
-          { value: 389234, name: '插屏广告', itemStyle: { color: '#ee6666' } },
-          { value: 592657, name: '原生广告', itemStyle: { color: '#73c0de' } }
-        ]
-      }
-    ]
-  }
+            formatter: '{b}\n{d}%'
+          },
+          emphasis: {
+            label: {
+              show: true,
+              fontSize: 16,
+              fontWeight: 'bold'
+            }
+          },
+          data: chartData
+        }
+      ]
+    }
 
-  pieChart.setOption(option)
+    pieChart.setOption(option)
+  } catch (error) {
+    console.error('获取广告类型分布失败:', error)
+
+    // 失败时显示空图表
+    const option = {
+      tooltip: {
+        trigger: 'item',
+        formatter: '{b}: {c} ({d}%)'
+      },
+      legend: {
+        orient: 'vertical',
+        left: 'left',
+        textStyle: { color: '#666' }
+      },
+      series: [
+        {
+          name: '广告类型',
+          type: 'pie',
+          radius: ['40%', '70%'],
+          avoidLabelOverlap: false,
+          itemStyle: {
+            borderRadius: 10,
+            borderColor: '#fff',
+            borderWidth: 2
+          },
+          label: {
+            show: true,
+            formatter: '{b}\n{d}%'
+          },
+          data: []
+        }
+      ]
+    }
+
+    pieChart.setOption(option)
+  }
 }
 
 // 初始化收益图
-function initRevenueChart() {
+async function initRevenueChart() {
   revenueChart = echarts.init(revenueChartRef.value)
 
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      axisPointer: {
-        type: 'shadow'
+  try {
+    // 调用后端接口获取前7天的收益数据
+    const response = await getRevenueData(7)
+    const revenueData = response.data || []
+
+    // 格式化数据
+    const dates = []
+    const income = [] // 收入（单位：元）
+    const spend = [] // 成本/支出（单位：元）
+
+    // 填充数据
+    const dateMap = {}
+    revenueData.forEach(item => {
+      dateMap[item.date] = {
+        spend: (item.spend || 0) / 100, // 分转元
+        income: (item.income || 0) / 100 // 分转元
       }
-    },
-    legend: {
-      data: ['收益', '利润'],
-      textStyle: { color: '#666' }
-    },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '3%',
-      containLabel: true
-    },
-    xAxis: {
-      type: 'category',
-      data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-      axisLine: { lineStyle: { color: '#ddd' } },
-      axisLabel: { color: '#666' }
-    },
-    yAxis: {
-      type: 'value',
-      name: '金额(元)',
-      splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
-      axisLabel: {
-        formatter: '¥{value}',
-        color: '#666'
-      }
-    },
-    series: [
-      {
-        name: '收益',
-        type: 'bar',
-        data: [5234.5, 5892.3, 5123.8, 6234.2, 6789.5, 4567.3, 5136.7],
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#ffd666' },
-            { offset: 1, color: '#ffa940' }
-          ]),
-          borderRadius: [5, 5, 0, 0]
+    })
+
+    // 生成最近7天的日期序列
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = d.getFullYear().toString() +
+                     String(d.getMonth() + 1).padStart(2, '0') +
+                     String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      dates.push(`${month}-${day}`)
+
+      const dayData = dateMap[dateStr]
+      income.push(dayData ? dayData.income : 0)
+      spend.push(dayData ? dayData.spend : 0)
+    }
+
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
         }
       },
-      {
-        name: '利润',
-        type: 'bar',
-        data: [2678.2, 3023.5, 2623.4, 3189.6, 3472.8, 2338.9, 2627.8],
-        itemStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: '#b37feb' },
-            { offset: 1, color: '#722ed1' }
-          ]),
-          borderRadius: [5, 5, 0, 0]
+      legend: {
+        data: ['收入', '预算流水'],
+        textStyle: { color: '#666' }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: dates,
+        axisLine: { lineStyle: { color: '#ddd' } },
+        axisLabel: { color: '#666' }
+      },
+      yAxis: {
+        type: 'value',
+        name: '金额(元)',
+        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
+        axisLabel: {
+          formatter: '¥{value}',
+          color: '#666'
+        }
+      },
+      series: [
+        {
+          name: '收入',
+          type: 'bar',
+          data: income,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#ffd666' },
+              { offset: 1, color: '#ffa940' }
+            ]),
+            borderRadius: [5, 5, 0, 0]
+          }
+        },
+        {
+          name: '预算流水',
+          type: 'bar',
+          data: spend,
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#b37feb' },
+              { offset: 1, color: '#722ed1' }
+            ]),
+            borderRadius: [5, 5, 0, 0]
+          }
+        }
+      ]
+    }
+
+    revenueChart.setOption(option)
+  } catch (error) {
+    console.error('获取收益数据失败:', error)
+
+    // 失败时显示空图表
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          type: 'shadow'
+        }
+      },
+      legend: {
+        data: ['收入', '预算流水'],
+        textStyle: { color: '#666' }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: [],
+        axisLine: { lineStyle: { color: '#ddd' } },
+        axisLabel: { color: '#666' }
+      },
+      yAxis: {
+        type: 'value',
+        name: '金额(元)',
+        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
+        axisLabel: {
+          formatter: '¥{value}',
+          color: '#666'
+        }
+      },
+      series: [
+        {
+          name: '收入',
+          type: 'bar',
+          data: [],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#ffd666' },
+              { offset: 1, color: '#ffa940' }
+            ]),
+            borderRadius: [5, 5, 0, 0]
+          }
+        },
+        {
+          name: '预算流水',
+          type: 'bar',
+          data: [],
+          itemStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: '#b37feb' },
+              { offset: 1, color: '#722ed1' }
+            ]),
+            borderRadius: [5, 5, 0, 0]
+          }
+        }
+      ]
+    }
+
+    revenueChart.setOption(option)
+  }
+}
+
+// 加载最近12小时填充率数据
+async function loadTodayFillRateData() {
+  try {
+    // 生成当前月份的表名（格式：data_dsp_slot_day_YYYYMM）
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const tableName = `data_dsp_slot_day_${year}${month}`
+
+    // 调用后端接口获取最近12小时填充率数据
+    const response = await getTodayFillRate(tableName)
+    const fillRateData = response.data || []
+
+    // 生成连续的12个小时标签
+    const hours = []
+    const fillRates = []
+
+    // 创建数据映射，key为yyyyMMddHH格式
+    const dataMap = {}
+    fillRateData.forEach(item => {
+      let hourDate = item.hour_date || item.date
+      if (hourDate) {
+        const key = typeof hourDate === 'number' ? hourDate.toString() : hourDate.toString()
+        dataMap[key] = {
+          ret_pv: item.ret_pv || 0,
+          show_pv: item.show_pv || 0
         }
       }
-    ]
-  }
+    })
 
-  revenueChart.setOption(option)
+    // 生成最近12个小时的时间序列
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 60 * 60 * 1000)
+      const hourStr = String(d.getHours()).padStart(2, '0')
+      hours.push(`${hourStr}:00`)
+
+      // 构建yyyyMMddHH格式的key
+      const yyyy = d.getFullYear()
+      const MM = String(d.getMonth() + 1).padStart(2, '0')
+      const dd = String(d.getDate()).padStart(2, '0')
+      const HH = hourStr
+      const key = `${yyyy}${MM}${dd}${HH}`
+
+      // 从映射中获取数据并计算填充率
+      const data = dataMap[key]
+      const retPv = data ? data.ret_pv : 0
+      const showPv = data ? data.show_pv : 0
+      const fillRate = showPv > 0 ? (retPv / showPv * 100).toFixed(2) : '0.00'
+      fillRates.push(parseFloat(fillRate))
+    }
+
+    return { hours, fillRates }
+  } catch (error) {
+    console.error('获取12小时填充率数据失败:', error)
+
+    // 失败时返回空数据
+    const hours = []
+    const fillRates = []
+    const now = new Date()
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 60 * 60 * 1000)
+      const hourStr = String(d.getHours()).padStart(2, '0')
+      hours.push(`${hourStr}:00`)
+      fillRates.push(0)
+    }
+
+    return { hours, fillRates }
+  }
 }
 
 // 初始化实时图
-function initRealtimeChart() {
+async function initRealtimeChart() {
   realtimeChart = echarts.init(realtimeChartRef.value)
 
-  // 生成初始数据
-  const now = new Date()
-  const data = []
-  for (let i = 0; i < 60; i++) {
-    data.push({
-      name: new Date(now - (60 - i) * 1000),
-      value: [
-        new Date(now - (60 - i) * 1000),
-        Math.round(Math.random() * 100 + 200)
-      ]
-    })
-  }
+  // 加载今日填充率数据
+  const { hours, fillRates } = await loadTodayFillRateData()
 
   const option = {
     tooltip: {
       trigger: 'axis',
       formatter: function(params) {
         params = params[0]
-        const date = new Date(params.value[0])
-        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}<br/>RPM: ${params.value[1]}`
+        return `${params.axisValue}<br/>填充率: ${params.value}%`
       },
       axisPointer: {
         animation: false
@@ -510,26 +790,40 @@ function initRealtimeChart() {
       containLabel: true
     },
     xAxis: {
-      type: 'time',
+      type: 'category',
+      data: hours,
       splitLine: { show: false },
-      axisLabel: { color: '#666' }
+      axisLabel: {
+        color: '#666',
+        interval: 0,
+        rotate: 0
+      }
     },
     yAxis: {
       type: 'value',
-      name: 'RPM',
+      name: '填充率 (%)',
       boundaryGap: [0, '100%'],
       splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
-      axisLabel: { color: '#666' }
+      axisLabel: {
+        formatter: '{value}%',
+        color: '#666'
+      },
+      min: 0,
+      max: 100
     },
     series: [
       {
-        name: 'RPM',
+        name: '填充率',
         type: 'line',
-        showSymbol: false,
+        showSymbol: true,
+        symbolSize: 6,
         hoverAnimation: false,
-        data: data,
+        data: fillRates,
         lineStyle: {
           width: 3,
+          color: '#52c41a'
+        },
+        itemStyle: {
           color: '#52c41a'
         },
         areaStyle: {
@@ -543,35 +837,171 @@ function initRealtimeChart() {
   }
 
   realtimeChart.setOption(option)
+}
 
-  // 模拟实时数据更新
-  setInterval(() => {
-    const now = new Date()
-    data.shift()
-    data.push({
-      name: now,
-      value: [
-        now,
-        Math.round(Math.random() * 100 + 200)
-      ]
+// 加载近7天填充率数据
+async function load7DayFillRateData() {
+  try {
+    // 调用后端接口获取近7天填充率数据
+    const response = await getFillRateData(7)
+    const fillRateData = response.data || []
+
+    // 格式化数据：计算填充率 = (ret_pv / show_pv * 100)
+    const dates = []
+    const fillRates = []
+
+    // 填充数据
+    const dateMap = {}
+    fillRateData.forEach(item => {
+      dateMap[item.date] = {
+        ret_pv: item.ret_pv || 0,
+        show_pv: item.show_pv || 0
+      }
     })
-    realtimeChart.setOption({
+
+    // 生成最近7天的日期序列
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const dateStr = d.getFullYear().toString() +
+                     String(d.getMonth() + 1).padStart(2, '0') +
+                     String(d.getDate()).padStart(2, '0')
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      dates.push(`${month}-${day}`)
+
+      // 计算填充率
+      const dayData = dateMap[dateStr]
+      const retPv = dayData ? dayData.ret_pv : 0
+      const showPv = dayData ? dayData.show_pv : 0
+      const fillRate = showPv > 0 ? (retPv / showPv * 100).toFixed(2) : '0.00'
+      fillRates.push(parseFloat(fillRate))
+    }
+
+    return { dates, fillRates }
+  } catch (error) {
+    console.error('获取近7天填充率数据失败:', error)
+
+    // 失败时返回空数据
+    const dates = []
+    const fillRates = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      const month = String(d.getMonth() + 1).padStart(2, '0')
+      const day = String(d.getDate()).padStart(2, '0')
+      dates.push(`${month}-${day}`)
+      fillRates.push(0)
+    }
+    return { dates, fillRates }
+  }
+}
+
+// 显示填充率详情对话框
+async function showFillRateDetail() {
+  fillRateDialogVisible.value = true
+
+  // 等待对话框渲染完成后初始化图表
+  setTimeout(async () => {
+    if (!fillRateDetailChart) {
+      fillRateDetailChart = echarts.init(fillRateChartRef.value)
+    }
+
+    // 加载近7天填充率数据
+    const { dates, fillRates } = await load7DayFillRateData()
+
+    const option = {
+      tooltip: {
+        trigger: 'axis',
+        formatter: function(params) {
+          params = params[0]
+          return `${params.axisValue}<br/>填充率: ${params.value}%`
+        }
+      },
+      legend: {
+        data: ['填充率'],
+        textStyle: { color: '#666' }
+      },
+      grid: {
+        left: '3%',
+        right: '4%',
+        bottom: '3%',
+        containLabel: true
+      },
+      xAxis: {
+        type: 'category',
+        data: dates,
+        axisLine: { lineStyle: { color: '#ddd' } },
+        axisLabel: { color: '#666' }
+      },
+      yAxis: {
+        type: 'value',
+        name: '填充率 (%)',
+        splitLine: { lineStyle: { type: 'dashed', color: '#eee' } },
+        axisLabel: {
+          formatter: '{value}%',
+          color: '#666'
+        },
+        min: 0,
+        max: 100
+      },
       series: [
         {
-          data: data
+          name: '填充率',
+          type: 'line',
+          smooth: true,
+          lineStyle: { width: 3 },
+          showSymbol: true,
+          symbolSize: 8,
+          data: fillRates,
+          itemStyle: {
+            color: '#52c41a'
+          },
+          areaStyle: {
+            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+              { offset: 0, color: 'rgba(82, 196, 26, 0.3)' },
+              { offset: 1, color: 'rgba(82, 196, 26, 0.05)' }
+            ])
+          }
         }
       ]
-    })
-  }, 1000)
+    }
+
+    fillRateDetailChart.setOption(option)
+  }, 100)
 }
 
 // 刷新数据
-function refreshData() {
-  // 更新统计数据
-  stats.impressions = Math.floor(Math.random() * 1000000 + 2000000)
-  stats.clicks = Math.floor(Math.random() * 50000 + 100000)
-  stats.revenue = Math.random() * 20000 + 30000
-  stats.profit = Math.random() * 10000 + 15000
+async function refreshData() {
+  try {
+    // 生成当前月份的表名（格式：data_dsp_slot_day_YYYYMM）
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const tableName = `data_dsp_slot_day_${year}${month}`
+
+    // 调用后端接口获取当月汇总数据
+    const response = await getMonthlySummary(tableName)
+    const data = response.data
+
+    // 更新统计数据（注意单位转换）
+    // 广告展示：show_pv（直接显示）
+    stats.impressions = data.impressions || 0
+
+    // 广告点击：click_pv（直接显示）
+    stats.clicks = data.clicks || 0
+
+    // 预估收益：spend（单位：分，需要转换为元）
+    stats.revenue = (data.spend || 0) / 100
+
+    // 利润：income（单位：分，需要转换为元）
+    stats.profit = (data.income || 0) / 100
+
+    console.log('首页统计数据已更新:', stats)
+  } catch (error) {
+    console.error('获取统计数据失败:', error)
+    // 失败时保持数据为0或原值
+  }
 
   // 更新图表
   updateTrendChart()
@@ -583,9 +1013,13 @@ function handleResize() {
   pieChart?.resize()
   revenueChart?.resize()
   realtimeChart?.resize()
+  fillRateDetailChart?.resize()
 }
 
 onMounted(() => {
+  // 加载统计数据
+  refreshData()
+
   // 初始化所有图表
   setTimeout(() => {
     initTrendChart()
@@ -596,14 +1030,37 @@ onMounted(() => {
 
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
+
+  // 设置定时器，每隔10秒刷新一次数据（主要统计和趋势图）
+  dataRefreshTimer = setInterval(() => {
+    refreshData()
+  }, 10000)
+
+  // 设置定时器，每隔10分钟刷新一次实时监控图表
+  realtimeRefreshTimer = setInterval(() => {
+    initRealtimeChart()
+  }, 600000) // 10分钟 = 600000毫秒
 })
 
 onUnmounted(() => {
+  // 清除数据刷新定时器
+  if (dataRefreshTimer) {
+    clearInterval(dataRefreshTimer)
+    dataRefreshTimer = null
+  }
+
+  // 清除实时监控刷新定时器
+  if (realtimeRefreshTimer) {
+    clearInterval(realtimeRefreshTimer)
+    realtimeRefreshTimer = null
+  }
+
   // 销毁图表实例
   trendChart?.dispose()
   pieChart?.dispose()
   revenueChart?.dispose()
   realtimeChart?.dispose()
+  fillRateDetailChart?.dispose()
 
   // 移除事件监听
   window.removeEventListener('resize', handleResize)

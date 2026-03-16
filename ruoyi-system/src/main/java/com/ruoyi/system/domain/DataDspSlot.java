@@ -109,6 +109,21 @@ public class DataDspSlot extends BaseEntity
     /** 预算广告位名称（关联查询，不属于表字段） */
     private String dspSlotName;
 
+    /** 填充率（计算字段，不属于表字段） */
+    private Double fillRate;
+
+    /** 请求丢失率（计算字段，不属于表字段） */
+    private Double requestLossRate;
+
+    /** 展现率（计算字段，不属于表字段） */
+    private Double showRate;
+
+    /** 点击率（计算字段，不属于表字段） */
+    private Double clickRate;
+
+    /** eCPM（计算字段，不属于表字段） */
+    private Double ecpm;
+
     public void setId(Long id) 
     {
         this.id = id;
@@ -347,6 +362,56 @@ public class DataDspSlot extends BaseEntity
     public String getDspSlotName()
     {
         return dspSlotName;
+    }
+
+    public void setFillRate(Double fillRate)
+    {
+        this.fillRate = fillRate;
+    }
+
+    public Double getFillRate()
+    {
+        return fillRate;
+    }
+
+    public void setRequestLossRate(Double requestLossRate)
+    {
+        this.requestLossRate = requestLossRate;
+    }
+
+    public Double getRequestLossRate()
+    {
+        return requestLossRate;
+    }
+
+    public void setShowRate(Double showRate)
+    {
+        this.showRate = showRate;
+    }
+
+    public Double getShowRate()
+    {
+        return showRate;
+    }
+
+    public void setClickRate(Double clickRate)
+    {
+        this.clickRate = clickRate;
+    }
+
+    public Double getClickRate()
+    {
+        return clickRate;
+    }
+
+    public void setEcpm(Double ecpm)
+    {
+        this.ecpm = ecpm;
+    }
+
+    public Double getEcpm()
+    {
+        return ecpm;
     }
 
     @Override

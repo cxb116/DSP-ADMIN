@@ -1,6 +1,7 @@
 package com.ruoyi.web.controller.ad;
 
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,5 +101,15 @@ public class DspAdTypeController extends BaseController
     public AjaxResult remove(@PathVariable Long[] ids)
     {
         return toAjax(dspAdTypeService.deleteDspAdTypeByIds(ids));
+    }
+
+    /**
+     * 获取广告类型分布统计
+     */
+    @GetMapping("/distribution")
+    public AjaxResult getDistribution()
+    {
+        List<Map<String, Object>> distribution = dspAdTypeService.selectAdTypeDistribution();
+        return success(distribution);
     }
 }
