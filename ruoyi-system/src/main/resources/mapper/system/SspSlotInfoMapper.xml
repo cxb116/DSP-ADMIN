@@ -167,7 +167,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         )
         AND dsi.os_type = (SELECT sa.os_type FROM ssp_slot_info ssi LEFT JOIN ssp_app sa ON ssi.app_id = sa.id WHERE ssi.id = #{sspSlotId})
         AND dsi.ad_type_id = (SELECT ad_type_id FROM ssp_slot_info WHERE id = #{sspSlotId})
-        AND dsi.ad_scene_id = (SELECT ad_scene_id FROM ssp_slot_info WHERE id = #{sspSlotId})
+        AND (dsi.ad_scene_id = (SELECT ad_scene_id FROM ssp_slot_info WHERE id = #{sspSlotId})
+             OR dsi.ad_scene_id IS NULL
+             OR (SELECT ad_scene_id FROM ssp_slot_info WHERE id = #{sspSlotId}) IS NULL)
         ORDER BY dsi.id
     </select>
 </mapper>

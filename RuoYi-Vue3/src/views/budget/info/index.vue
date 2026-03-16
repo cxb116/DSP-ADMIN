@@ -498,6 +498,9 @@ const editRules = {
   osType: [
     { required: true, message: "操作系统类型不能为空", trigger: "change" }
   ],
+  adTypeId: [
+    { required: true, message: "广告类型不能为空", trigger: "change" }
+  ],
   dspSlotCode: [
     { required: true, message: "预算方广告位不能为空", trigger: "blur" }
   ],
