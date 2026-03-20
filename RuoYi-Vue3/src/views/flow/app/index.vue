@@ -188,7 +188,7 @@
                     <el-input v-model="form.name" placeholder="请输入应用名称" />
                 </el-form-item>
                 <el-form-item label="操作系统" prop="osType">
-                    <el-select v-model="form.osType" placeholder="请选择操作系统">
+                    <el-select v-model="form.osType" placeholder="请选择操作系统" :disabled="form.id != null">
                         <el-option
                                 v-for="dict in os_type"
                                 :key="dict.value"
