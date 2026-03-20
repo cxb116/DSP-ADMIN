@@ -1,9 +1,12 @@
 package com.ruoyi.system.domain;
 
+import com.alibaba.fastjson2.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import com.ruoyi.common.annotation.Excel;
 import com.ruoyi.common.core.domain.BaseEntity;
+import java.util.Map;
 
 /**
  * 产品管理对象 dsp_product
@@ -26,32 +29,35 @@ public class DspProduct extends BaseEntity
     @Excel(name = "公司id")
     private Long companyId;
 
-    public void setId(Long id) 
+    public void setId(Long id)
     {
         this.id = id;
     }
 
-    public Long getId() 
+    @JSONField(name = "id")
+    public Long getId()
     {
         return id;
     }
 
-    public void setName(String name) 
+    public void setName(String name)
     {
         this.name = name;
     }
 
-    public String getName() 
+    @JSONField(name = "name")
+    public String getName()
     {
         return name;
     }
 
-    public void setCompanyId(Long companyId) 
+    public void setCompanyId(Long companyId)
     {
         this.companyId = companyId;
     }
 
-    public Long getCompanyId() 
+    @JSONField(name = "company_id")
+    public Long getCompanyId()
     {
         return companyId;
     }
@@ -68,5 +74,16 @@ public class DspProduct extends BaseEntity
             .append("updateTime", getUpdateTime())
             .append("remark", getRemark())
             .toString();
+    }
+
+    /**
+     * 重写 getParams，序列化到 etcd 时忽略 params 字段
+     */
+    @JSONField(serialize = false)
+    @JsonIgnore
+    @Override
+    public Map<String, Object> getParams()
+    {
+        return super.getParams();
     }
 }

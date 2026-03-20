@@ -8,7 +8,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.system.mapper.DspSlotInfoMapper;
+import com.ruoyi.system.mapper.DspProductMapper;
 import com.ruoyi.system.domain.DspSlotInfo;
+import com.ruoyi.system.domain.DspProduct;
 import com.ruoyi.system.service.IDspSlotInfoService;
 
 /**
@@ -24,6 +26,9 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
 
     @Autowired
     private DspSlotInfoMapper dspSlotInfoMapper;
+
+    @Autowired
+    private DspProductMapper dspProductMapper;
 
     @Autowired(required = false)
     private EtcdTemplate etcdTemplate;
@@ -90,6 +95,14 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
                 DspSlotInfo latest = list.get(0);
                 logger.info("✅ 数据库插入成功，获取到 ID: {}", latest.getId());
 
+                // 查询产品名称用于 etcd 同步
+                if (latest.getProductId() != null)
+                {
+                    DspProduct product = dspProductMapper.selectDspProductById(latest.getProductId());
+                    latest.setProductName(product != null ? product.getName() : null);
+                    logger.debug("设置产品信息 - productId: {}, productName: {}", latest.getProductId(), latest.getProductName());
+                }
+
                 // 同步到 etcd
                 if (etcdTemplate != null && latest.getId() != null)
                 {
@@ -135,6 +148,15 @@ public class DspSlotInfoServiceImpl implements IDspSlotInfoService
             {
                 // 查询最新数据
                 DspSlotInfo latest = dspSlotInfoMapper.selectDspSlotInfoById(dspSlotInfo.getId());
+
+                // 查询产品名称用于 etcd 同步
+                if (latest.getProductId() != null)
+                {
+                    DspProduct product = dspProductMapper.selectDspProductById(latest.getProductId());
+                    latest.setProductName(product != null ? product.getName() : null);
+                    logger.debug("设置产品信息 - productId: {}, productName: {}", latest.getProductId(), latest.getProductName());
+                }
+
                 etcdTemplate.syncUpdate("dsp", latest.getId(), latest);
                 logger.info("✅ etcd 更新成功 - ID: {}", latest.getId());
             }
