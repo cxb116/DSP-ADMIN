@@ -121,9 +121,9 @@
           {{ scope.row.name }}({{ scope.row.id }})
         </template>
       </el-table-column>
-      <el-table-column label="产品" align="center" prop="product_id" width="200">
+      <el-table-column label="产品" align="center" prop="dsp_product_id" width="200">
         <template #default="scope">
-          {{ getProductName(scope.row.product_id) }}
+          {{ getProductName(scope.row.dsp_product_id) }}
         </template>
       </el-table-column>
       <el-table-column label="公司" align="center" prop="company_id" width="150">
