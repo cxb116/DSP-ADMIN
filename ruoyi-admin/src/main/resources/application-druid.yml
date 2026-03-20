@@ -7,9 +7,9 @@ spring:
             # 主库数据源
             master:
 #                url: jdbc:mysql://127.0.0.1:3306/dsp-admin?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
-                url: jdbc:mysql://115.191.52.226:3306/dsp-admin?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+                url: jdbc:mysql://117.72.67.186:3306/dsp-admin?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
                 username: root
-                password: root123456
+                password: Chen@666
 #                password: root
             # 从库数据源
             slave:
