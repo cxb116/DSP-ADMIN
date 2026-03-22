@@ -598,8 +598,8 @@
                       <span class="title-text">
                         {{ slot.name || 'DSP广告位' }}（ID: {{ slot.dspSlotInfoId }} 操作系统：{{ slot.osType == 1 ? 'Android' : slot.osType == 2 ? 'iOS' : '未知' }}）
                       </span>
-                      <el-tag size="small" type="primary" style="margin-left: 8px;">
-                        {{ slot.dspPayType == 1 || slot.dspPayType == '1' ? '分成' : 'RTB' }}
+                      <el-tag size="small" :type="Number(slot.dspPayType) === 1 ? 'success' : 'primary'" style="margin-left: 8px;">
+                        {{ Number(slot.dspPayType) === 1 ? '分成' : 'RTB' }}
                       </el-tag>
                       <el-tag v-if="slot.deleted" size="small" type="danger" style="margin-left: 8px;">已删除（未保存）</el-tag>
                     </div>
@@ -781,34 +781,85 @@
     <el-dialog
       v-model="selectSlotDialogVisible"
       title="流量拆分 - 选择 DSP 广告位"
-      width="900px"
+      width="1200px"
       append-to-body
     >
+      <!-- 检索表单 -->
+      <el-form :model="slotQueryParams" ref="slotQueryRef" :inline="true" label-width="80px" style="margin-bottom: 16px;">
+        <el-form-item label="操作系统" prop="osType">
+          <el-select
+            v-model="slotQueryParams.osType"
+            placeholder="请选择操作系统"
+            clearable
+            style="width: 150px"
+          >
+            <el-option label="Android" :value="1" />
+            <el-option label="iOS" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="广告类型" prop="adTypeId">
+          <el-select
+            v-model="slotQueryParams.adTypeId"
+            placeholder="请选择广告类型"
+            clearable
+            style="width: 150px"
+          >
+            <el-option
+              v-for="item in adTypeList"
+              :key="item.id"
+              :label="item.name"
+              :value="item.id"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="广告位编码" prop="dspSlotCode">
+          <el-input
+            v-model="slotQueryParams.dspSlotCode"
+            placeholder="请输入广告位编码"
+            clearable
+            style="width: 200px"
+            @keyup.enter="handleSlotQuery"
+          />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" icon="Search" @click="handleSlotQuery">搜索</el-button>
+          <el-button icon="Refresh" @click="handleResetSlotQuery">重置</el-button>
+        </el-form-item>
+      </el-form>
+
       <el-table
-        :data="matchedDspSlots"
+        :data="filteredMatchedDspSlots"
         @selection-change="handleSlotSelectionChange"
         style="width: 100%"
       >
         <el-table-column type="selection" width="55" align="center" fixed />
-        <el-table-column label="预算方名称" align="center" prop="name" width="150" fixed />
-        <el-table-column label="操作系统" align="center" prop="osType" width="100">
+        <el-table-column label="预算方名称" align="center" prop="name" width="200" fixed />
+        <el-table-column label="操作系统" align="center" width="100">
           <template #default="scope">
-            <el-tag v-if="scope.row.osType === 1" type="success">Android</el-tag>
-            <el-tag v-else-if="scope.row.osType === 2" type="primary">iOS</el-tag>
+            <el-tag v-if="getOsTypeValue(scope.row) === 1" type="success">Android</el-tag>
+            <el-tag v-else-if="getOsTypeValue(scope.row) === 2" type="primary">iOS</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="广告类型" align="center" prop="adTypeId" width="120">
+        <el-table-column label="广告类型" align="center" width="120">
           <template #default="scope">
-            {{ getAdTypeName(scope.row.adTypeId) }}
+            {{ getAdTypeName(getAdTypeIdValue(scope.row)) }}
           </template>
         </el-table-column>
-        <el-table-column label="广告位编码" align="center" prop="dspSlotCode" width="150" />
-        <el-table-column label="DSP AppKey" align="center" prop="dspAppKey" width="150" />
-        <el-table-column label="结算方式" align="center" prop="dspPayType" width="100">
+        <el-table-column label="广告位编码" align="center" width="180">
           <template #default="scope">
-            <el-tag v-if="scope.row.dspPayType == 1 || scope.row.dspPayType == '1'" type="success">分成</el-tag>
-            <el-tag v-else-if="scope.row.dspPayType == 2 || scope.row.dspPayType == '2'" type="primary">RTB</el-tag>
+            {{ getDspSlotCodeValue(scope.row) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="DSP AppKey" align="center" width="180">
+          <template #default="scope">
+            {{ getDspAppKeyValue(scope.row) }}
+          </template>
+        </el-table-column>
+        <el-table-column label="结算方式" align="center" width="100">
+          <template #default="scope">
+            <el-tag v-if="getDspPayTypeValue(scope.row) == 1" type="success">分成</el-tag>
+            <el-tag v-else-if="getDspPayTypeValue(scope.row) == 2" type="primary">RTB</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </template>
         </el-table-column>
@@ -942,6 +993,39 @@ const selectSlotDialogVisible = ref(false)
 const matchedDspSlots = ref([])
 // 选中的DSP广告位ID列表
 const selectedDspSlotIds = ref([])
+
+// 弹窗检索参数
+const slotQueryParams = ref({
+  osType: null,
+  adTypeId: null,
+  dspSlotCode: null
+})
+
+// 过滤后的DSP广告位列表
+const filteredMatchedDspSlots = computed(() => {
+  let filtered = matchedDspSlots.value
+
+  // 按操作系统过滤（兼容驼峰和下划线）
+  if (slotQueryParams.value.osType !== null && slotQueryParams.value.osType !== '') {
+    filtered = filtered.filter(slot => getOsTypeValue(slot) === slotQueryParams.value.osType)
+  }
+
+  // 按广告类型过滤（兼容驼峰和下划线）
+  if (slotQueryParams.value.adTypeId !== null && slotQueryParams.value.adTypeId !== '') {
+    filtered = filtered.filter(slot => getAdTypeIdValue(slot) === slotQueryParams.value.adTypeId)
+  }
+
+  // 按广告位编码过滤（模糊匹配，兼容驼峰和下划线）
+  if (slotQueryParams.value.dspSlotCode) {
+    const code = slotQueryParams.value.dspSlotCode.toLowerCase()
+    filtered = filtered.filter(slot => {
+      const slotCode = getDspSlotCodeValue(slot)
+      return slotCode && slotCode.toLowerCase().includes(code)
+    })
+  }
+
+  return filtered
+})
 
 // 计算总流量权重（所有已绑定的DSP广告位的权重之和，排除已删除的）
 const totalTrafficWeight = computed(() => {
@@ -1554,6 +1638,9 @@ async function handleAddSlot() {
     console.log('SSP广告位ID:', sspSlotId)
     console.log('当前SSP广告位信息:', configMediaAd.value)
     console.log('后端返回的原始数据:', response.data)
+    if (matchedSlots.length > 0) {
+      console.log('第一条数据示例:', JSON.stringify(matchedSlots[0], null, 2))
+    }
     console.log('matchedSlots 数量:', matchedSlots.length)
     console.log('已绑定的DSP广告位数量:', slotList.value.length)
 
@@ -1610,21 +1697,21 @@ function handleConfirmSelectSlot() {
         id: null,
         dspSlotInfoId: matchedSlot.id,
         name: matchedSlot.name || 'DSP广告位',
-        osType: matchedSlot.os_type,
-        adTypeId: matchedSlot.ad_type_id,
-        adSceneId: matchedSlot.ad_scene_id,
-        adSizeId: matchedSlot.ad_size_id,
-        dspSlotCode: matchedSlot.dsp_slot_code || '',
-        dspAppKey: matchedSlot.dsp_app_key || '',
-        dspAppSecret: matchedSlot.dsp_app_secret || '',
-        dspAppId: matchedSlot.dsp_app_id || '',
-        dspAppPkg: matchedSlot.dsp_app_pkg || '',
-        dspAppVer: matchedSlot.dsp_app_ver || '',
-        dspAppStoreVer: matchedSlot.dsp_app_store_ver || '',
-        priceEncryptKey: matchedSlot.price_encrypt_key || '',
-        dspAppStoreLink: matchedSlot.dsp_app_store_link || '',
-        dspPayType: matchedSlot.dsp_pay_type,  // 使用下划线命名
-        dspDealRatio: matchedSlot.dsp_deal_ratio,
+        osType: getOsTypeValue(matchedSlot),
+        adTypeId: getAdTypeIdValue(matchedSlot),
+        adSceneId: matchedSlot.ad_scene_id !== undefined ? matchedSlot.ad_scene_id : matchedSlot.adSceneId,
+        adSizeId: matchedSlot.ad_size_id !== undefined ? matchedSlot.ad_size_id : matchedSlot.adSizeId,
+        dspSlotCode: getDspSlotCodeValue(matchedSlot) || '',
+        dspAppKey: getDspAppKeyValue(matchedSlot) || '',
+        dspAppSecret: matchedSlot.dsp_app_secret !== undefined ? matchedSlot.dsp_app_secret : matchedSlot.dspAppSecret || '',
+        dspAppId: matchedSlot.dsp_app_id !== undefined ? matchedSlot.dsp_app_id : matchedSlot.dspAppId || '',
+        dspAppPkg: matchedSlot.dsp_app_pkg !== undefined ? matchedSlot.dsp_app_pkg : matchedSlot.dspAppPkg || '',
+        dspAppVer: matchedSlot.dsp_app_ver !== undefined ? matchedSlot.dsp_app_ver : matchedSlot.dspAppVer || '',
+        dspAppStoreVer: matchedSlot.dsp_app_store_ver !== undefined ? matchedSlot.dsp_app_store_ver : matchedSlot.dspAppStoreVer || '',
+        priceEncryptKey: matchedSlot.price_encrypt_key !== undefined ? matchedSlot.price_encrypt_key : matchedSlot.priceEncryptKey || '',
+        dspAppStoreLink: matchedSlot.dsp_app_store_link !== undefined ? matchedSlot.dsp_app_store_link : matchedSlot.dspAppStoreLink || '',
+        dspPayType: getDspPayTypeValue(matchedSlot),
+        dspDealRatio: matchedSlot.dsp_deal_ratio !== undefined ? matchedSlot.dsp_deal_ratio : matchedSlot.dspDealRatio,
         // 投放配置字段
         trafficWeight: 0,
         launchStrategy: 1,
@@ -1653,6 +1740,48 @@ function handleConfirmSelectSlot() {
 /** 取消选择DSP广告位 */
 function handleCancelSelectSlot() {
   selectSlotDialogVisible.value = false
+  // 重置检索条件
+  handleResetSlotQuery()
+}
+
+/** DSP广告位弹窗检索 */
+function handleSlotQuery() {
+  // 检索逻辑由 computed 属性 filteredMatchedDspSlots 自动处理
+  console.log('执行检索，检索条件:', slotQueryParams.value)
+}
+
+/** DSP广告位弹窗重置检索 */
+function handleResetSlotQuery() {
+  slotQueryParams.value = {
+    osType: null,
+    adTypeId: null,
+    dspSlotCode: null
+  }
+}
+
+/** 获取操作系统类型值（兼容驼峰和下划线） */
+function getOsTypeValue(row) {
+  return row.os_type !== undefined ? row.os_type : row.osType
+}
+
+/** 获取广告类型ID值（兼容驼峰和下划线） */
+function getAdTypeIdValue(row) {
+  return row.ad_type_id !== undefined ? row.ad_type_id : row.adTypeId
+}
+
+/** 获取广告位编码值（兼容驼峰和下划线） */
+function getDspSlotCodeValue(row) {
+  return row.dsp_slot_code !== undefined ? row.dsp_slot_code : row.dspSlotCode
+}
+
+/** 获取DSP AppKey值（兼容驼峰和下划线） */
+function getDspAppKeyValue(row) {
+  return row.dsp_app_key !== undefined ? row.dsp_app_key : row.dspAppKey
+}
+
+/** 获取结算方式值（兼容驼峰和下划线） */
+function getDspPayTypeValue(row) {
+  return row.dsp_pay_type !== undefined ? row.dsp_pay_type : row.dspPayType
 }
 
 /** DSP广告位表格选择变化 */

@@ -116,12 +116,16 @@ public class EtcdTemplate
 
     /**
      * 构建 etcd key
-     * 格式：{prefix}/{type}/{action}/{id}
-     * 示例：/dsp/config/dsp/add/123
+     * 格式：{prefix}/{type}/{id}
+     * 示例：/dsp/config/dsp/123
+     *
+     * 统一 key 格式，移除 action，使得接收端只需监听一个前缀即可接收所有操作
+     * - 添加/更新：使用 PUT 操作写入数据
+     * - 删除：使用 DELETE 操作删除 key
      */
     private String buildKey(String type, String action, Long id)
     {
-        return String.format("%s/%s/%s/%d", properties.getPrefix(), type, action, id);
+        return String.format("%s/%s/%d", properties.getPrefix(), type, id);
     }
 
     /**
