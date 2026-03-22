@@ -109,6 +109,12 @@ public class DataDspSlot extends BaseEntity
     /** 预算广告位名称（关联查询，不属于表字段） */
     private String dspSlotName;
 
+    /** 查询开始日期（不属于表字段，用于查询） */
+    private String beginDate;
+
+    /** 查询结束日期（不属于表字段，用于查询） */
+    private String endDate;
+
     /** 填充率（计算字段，不属于表字段） */
     private Double fillRate;
 
@@ -362,6 +368,26 @@ public class DataDspSlot extends BaseEntity
     public String getDspSlotName()
     {
         return dspSlotName;
+    }
+
+    public void setBeginDate(String beginDate)
+    {
+        this.beginDate = beginDate;
+    }
+
+    public String getBeginDate()
+    {
+        return beginDate;
+    }
+
+    public void setEndDate(String endDate)
+    {
+        this.endDate = endDate;
+    }
+
+    public String getEndDate()
+    {
+        return endDate;
     }
 
     public void setFillRate(Double fillRate)

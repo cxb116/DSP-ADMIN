@@ -55,15 +55,15 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="创建时间" label-width="90">
+      <el-form-item :label="tableType === 'day' ? '日期' : '时间'" label-width="90">
         <el-date-picker
           v-model="dateRange"
-          value-format="YYYY-MM-DD HH:mm:ss"
-          type="daterange"
+          :value-format="tableType === 'day' ? 'YYYYMMDD' : 'YYYYMMDDHH'"
+          :type="tableType === 'day' ? 'daterange' : 'datetimerange'"
           range-separator="-"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
-          :default-time="[new Date(2026, 1, 1, 0, 0, 0), new Date(2026, 1, 1, 23, 59, 59)]"
+          :start-placeholder="tableType === 'day' ? '开始日期' : '开始时间'"
+          :end-placeholder="tableType === 'day' ? '结束日期' : '结束时间'"
+          :format="tableType === 'day' ? 'YYYY-MM-DD' : 'YYYY-MM-DD HH:00'"
         />
       </el-form-item>
       <el-form-item>
@@ -81,32 +81,11 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['data:data_ssp_slot:add']"
-        >新增</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
           type="success"
           plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['data:data_ssp_slot:edit']"
-        >修改</el-button>
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['data:data_ssp_slot:remove']"
-        >删除</el-button>
+          icon="TrendCharts"
+          @click="handleShowChart"
+        >图表</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -241,6 +220,18 @@
       @pagination="getList"
     />
 
+    <!-- 图表对话框 -->
+    <el-dialog
+      v-model="chartDialogVisible"
+      title="填充率与展现率趋势图"
+      width="80%"
+      :close-on-click-modal="false"
+      @opened="handleChartDialogOpened"
+      @closed="handleChartDialogClosed"
+    >
+      <div ref="chartRef" style="width: 100%; height: 500px;"></div>
+    </el-dialog>
+
   </div>
 </template>
 
@@ -248,8 +239,11 @@
 import { listData_ssp_slot, getData_ssp_slot, delData_ssp_slot, addData_ssp_slot, updateData_ssp_slot } from "@/api/data/dataSspSlot.js"
 import { listMedia } from "@/api/flow/media.js"
 import { listApp } from "@/api/flow/app.js"
+import * as echarts from 'echarts'
 
 const { proxy } = getCurrentInstance()
+const chartRef = ref(null)
+let chartInstance = null
 
 const data_ssp_slotList = ref([])
 const open = ref(false)
@@ -264,6 +258,7 @@ const dateRange = ref([])
 const tableType = ref('day') // 表类型: 'day' 或 'hour'
 const mediaList = ref([]) // 媒体列表
 const appList = ref([]) // 应用列表
+const chartDialogVisible = ref(false) // 图表对话框显示状态
 
 const data = reactive({
   form: {},
@@ -365,15 +360,25 @@ function generateTableName() {
 /** 表类型切换处理 */
 function handleTableTypeChange() {
   queryParams.value.pageNum = 1
+  // 清空日期范围，因为天表和小时表的日期格式不同
+  dateRange.value = []
   getList()
 }
 
 /** 查询媒体数据报表列表 */
 function getList() {
   loading.value = true
-  const params = proxy.addDateRange(queryParams.value, dateRange.value, 'createdAt')
+  const params = { ...queryParams.value }
+
+  // 处理日期范围参数
+  if (dateRange.value && dateRange.value.length === 2) {
+    params.beginDate = dateRange.value[0]
+    params.endDate = dateRange.value[1]
+  }
+
   // 添加动态表名参数
   params.tableName = generateTableName()
+
   listData_ssp_slot(params).then(response => {
     data_ssp_slotList.value = response.rows
     total.value = response.total
@@ -495,6 +500,148 @@ function handleExport() {
     ...queryParams.value,
     tableName: generateTableName()
   }, `data_ssp_slot_${new Date().getTime()}.xlsx`)
+}
+
+/** 显示图表对话框 */
+function handleShowChart() {
+  chartDialogVisible.value = true
+}
+
+/** 图表对话框打开后的回调 */
+function handleChartDialogOpened() {
+  initChart()
+  updateChart()
+}
+
+/** 图表对话框关闭后的回调 */
+function handleChartDialogClosed() {
+  if (chartInstance) {
+    chartInstance.dispose()
+    chartInstance = null
+  }
+}
+
+/** 初始化图表 */
+function initChart() {
+  if (!chartRef.value) return
+  chartInstance = echarts.init(chartRef.value)
+  const option = {
+    title: {
+      text: '填充率与展现率趋势',
+      left: 'center',
+      top: 10
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross'
+      }
+    },
+    legend: {
+      data: ['填充率', '展现率'],
+      top: 40
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: []
+    },
+    yAxis: {
+      type: 'value',
+      name: '百分比(%)',
+      axisLabel: {
+        formatter: '{value}%'
+      }
+    },
+    series: [
+      {
+        name: '填充率',
+        type: 'line',
+        smooth: true,
+        data: [],
+        itemStyle: {
+          color: '#67C23A'
+        },
+        areaStyle: {
+          opacity: 0.3
+        }
+      },
+      {
+        name: '展现率',
+        type: 'line',
+        smooth: true,
+        data: [],
+        itemStyle: {
+          color: '#409EFF'
+        },
+        areaStyle: {
+          opacity: 0.3
+        }
+      }
+    ]
+  }
+  chartInstance.setOption(option)
+
+  // 响应式调整
+  window.addEventListener('resize', handleChartResize)
+}
+
+/** 图表响应式调整 */
+function handleChartResize() {
+  chartInstance?.resize()
+}
+
+/** 更新图表数据 */
+function updateChart() {
+  if (!chartInstance || !data_ssp_slotList.value || data_ssp_slotList.value.length === 0) {
+    return
+  }
+
+  // 提取数据并按日期排序
+  const chartData = [...data_ssp_slotList.value].sort((a, b) => {
+    return (a.date || '').toString().localeCompare((b.date || '').toString())
+  })
+
+  const dates = chartData.map(item => {
+    const dateValue = item.date
+    if (!dateValue) return '-'
+    const dateStr = dateValue.toString()
+    if (dateStr.length === 10) {
+      return `${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)} ${dateStr.substring(8, 10)}:00`
+    }
+    if (dateStr.length === 8) {
+      return `${dateStr.substring(4, 6)}-${dateStr.substring(6, 8)}`
+    }
+    return dateStr
+  })
+
+  const fillRates = chartData.map(item =>
+    item.fillRate !== null && item.fillRate !== undefined ? item.fillRate.toFixed(2) : 0
+  )
+
+  const showRates = chartData.map(item =>
+    item.showRate !== null && item.showRate !== undefined ? item.showRate.toFixed(2) : 0
+  )
+
+  chartInstance.setOption({
+    xAxis: {
+      data: dates
+    },
+    series: [
+      {
+        data: fillRates
+      },
+      {
+        data: showRates
+      }
+    ]
+  })
 }
 
 getList()

@@ -32,7 +32,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     <select id="selectSspMediaList" parameterType="SspMedia" resultMap="SspMediaResult">
         <include refid="selectSspMediaVo"/>
-        <where>  
+        <where>
             <if test="name != null  and name != ''"> and name like concat('%', #{name}, '%')</if>
             <if test="account != null  and account != ''"> and account = #{account}</if>
             <if test="password != null  and password != ''"> and password = #{password}</if>
@@ -45,8 +45,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             <if test="contactName != null  and contactName != ''"> and contact_name like concat('%', #{contactName}, '%')</if>
             <if test="contactPhone != null  and contactPhone != ''"> and contact_phone = #{contactPhone}</if>
             <if test="contactEmail != null  and contactEmail != ''"> and contact_email = #{contactEmail}</if>
-            <if test="enable != null "> and enable = #{enable}</if>
+            <choose>
+                <when test="enable != null "> and enable = #{enable}</when>
+                <otherwise> and enable = 1</otherwise>
+            </choose>
         </where>
+        order by id desc
     </select>
     
     <select id="selectSspMediaById" parameterType="Long" resultMap="SspMediaResult">

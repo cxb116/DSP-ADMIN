@@ -40,7 +40,20 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <select id="selectDataDspSlotList" parameterType="DataDspSlot" resultMap="DataDspSlotResult">
         <include refid="selectDataDspSlotVo"/>
         <where>
+            <if test="dspSlotId != null">
+                AND t.dsp_slot_id = #{dspSlotId}
+            </if>
+            <if test="dspSlotCode != null and dspSlotCode != ''">
+                AND t.dsp_slot_code = #{dspSlotCode}
+            </if>
+            <if test="beginDate != null and beginDate != ''">
+                AND t.date &gt;= #{beginDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND t.date &lt;= #{endDate}
+            </if>
         </where>
+        ORDER BY t.date DESC
     </select>
 
     <select id="selectDataDspSlotById" parameterType="DataDspSlot" resultMap="DataDspSlotResult">

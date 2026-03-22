@@ -24,7 +24,7 @@ public class DataSspSlot extends BaseEntity
 
     /** 媒体用户Id */
     @Excel(name = "媒体用户Id")
-    private Long meidaId;
+    private Long mediaId;
 
     /** 应用ID */
     @Excel(name = "应用ID")
@@ -121,6 +121,9 @@ public class DataSspSlot extends BaseEntity
     /** 应用名称（关联查询，不属于表字段） */
     private String appName;
 
+    /** 媒体名称（关联查询，不属于表字段） */
+    private String mediaName;
+
     /** 媒体广告位名称（关联查询，不属于表字段） */
     private String sspSlotName;
 
@@ -152,14 +155,14 @@ public class DataSspSlot extends BaseEntity
         return id;
     }
 
-    public void setMeidaId(Long meidaId) 
+    public void setMediaId(Long mediaId)
     {
-        this.meidaId = meidaId;
+        this.mediaId = mediaId;
     }
 
-    public Long getMeidaId() 
+    public Long getMediaId()
     {
-        return meidaId;
+        return mediaId;
     }
 
     public void setAppId(Long appId) 
@@ -412,6 +415,16 @@ public class DataSspSlot extends BaseEntity
         return appName;
     }
 
+    public void setMediaName(String mediaName)
+    {
+        this.mediaName = mediaName;
+    }
+
+    public String getMediaName()
+    {
+        return mediaName;
+    }
+
     public void setSspSlotName(String sspSlotName)
     {
         this.sspSlotName = sspSlotName;
@@ -486,7 +499,7 @@ public class DataSspSlot extends BaseEntity
     public String toString() {
         return new ToStringBuilder(this,ToStringStyle.MULTI_LINE_STYLE)
             .append("id", getId())
-            .append("meidaId", getMeidaId())
+            .append("mediaId", getMediaId())
             .append("appId", getAppId())
             .append("sspSlotId", getSspSlotId())
             .append("dspSlotId", getDspSlotId())
