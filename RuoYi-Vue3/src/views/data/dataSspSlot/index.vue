@@ -1,21 +1,35 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="媒体用户" prop="meidaId">
-        <el-input
-          v-model="queryParams.meidaId"
-          placeholder="请输入媒体用户"
+      <el-form-item label="媒体用户" prop="mediaId">
+        <el-select
+          v-model="queryParams.mediaId"
+          placeholder="请选择媒体用户"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          filterable
+        >
+          <el-option
+            v-for="item in mediaList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="应用" prop="appId">
-        <el-input
+        <el-select
           v-model="queryParams.appId"
-          placeholder="请输入应用"
+          placeholder="请选择应用"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          filterable
+        >
+          <el-option
+            v-for="item in appList"
+            :key="item.id"
+            :label="item.name"
+            :value="item.id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="媒体广告位" label-width="90" prop="sspSlotId">
         <el-input
@@ -114,7 +128,13 @@
         </template>
       </el-table-column>
 <!--      <el-table-column label="主键" align="center" prop="id" />-->
-<!--      <el-table-column label="媒体用户" align="center" width="55" prop="meidaId" />-->
+<!--      <el-table-column label="媒体用户" align="center" width="55" prop="mediaId" />-->
+      <el-table-column label="媒体" align="center" width="150" prop="mediaName">
+        <template #default="scope">
+          <span v-if="scope.row.mediaName">{{ scope.row.mediaName }}</span>
+          <span v-else>-</span>
+        </template>
+      </el-table-column>
       <el-table-column label="应用" align="center" width="150" prop="appName">
         <template #default="scope">
           <span v-if="scope.row.appName">{{ scope.row.appName }}（{{ scope.row.appId }}）</span>
@@ -226,6 +246,8 @@
 
 <script setup name="Data_ssp_slot">
 import { listData_ssp_slot, getData_ssp_slot, delData_ssp_slot, addData_ssp_slot, updateData_ssp_slot } from "@/api/data/dataSspSlot.js"
+import { listMedia } from "@/api/flow/media.js"
+import { listApp } from "@/api/flow/app.js"
 
 const { proxy } = getCurrentInstance()
 
@@ -240,13 +262,15 @@ const total = ref(0)
 const title = ref("")
 const dateRange = ref([])
 const tableType = ref('day') // 表类型: 'day' 或 'hour'
+const mediaList = ref([]) // 媒体列表
+const appList = ref([]) // 应用列表
 
 const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    meidaId: null,
+    mediaId: null,
     appId: null,
     sspSlotId: null,
     dspSlotId: null,
@@ -309,6 +333,20 @@ function formatDate(dateValue) {
   return dateStr
 }
 
+/** 获取媒体列表 */
+function getMediaList() {
+  listMedia().then(response => {
+    mediaList.value = response.rows || []
+  })
+}
+
+/** 获取应用列表 */
+function getAppList() {
+  listApp().then(response => {
+    appList.value = response.rows || []
+  })
+}
+
 /** 生成表名 */
 function generateTableName() {
   const now = new Date()
@@ -353,7 +391,7 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    meidaId: null,
+    mediaId: null,
     appId: null,
     sspSlotId: null,
     dspSlotId: null,
@@ -460,4 +498,6 @@ function handleExport() {
 }
 
 getList()
+getMediaList()
+getAppList()
 </script>
