@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,7 +53,7 @@ public class DataSspSlotController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('data:data_ssp_slot:export')")
     @Log(title = "媒体数据报表", businessType = BusinessType.EXPORT)
-    @GetMapping("/export")
+    @PostMapping("/export")
     public void export(HttpServletResponse response, DataSspSlot dataSspSlot)
     {
         List<DataSspSlot> list = dataSspSlotService.selectDataSspSlotList(dataSspSlot);
