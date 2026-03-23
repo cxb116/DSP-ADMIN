@@ -51,7 +51,7 @@ public class DspSlotInfoController extends BaseController
      */
     @PreAuthorize("@ss.hasPermi('budget:info:export')")
     @Log(title = "预算广告位", businessType = BusinessType.EXPORT)
-    @PostMapping("/export")
+    @GetMapping("/export")
     public void export(HttpServletResponse response, DspSlotInfo dspSlotInfo)
     {
         List<DspSlotInfo> list = dspSlotInfoService.selectDspSlotInfoList(dspSlotInfo);
